@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Planner from "./pages/Planner";
+import ResourcesHub from "./pages/ResourcesHub";
 import InterviewChatbot from "./pages/InterviewChatbot";
 import NotFound from "./pages/NotFound";
 
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/" element={<AppLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="/planner" element={<Planner />} />
+              <Route path="/resources" element={<ResourcesHub />} />
               <Route path="/interview" element={<InterviewChatbot />} />
               {/* Add other page routes here as they're implemented */}
             </Route>
