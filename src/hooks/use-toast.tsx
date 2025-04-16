@@ -1,4 +1,3 @@
-
 import * as React from "react"
 
 import type {
@@ -206,11 +205,9 @@ type Toast = Omit<ToasterToast, "id">
 // Export a singleton toast function for use outside of React components
 export const toast = {
   // Placeholder that will be replaced when the ToastProvider is rendered
+  __proto__: null as any,
   // This ensures that the toast function is available even before the ToastProvider is rendered
   // But it will throw an error if used before the ToastProvider is rendered
-  (...args: any[]): any {
-    throw new Error("toast provider not found");
-  }
 } as {
   (props: Toast): {
     id: string;
@@ -218,3 +215,6 @@ export const toast = {
     update: (props: ToasterToast) => void;
   };
 };
+
+// Setup a handler to initialize the toast function when the provider is mounted
+let dispatch: React.Dispatch<Action>;
