@@ -1,6 +1,7 @@
+
 import * as React from "react"
-import { ToastContext } from "./toast-context"
-import { Toast, ToasterToast } from "./toast-types"
+import { ToastContext } from "./toast/toast-context"
+import { Toast, ToasterToast } from "./toast/toast-types"
 
 // Hook to use the toast context
 export function useToast() {
