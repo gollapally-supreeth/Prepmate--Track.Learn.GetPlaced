@@ -16,7 +16,7 @@ export function ProgressCard({ subject, progress, color = 'bg-primary' }: Progre
         <h3 className="font-medium text-sm">{subject}</h3>
         <span className="text-sm font-medium">{progress}%</span>
       </div>
-      <Progress value={progress} className="h-2" indicatorClassName={color} />
+      <Progress value={progress} className={`h-2 ${color}`} />
     </Card>
   );
 }
