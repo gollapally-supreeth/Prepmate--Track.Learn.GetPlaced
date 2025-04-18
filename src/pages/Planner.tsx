@@ -1,10 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TaskCard } from '@/components/TaskCard';
+import { PlannerTaskCard } from '@/components/PlannerTaskCard';
 import { 
   Search, 
   PlusCircle, 
@@ -21,6 +21,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Label } from '@/components/ui/label';
+
+interface Task {
+  id: number;
+  title: string;
+  description: string;
+  dueTime: string;
+  subject: string;
+  priority: 'High' | 'Medium' | 'Low';
+  status: 'todo' | 'in-progress' | 'completed';
+  
+  completed?: boolean;
+}
+
+interface NewTask extends Partial<Task> {
+  title: string;
+  description: string;
+  dueTime: string;
+}
 
 // Sample task data
 const sampleTasks = [
@@ -30,7 +49,8 @@ const sampleTasks = [
     dueTime: "Today, 8:00 PM",
     subject: "CSE",
     priority: "High" as const,
-    status: "todo"
+    status: "todo",
+    description: "Prepare for DSA assignment",
   },
   {
     id: 2,
@@ -38,7 +58,8 @@ const sampleTasks = [
     dueTime: "Today, 5:00 PM",
     subject: "Web Dev",
     priority: "Medium" as const,
-    status: "todo"
+    status: "todo",
+    description: "Complete web dev assignment",
   },
   {
     id: 3,
@@ -46,7 +67,8 @@ const sampleTasks = [
     dueTime: "Tomorrow, 12:00 PM",
     subject: "DBMS",
     priority: "Medium" as const,
-    status: "in-progress"
+    status: "in-progress",
+    description: "Study for sql joins",
   },
   {
     id: 4,
@@ -54,7 +76,8 @@ const sampleTasks = [
     dueTime: "Today, 3:00 PM",
     subject: "Operating Systems",
     priority: "Low" as const,
-    status: "in-progress"
+    status: "in-progress",
+    description: "Do some research for OS project",
   },
   {
     id: 5,
@@ -62,34 +85,96 @@ const sampleTasks = [
     dueTime: "Yesterday, 6:00 PM",
     subject: "Programming",
     priority: "Medium" as const,
-    status: "completed",
+    status: "completed" ,
+    description: "Complete some python problems",
     completed: true
+    
   },
   {
     id: 6,
     title: "Read Chapter 3 of Computer Networks",
     dueTime: "Yesterday, 7:00 PM",
     subject: "Networks",
-    priority: "High" as const,
-    status: "completed",
+     priority: "High" as const,
+     status: "completed",
+     description: "complete reading of CN chapter 3",
     completed: true
   },
 ];
 
 const Planner = () => {
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    if (typeof window !== 'undefined') {
+      const storedTasks = localStorage.getItem('plannerTasks');
+      return storedTasks ? JSON.parse(storedTasks) : sampleTasks;
+    }
+    return sampleTasks;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('plannerTasks', JSON.stringify(tasks));
+    }
+  }, [tasks]);
+  
+  const [newTask, setNewTask] = useState<NewTask>({ title: '', description: '', dueTime: '' });
+  
+  const handleAddTask = () => {
+    if (newTask.title && newTask.description && newTask.dueTime && newTask.subject && newTask.priority) {
+      const nextId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+      const fullNewTask: Task = { id: nextId, status: "todo", completed: false, ...newTask } as Task;
+      setTasks([...tasks, fullNewTask]);
+      setNewTask({ title: '', description: '', dueTime: '' });
+    }
+  };
+
+  const handleCompleteTask = (id: number) => {
+    setTasks(tasks.map(task => {
+      if (task.id === id) {
+        return { ...task, status: 'completed', completed: true };
+      }
+      return task;
+    }));
+  };
+
+  const handleMoveToInProgress = (id: number) => {
+    setTasks(tasks.map(task => {
+      if (task.id === id) {
+        return { ...task, status: 'in-progress' };
+      }
+      return task;
+    }));
+  };
+
+  const handleRemoveTask = (id: number) => {
+    setTasks(tasks.filter(task => task.id !== id));
+  };
+
+  const handleEditTask = (id: number, updatedTask: Partial<Task>) => {
+    setTasks(tasks.map(task => task.id === id ? { ...task, ...updatedTask } : task));
+  };
+
+  const handleStatusChange = (id: number, newStatus: Task['status']) => {
+    setTasks(tasks.map(task => task.id === id ? { ...task, status: newStatus } : task));
+  };
+
+
   const [filter, setFilter] = useState("all");
   const [subject, setSubject] = useState("all");
-  
-  // Filter tasks based on current filters
-  const filteredTasks = sampleTasks.filter(task => {
+
+  const filteredTasks = tasks.filter(task => {
+    
     if (filter !== "all" && task.status !== filter) return false;
     if (subject !== "all" && task.subject !== subject) return false;
     return true;
   });
   
+
+  
   const todoTasks = filteredTasks.filter(task => task.status === "todo");
   const inProgressTasks = filteredTasks.filter(task => task.status === "in-progress");
   const completedTasks = filteredTasks.filter(task => task.status === "completed");
+  const taskTitleRef = useRef<HTMLInputElement>(null);
   
   return (
     <div className="space-y-6 animate-fade-in">
@@ -141,10 +226,65 @@ const Planner = () => {
       </div>
       
       {/* Add Task Button */}
-      <Button className="gap-2">
-        <PlusCircle size={16} />
-        <span>Add New Task</span>
-      </Button>
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
+        <div className='space-y-1'>
+          <Label htmlFor="taskTitle" className="text-sm font-medium">Title</Label>
+          <Input
+            id="taskTitle"
+            className="border-gray-300 rounded-md text-sm"
+            placeholder="Enter task title"
+            ref={taskTitleRef}
+            value={newTask.title || ''}
+            onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+          />
+        </div>
+        <div className='space-y-1'>
+          <Label htmlFor="taskDescription" className="text-sm font-medium">Description</Label>
+          <Input
+            id="taskDescription"
+            className="border-gray-300 rounded-md text-sm"
+            placeholder="Enter task description"
+            value={newTask.description || ''}
+            onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+          />
+        </div>
+        <div className='space-y-1'>
+          <Label htmlFor="taskDueTime" className="text-sm font-medium">Due Time</Label>
+          <Input
+            id="taskDueTime"
+            className="border-gray-300 rounded-md text-sm"
+            placeholder="e.g., Today, 4:00 PM"
+            value={newTask.dueTime || ''}
+            onChange={(e) => setNewTask({ ...newTask, dueTime: e.target.value })}
+          />
+        </div>
+        <div className='space-y-1'>
+          <Label htmlFor="taskSubject" className="text-sm font-medium">Subject</Label>
+          <Input
+            id="taskSubject"
+            className="border-gray-300 rounded-md text-sm"
+            placeholder="e.g., CSE"
+            value={newTask.subject || ''}
+            onChange={(e) => setNewTask({ ...newTask, subject: e.target.value })}
+          />
+        </div>
+        <div className='space-y-1'>
+          <Label htmlFor="priority" className="text-sm font-medium">Priority</Label>
+          <Select onValueChange={(value) => setNewTask({ ...newTask, priority: value as "High" | "Medium" | "Low" })} defaultValue={"High"}>
+            <SelectTrigger id="priority" className="border-gray-300 rounded-md text-sm">
+              <SelectValue placeholder="Select priority" />
+            </SelectTrigger>
+            <SelectContent className='text-sm'>
+              <SelectItem value="High">High</SelectItem>
+              <SelectItem value="Medium">Medium</SelectItem>
+              <SelectItem value="Low">Low</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className='space-y-1 flex items-end'>
+          <Button size="sm" className="rounded-md" onClick={handleAddTask}>Add Task</Button>
+        </div>
+      </div>
       
       {/* Tasks Kanban Board */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -162,24 +302,44 @@ const Planner = () => {
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <PlusCircle size={16} />
               </Button>
-            </div>
+            </div> 
+          
+
           </div>
           <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto">
             {todoTasks.map(task => (
-              <TaskCard
-                key={task.id}
-                title={task.title}
-                dueTime={task.dueTime}
-                subject={task.subject}
-                priority={task.priority}
-                completed={task.completed}
-              />
+              <div className='flex flex-col'>
+                <PlannerTaskCard
+                  key={task.id}
+                  title={task.title}
+                  dueTime={task.dueTime}
+                  description={task.description}
+                  subject={task.subject}
+                  priority={task.priority}
+                  completed={task.completed}
+                  onComplete={handleCompleteTask}
+                  id={task.id}
+                  subject={task.subject}
+                  priority={task.priority}
+                  completed={task.completed}
+                  onComplete={handleCompleteTask}
+                  description={task.description}
+                  id={task.id}
+                  onMoveToInProgress={handleMoveToInProgress}
+                  onRemove={handleRemoveTask}
+                  />
+              </div>
             ))}
             {todoTasks.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-32 text-center">
-                <p className="text-muted-foreground text-sm">No tasks found</p>
-                <Button variant="ghost" size="sm" className="mt-2">
-                  Add Task
+              <div className="flex flex-col items-center justify-center h-32 text-center" >
+                 <p className="text-muted-foreground text-sm">No tasks found. Create a new task?</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => taskTitleRef.current?.focus()}
+                  >
+                New Task
                 </Button>
               </div>
             )}
@@ -204,14 +364,22 @@ const Planner = () => {
           </div>
           <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto">
             {inProgressTasks.map(task => (
-              <TaskCard
-                key={task.id}
-                title={task.title}
-                dueTime={task.dueTime}
-                subject={task.subject}
-                priority={task.priority}
-                completed={task.completed}
-              />
+              <div className='flex flex-col'>
+                <PlannerTaskCard
+                  key={task.id}
+                  title={task.title}
+                  dueTime={task.dueTime}
+                  description={task.description}
+                  subject={task.subject}
+                  priority={task.priority}
+                  completed={task.completed}
+                  onComplete={handleCompleteTask}
+                  description={task.description}
+                  id={task.id}
+                  onMoveToInProgress={handleMoveToInProgress}
+                  onRemove={handleRemoveTask}
+                  />
+              </div>
             ))}
             {inProgressTasks.length === 0 && (
               <div className="flex flex-col items-center justify-center h-32 text-center">
@@ -239,14 +407,22 @@ const Planner = () => {
           </div>
           <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto">
             {completedTasks.map(task => (
-              <TaskCard
-                key={task.id}
-                title={task.title}
-                dueTime={task.dueTime}
-                subject={task.subject}
-                priority={task.priority}
-                completed={task.completed}
-              />
+              <div className='flex flex-col'>
+                <PlannerTaskCard
+                  key={task.id}
+                  title={task.title}
+                  dueTime={task.dueTime}
+                  description={task.description}
+                  subject={task.subject}
+                  priority={task.priority}
+                  completed={task.completed}
+                  onComplete={handleCompleteTask}
+                  description={task.description}
+                  id={task.id}
+                  onMoveToInProgress={handleMoveToInProgress}
+                  onRemove={handleRemoveTask}
+                  />
+              </div>
             ))}
             {completedTasks.length === 0 && (
               <div className="flex flex-col items-center justify-center h-32 text-center">

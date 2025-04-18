@@ -9,12 +9,14 @@ interface ExamCountdownProps {
   daysLeft: number;
 }
 
-export function ExamCountdown({ examName, date, daysLeft }: ExamCountdownProps) {  
+export function ExamCountdown({ examName, date, daysLeft }: ExamCountdownProps) {
   const displayDate = date ? date : "Date not set";
-  const displayDaysLeft = date ? daysLeft : "-";
-
   return (
     <Card className="overflow-hidden">
+      <div className="absolute top-2 right-2 px-3 py-1 bg-primary rounded-l-md rounded-br-md text-xs text-primary-foreground">
+        {daysLeft} days left
+      </div>
+
       <CardContent className="p-6">
         <div className="flex justify-between items-start">
           <div>
@@ -24,10 +26,10 @@ export function ExamCountdown({ examName, date, daysLeft }: ExamCountdownProps) 
             </div>
             <h3 className="font-medium">{examName}</h3>
           </div>
-          
-          <div className="px-3 py-2 bg-primary/10 rounded-lg">
-            <p className="text-xs text-muted-foreground">Days Left</p>
-            <p className="text-xl font-bold text-primary text-center">{displayDaysLeft}</p>
+          <div className="flex flex-col gap-2 items-end">
+            <div className="bg-primary-foreground px-3 py-2 rounded-lg">
+              <p className="text-xl font-bold text-primary">{daysLeft}</p>
+            </div>
           </div>
         </div>
       </CardContent>

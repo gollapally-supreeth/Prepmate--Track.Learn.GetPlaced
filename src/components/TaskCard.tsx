@@ -8,17 +8,19 @@ interface TaskCardProps {
   title: string;
   dueTime: string;
   subject: string;
-  priority: 'High' | 'Medium' | 'Low';
+  priority: "High" | "Medium" | "Low";
   completed?: boolean;
+  id: number;
+  onComplete: (id: number) => void;
+
 }
 
-export function TaskCard({ title, dueTime, subject, priority, completed = false }: TaskCardProps) {
+export function TaskCard({ title, dueTime, subject, priority, completed = false, id, onComplete }: TaskCardProps) {
   const priorityColors = {
     High: 'text-focus-red',
     Medium: 'text-focus-yellow',
     Low: 'text-focus-green',
   };
-  
   return (
     <Card className={cn(
       "flex items-start gap-3 p-4 shadow-sm hover:shadow transition-shadow",
@@ -26,12 +28,16 @@ export function TaskCard({ title, dueTime, subject, priority, completed = false 
     )}>
       <div className="mt-1">
         {completed ? (
-          <CheckCircle2 size={18} className="text-focus-green" />
+          <CheckCircle2 size={18} className="text-focus-green" onClick={() => onComplete(id)} />
         ) : (
-          <div className={cn(
-            "w-4 h-4 rounded-full border-2",
-            priorityColors[priority]
-          )} />
+          <button
+            onClick={() => onComplete(id)}
+            className={cn(
+              "w-4 h-4 rounded-full border-2",
+              priorityColors[priority]
+            )}
+          >
+          </button>
         )}
       </div>
       <div className="flex-1">
@@ -49,9 +55,9 @@ export function TaskCard({ title, dueTime, subject, priority, completed = false 
           <div className="flex items-center gap-1">
             <Tag size={14} />
             <span>{subject}</span>
+            </div>
           </div>
         </div>
-      </div>
     </Card>
   );
 }
