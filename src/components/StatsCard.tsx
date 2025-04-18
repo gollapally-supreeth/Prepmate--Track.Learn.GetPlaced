@@ -5,17 +5,18 @@ import { cn } from '@/lib/utils';
 
 interface StatsCardProps {
   title: string;
-  value: string | number;
-  icon: ReactNode;
-  trend?: number;
-  trendLabel?: string;
-  className?: string;
+    value: string | number;
+    icon: ReactNode;
+    trend?: number;
+    trendLabel?: string;
+    className?: string;
+    onClick?: () => void;
 }
 
-export function StatsCard({ title, value, icon, trend, trendLabel, className }: StatsCardProps) {
+export function StatsCard({ title, value, icon, trend, trendLabel, className, onClick }: StatsCardProps) {
   return (
     <Card className={cn("overflow-hidden", className)}>
-      <CardContent className="p-6">
+        <div onClick={onClick} className={cn("p-6 cursor-pointer")}>
         <div className="flex justify-between items-start">
           <div>
             <p className="text-sm text-muted-foreground">{title}</p>
@@ -23,12 +24,9 @@ export function StatsCard({ title, value, icon, trend, trendLabel, className }: 
             
             {trend !== undefined && (
               <div className="flex items-center mt-1">
-                <span className={cn(
-                  "text-xs font-medium",
-                  trend > 0 ? "text-focus-green" : trend < 0 ? "text-focus-red" : "text-muted-foreground"
-                )}>
+                <span className="text-xs font-medium text-focus-green">
                   {trend > 0 ? '+' : ''}{trend}% {trendLabel || ''}
-                </span>
+                  </span>
               </div>
             )}
           </div>
@@ -36,8 +34,8 @@ export function StatsCard({ title, value, icon, trend, trendLabel, className }: 
           <div className="p-2 bg-primary/10 rounded-lg">
             {icon}
           </div>
+          </div>
         </div>
-      </CardContent>
     </Card>
   );
 }
