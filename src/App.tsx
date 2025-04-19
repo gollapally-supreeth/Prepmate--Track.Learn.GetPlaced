@@ -10,6 +10,9 @@ import Dashboard from "./pages/Dashboard";
 import Planner from "./pages/Planner";
 import ResourcesHub from "./pages/ResourcesHub";
 import InterviewChatbot from "./pages/InterviewChatbot";
+import Progress from "./pages/Progress";
+import Notes from "./pages/Notes";
+import Quizzes from "./pages/Quizzes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,8 +29,10 @@ const App = () => (
               <Route index element={<Dashboard />} />
               <Route path="/planner" element={<Planner />} />
               <Route path="/resources" element={<ResourcesHub />} />
+              <Route path="/notes" element={<Notes />} />
+              <Route path="/progress" element={<Progress />} />
+              <Route path="/quizzes" element={<Quizzes />} />
               <Route path="/interview" element={<InterviewChatbot />} />
-              {/* Add other page routes here as they're implemented */}
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
