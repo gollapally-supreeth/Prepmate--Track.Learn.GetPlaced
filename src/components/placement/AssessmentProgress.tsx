@@ -13,6 +13,8 @@ import {
   Layers,
   BrainCircuit
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock assessment data
 const assessmentCategories = [
@@ -61,16 +63,33 @@ const assessmentCategories = [
 ];
 
 const AssessmentProgress: React.FC = () => {
+  const { toast } = useToast();
+  
+  const handlePracticeMore = (category: string) => {
+    toast({
+      title: "Practice Mode",
+      description: `Starting practice session for ${category}`,
+    });
+  };
+  
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Assessment Progress</CardTitle>
-        <CardDescription>Track your progress across different technical areas</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Assessment Progress</CardTitle>
+          <CardDescription>Track your progress across different technical areas</CardDescription>
+        </div>
+        <Button size="sm" variant="outline" onClick={() => toast({
+          title: "All Assessments",
+          description: "View all your assessment results and analytics"
+        })}>
+          View All
+        </Button>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {assessmentCategories.map((category) => (
-            <div key={category.id} className="space-y-2">
+            <div key={category.id} className="space-y-2 bg-muted/30 hover:bg-muted/50 p-4 rounded-lg transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -85,6 +104,14 @@ const AssessmentProgress: React.FC = () => {
                 <span>Progress</span>
                 <span>{category.progress}%</span>
               </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full mt-2"
+                onClick={() => handlePracticeMore(category.name)}
+              >
+                Practice More
+              </Button>
             </div>
           ))}
         </div>
