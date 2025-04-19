@@ -17,14 +17,7 @@ import ResumeBuilder from "./pages/ResumeBuilder";
 import PlacementTracker from "./pages/PlacementTracker";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -44,7 +37,6 @@ const App = () => (
               <Route path="/interview" element={<InterviewChatbot />} />
               <Route path="/resume" element={<ResumeBuilder />} />
               <Route path="/placements" element={<PlacementTracker />} />
-              <Route path="/focus-timer" element={<Planner />} /> {/* Temporary: Redirect to Planner */}
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

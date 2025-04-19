@@ -16,12 +16,6 @@ import {
   FileCheck 
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 export function AppSidebar() {
   const location = useLocation();
@@ -34,10 +28,10 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-primary to-accent flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-xl">P</span>
+          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
+            <span className="text-primary font-bold text-xl">P</span>
           </div>
-          <h1 className="text-sidebar-foreground font-bold text-xl bg-gradient-to-r from-primary-foreground to-accent-foreground bg-clip-text text-transparent">Prepmate</h1>
+          <h1 className="text-sidebar-foreground font-bold text-xl">Prepmate</h1>
         </div>
       </SidebarHeader>
       
@@ -83,20 +77,10 @@ export function AppSidebar() {
               <Timer size={18} />
               <span>Focus Timer</span>
             </Link>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link to="/interview" className={`nav-link ${isActive('/interview')} relative`}>
-                    <MessageSquare size={18} />
-                    <span>Interview Chatbot</span>
-                    <span className="absolute right-2 top-1 h-2 w-2 rounded-full bg-accent animate-pulse"></span>
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <p className="text-sm">Practice interviews with AI assistance</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Link to="/interview" className={`nav-link ${isActive('/interview')}`}>
+              <MessageSquare size={18} />
+              <span>Interview Chatbot</span>
+            </Link>
             <Link to="/placements" className={`nav-link ${isActive('/placements')}`}>
               <Briefcase size={18} />
               <span>Placement Tracker</span>
