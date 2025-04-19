@@ -1,52 +1,22 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Filter, Plus, Search, Building } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Briefcase, 
-  Building, 
-  Calendar, 
-  CheckCircle, 
-  Clock, 
-  FileCheck, 
-  LineChart, 
-  ListChecks, 
-  Layers,
-  User,
-  Filter,
-  Search,
-  Plus
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip as RechartsTooltip, 
-  ResponsiveContainer, 
-  PieChart, 
-  Pie, 
-  Cell 
-} from 'recharts';
-import { Badge } from "@/components/ui/badge";
 import ApplicationList from '@/components/placement/ApplicationList';
 import UpcomingEvents from '@/components/placement/UpcomingEvents';
 import CompanyCard from '@/components/placement/CompanyCard';
 import OfferComparisonTool from '@/components/placement/OfferComparisonTool';
 import InterviewPreparationTracker from '@/components/placement/InterviewPreparationTracker';
 import AssessmentProgress from '@/components/placement/AssessmentProgress';
+import StatisticsCards from '@/components/placement/StatisticsCards';
+import ProgressCharts from '@/components/placement/ProgressCharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from '@/components/ui/progress';
+import { Calendar, Clock, Video, Users, Book } from 'lucide-react';
 
 // Mock data for the dashboard
 const applicationData = [
@@ -63,8 +33,6 @@ const barChartData = [
   { name: 'Jun', applications: 12, interviews: 6, offers: 2 },
   { name: 'Jul', applications: 15, interviews: 8, offers: 3 },
 ];
-
-const COLORS = ['#6366F1', '#8B5CF6', '#D946EF', '#10B981', '#F43F5E'];
 
 const PlacementTracker = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -89,7 +57,7 @@ const PlacementTracker = () => {
         
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setActiveTab("applications")}>
-            <ListChecks className="mr-2 h-4 w-4" />
+            <Plus className="mr-2 h-4 w-4" />
             View Applications
           </Button>
           <Button onClick={() => {
@@ -116,122 +84,23 @@ const PlacementTracker = () => {
         
         {/* Dashboard Tab */}
         <TabsContent value="dashboard" className="mt-0 space-y-6">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Applications</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="text-3xl font-bold">{totalApplications}</div>
-                  <Briefcase className="h-8 w-8 text-muted-foreground" />
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Interviews</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="text-3xl font-bold">{totalInterviews}</div>
-                  <Calendar className="h-8 w-8 text-muted-foreground" />
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Offers Received</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="text-3xl font-bold">{totalOffers}</div>
-                  <FileCheck className="h-8 w-8 text-muted-foreground" />
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Success Rate</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="text-3xl font-bold">{applicationSuccessRate}%</div>
-                  <LineChart className="h-8 w-8 text-muted-foreground" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <StatisticsCards
+            totalApplications={totalApplications}
+            totalInterviews={totalInterviews}
+            totalOffers={totalOffers}
+            successRate={applicationSuccessRate}
+          />
           
-          {/* Charts & Lists */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Application Status Pie Chart */}
-            <Card className="md:col-span-1">
-              <CardHeader>
-                <CardTitle>Application Status</CardTitle>
-                <CardDescription>Distribution of your applications</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={applicationData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        paddingAngle={2}
-                        dataKey="value"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {applicationData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Monthly Progress Bar Chart */}
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle>Monthly Progress</CardTitle>
-                <CardDescription>Applications, interviews, and offers over time</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={barChartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <RechartsTooltip />
-                      <Bar dataKey="applications" fill="#8B5CF6" name="Applications" />
-                      <Bar dataKey="interviews" fill="#10B981" name="Interviews" />
-                      <Bar dataKey="offers" fill="#F43F5E" name="Offers" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <ProgressCharts
+            applicationData={applicationData}
+            monthlyData={barChartData}
+          />
           
-          {/* Upcoming Events & Recent Applications */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <UpcomingEvents />
             <ApplicationList showHeader={true} limit={3} />
           </div>
           
-          {/* Assessment Progress */}
           <AssessmentProgress />
         </TabsContent>
         
@@ -271,7 +140,6 @@ const PlacementTracker = () => {
             </div>
           </div>
           
-          {/* Full Application List */}
           <ApplicationList showHeader={false} searchTerm={searchTerm} filterStatus={filterStatus} />
         </TabsContent>
         
@@ -383,7 +251,6 @@ const PlacementTracker = () => {
               </CardContent>
             </Card>
             
-            {/* Interview Preparation Tracker */}
             <InterviewPreparationTracker />
           </div>
         </TabsContent>
