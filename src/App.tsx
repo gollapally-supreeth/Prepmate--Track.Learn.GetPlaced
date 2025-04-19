@@ -14,6 +14,7 @@ import Progress from "./pages/Progress";
 import Notes from "./pages/Notes";
 import Quizzes from "./pages/Quizzes";
 import ResumeBuilder from "./pages/ResumeBuilder";
+import PlacementTracker from "./pages/PlacementTracker";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/quizzes" element={<Quizzes />} />
               <Route path="/interview" element={<InterviewChatbot />} />
               <Route path="/resume" element={<ResumeBuilder />} />
+              <Route path="/placements" element={<PlacementTracker />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
