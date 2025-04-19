@@ -196,12 +196,12 @@ const Dashboard = () => {
     const handleRemoveExam = (id: number) => {
     setExams(exams.filter((exam) => exam.id !== id));
   };
-  const calculateDaysLeft = (date: Date | null): number => {
-    if (!date) {
+    const calculateDaysLeft = (date: Date | null): number => {
+    if (!date || !(date instanceof Date)) {
       return 0;
     }
     return Math.ceil((date.getTime() - new Date().getTime()) / (1000 * 3600 * 24));
-};
+  };
 
   const [studySessions, setStudySessions] = useState<StudySession[]>([]);
 
@@ -423,7 +423,7 @@ const Dashboard = () => {
                         <div key={exam.id} className="bg-white rounded-lg shadow-md p-4 relative">
                             <ExamCountdown
                                 examName={exam.examName}
-                                date={exam.date ? format(exam.date, 'MMMM dd, yyyy') : ''}
+                                date={exam.date ? format(exam.date, 'MMMM dd, yyyy') : ''}                            
                                 daysLeft={exam.date ? calculateDaysLeft(exam.date) : 0}
 
                             />

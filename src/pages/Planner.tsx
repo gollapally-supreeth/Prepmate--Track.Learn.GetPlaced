@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useToast } from "@/components/ui/use-toast";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -103,6 +104,7 @@ const sampleTasks = [
 ];
 
 const Planner = () => {
+  const { toast } = useToast();
   const [tasks, setTasks] = useState<Task[]>(() => {
     if (typeof window !== 'undefined') {
       const storedTasks = localStorage.getItem('plannerTasks');
@@ -120,11 +122,12 @@ const Planner = () => {
   const [newTask, setNewTask] = useState<NewTask>({ title: '', description: '', dueTime: '' });
   
   const handleAddTask = () => {
-    if (newTask.title && newTask.description && newTask.dueTime && newTask.subject && newTask.priority) {
+    if (newTask.title && newTask.description && newTask.dueTime && newTask.subject && newTask.priority ) {
       const nextId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
       const fullNewTask: Task = { id: nextId, status: "todo", completed: false, ...newTask } as Task;
       setTasks([...tasks, fullNewTask]);
       setNewTask({ title: '', description: '', dueTime: '' });
+      toast({ description: "Task created successfully!", position: "bottom-center" });
     }
   };
 
@@ -135,6 +138,7 @@ const Planner = () => {
       }
       return task;
     }));
+    toast({ description: "Task completed!", position: "bottom-center" });
   };
 
   const handleMoveToInProgress = (id: number) => {
@@ -159,12 +163,13 @@ const Planner = () => {
   };
 
 
-  const [filter, setFilter] = useState("all");
-  const [subject, setSubject] = useState("all");
+   const [filter, setFilter] = useState("all");
+    const [subject, setSubject] = useState("all");
+    const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = tasks.filter((task) => {
     
-    if (filter !== "all" && task.status !== filter) return false;
+     if (filter !== "all" && task.status !== filter) return false;
     if (subject !== "all" && task.subject !== subject) return false;
     return true;
   });
@@ -187,7 +192,13 @@ const Planner = () => {
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-          <Input placeholder="Search tasks..." className="pl-10" />
+          <Input
+            placeholder="Search tasks..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+
         </div>
         
         <div className="flex gap-3">
@@ -307,10 +318,21 @@ const Planner = () => {
 
           </div>
           <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto">
-            {todoTasks.map(task => (
+            {todoTasks
+            .filter((task) => {
+              const lowerCaseSearchTerm = searchTerm.toLowerCase();
+              return (
+                task.title.toLowerCase().includes(lowerCaseSearchTerm) 
+              );
+            })
+            .map(task => (
               <div className='flex flex-col'>
                 <PlannerTaskCard
                   key={task.id}
+                  
+                  subject={task.subject}
+                  priority={task.priority}
+                  completed={task.completed}
                   title={task.title}
                   dueTime={task.dueTime}
                   description={task.description}
@@ -332,11 +354,13 @@ const Planner = () => {
             ))}
             {todoTasks.length === 0 && (
               <div className="flex flex-col items-center justify-center h-32 text-center" >
-                 <p className="text-muted-foreground text-sm">No tasks found. Create a new task?</p>
+                <p className="text-muted-foreground text-sm">No tasks found. Create a new task?</p>
                   <Button
                     variant="ghost"
                     size="sm"
                     className="mt-2"
+                 
+                    
                     onClick={() => taskTitleRef.current?.focus()}
                   >
                 New Task
