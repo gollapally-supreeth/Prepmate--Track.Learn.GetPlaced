@@ -13,6 +13,7 @@ import InterviewChatbot from "./pages/InterviewChatbot";
 import Progress from "./pages/Progress";
 import Notes from "./pages/Notes";
 import Quizzes from "./pages/Quizzes";
+import ResumeBuilder from "./pages/ResumeBuilder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="/progress" element={<Progress />} />
               <Route path="/quizzes" element={<Quizzes />} />
               <Route path="/interview" element={<InterviewChatbot />} />
+              <Route path="/resume" element={<ResumeBuilder />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

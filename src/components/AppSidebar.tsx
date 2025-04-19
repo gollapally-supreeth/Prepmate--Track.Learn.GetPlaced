@@ -12,7 +12,8 @@ import {
   Timer, 
   MessageSquare, 
   Briefcase, 
-  Settings 
+  Settings,
+  FileCheck 
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -61,6 +62,10 @@ export function AppSidebar() {
             <Link to="/quizzes" className={`nav-link ${isActive('/quizzes')}`}>
               <TestTube size={18} />
               <span>Mock Tests</span>
+            </Link>
+            <Link to="/resume" className={`nav-link ${isActive('/resume')}`}>
+              <FileCheck size={18} />
+              <span>Resume Builder</span>
             </Link>
           </nav>
         </div>
