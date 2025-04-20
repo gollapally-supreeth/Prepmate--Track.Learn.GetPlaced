@@ -56,12 +56,12 @@
     --input: 240 3.7% 15.9%;
     --ring: 262 70% 60%;
     
-    /* Sidebar custom colors for dark mode */
-    --sidebar: 262 40% 15%;
+    /* Sidebar custom colors for dark mode - Using black as requested */
+    --sidebar: 0 0% 0%; /* Pure black for dark mode sidebar */
     --sidebar-foreground: 262 90% 80%;
-    --sidebar-border: 262 30% 20%;
+    --sidebar-border: 240 3.7% 15.9%; /* Slightly lighter for border */
     --sidebar-ring: 262 70% 60%;
-    --sidebar-accent: 262 40% 25%;
+    --sidebar-accent: 0 0% 10%; /* Very dark gray for hover state */
     --sidebar-accent-foreground: 262 90% 90%;
   }
 }
@@ -78,15 +78,15 @@
 
 /* Custom sidebar styling for purple-white theme */
 .sidebar-purple-white {
-  background: linear-gradient(180deg, rgba(250,245,255,1) 0%, rgba(237,233,254,1) 100%);
+  @apply bg-gradient-to-b from-white to-purple-50 dark:from-black dark:to-zinc-900;
 }
 
 .nav-link {
-  @apply flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors hover:bg-purple-100/60;
+  @apply flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors hover:bg-purple-100/60 dark:hover:bg-zinc-800;
 }
 
 .nav-link.active {
-  @apply bg-purple-200/70 font-medium;
+  @apply bg-purple-200/70 font-medium dark:bg-zinc-800;
 }
 
 /* Fix for button hover styles */
@@ -96,5 +96,18 @@
 
 /* Gradient heading text */
 .gradient-heading {
-  @apply bg-gradient-to-r from-purple-700 to-purple-500 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-purple-700 to-purple-500 bg-clip-text text-transparent dark:from-purple-400 dark:to-purple-300;
+}
+
+/* Enhanced UI components */
+.card-enhanced {
+  @apply shadow-md hover:shadow-lg transition-shadow border border-border rounded-lg;
+}
+
+.input-enhanced {
+  @apply focus:ring-2 focus:ring-primary/50 transition-all;
+}
+
+.button-animated {
+  @apply transition-all hover:scale-105 active:scale-95;
 }

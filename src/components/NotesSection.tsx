@@ -35,8 +35,10 @@ export default function NotesSection() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Properly wrap each Dialog around its DialogTrigger
+  // Dialog state for delete confirmation
   const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false);
+  // Track the note to delete
+  const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
 
   // Fetch notes from API
   const { isLoading, error } = useQuery({
@@ -118,6 +120,7 @@ export default function NotesSection() {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       setSelectedNote(null);
       setIsEditing(false);
+      setConfirmDeleteDialogOpen(false);  // Close dialog after deleting
       toast({
         title: "Note deleted",
         description: "Your note has been deleted.",
@@ -149,9 +152,15 @@ export default function NotesSection() {
     updateNoteMutation.mutate(updatedNote);
   };
 
-  const handleDeleteNote = async (id:string) => {
-    deleteNoteMutation.mutate(id);
-    setConfirmDeleteDialogOpen(false); // Close dialog after deleting
+  const handleDeleteClick = (id: string) => {
+    setNoteToDelete(id);
+    setConfirmDeleteDialogOpen(true);
+  };
+
+  const handleDeleteNote = () => {
+    if (noteToDelete) {
+      deleteNoteMutation.mutate(noteToDelete);
+    }
   };
 
   const handleNoteClick = (note: Note) => {
@@ -167,17 +176,17 @@ export default function NotesSection() {
     }
   }, [selectedNote]);
 
-  if (isLoading) return <div>Loading notes...</div>;
-  if (error) return <div>Error fetching notes</div>;
-  
   // Safety check to ensure notes is always an array before rendering
   const safeNotes = Array.isArray(notes) ? notes : [];
+
+  if (isLoading) return <div>Loading notes...</div>;
+  if (error) return <div>Error fetching notes</div>;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Notes List */}
       <div className="md:col-span-1">
-        <Card>
+        <Card className="shadow-md hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle>Your Notes</CardTitle>
             <CardDescription>Click to view and edit</CardDescription>
@@ -188,7 +197,7 @@ export default function NotesSection() {
                 {safeNotes.map((note) => (
                   <motion.div
                     key={note.id}
-                    className={`p-4 cursor-pointer hover:bg-secondary ${selectedNote?.id === note.id ? 'bg-secondary/80' : ''}`}
+                    className={`p-4 cursor-pointer hover:bg-secondary/70 ${selectedNote?.id === note.id ? 'bg-secondary/80' : ''}`}
                     onClick={() => handleNoteClick(note)}
                     whileHover={{ scale: 1.02 }}
                     transition={{ duration: 0.2 }}
@@ -212,7 +221,7 @@ export default function NotesSection() {
 
       {/* Note Editor */}
       <div className="md:col-span-2">
-        <Card>
+        <Card className="shadow-md hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle>{selectedNote ? 'Edit Note' : 'Create Note'}</CardTitle>
             <CardDescription>
@@ -225,12 +234,13 @@ export default function NotesSection() {
               placeholder="Title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              className="focus-visible:ring-primary"
             />
             <Textarea
               placeholder="Content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="min-h-[150px]"
+              className="min-h-[150px] focus-visible:ring-primary"
             />
             <div className="flex justify-end gap-2">
               {selectedNote && (
@@ -247,7 +257,6 @@ export default function NotesSection() {
                     Cancel
                   </Button>
                   
-                  {/* Fixed the Dialog structure */}
                   <Dialog open={confirmDeleteDialogOpen} onOpenChange={setConfirmDeleteDialogOpen}>
                     <DialogTrigger asChild>
                       <Button variant="destructive" className="btn-hover">
@@ -273,7 +282,7 @@ export default function NotesSection() {
                         <Button
                           type="submit"
                           variant="destructive"
-                          onClick={() => selectedNote && handleDeleteNote(selectedNote.id)}
+                          onClick={handleDeleteNote}
                         >
                           Delete
                         </Button>

@@ -12,7 +12,7 @@ import { TaskCard } from "@/components/TaskCard";
 import { StatsCard } from "@/components/StatsCard";
 import { ExamCountdown } from "@/components/ExamCountdown";
 import { ProgressCard } from "@/components/ProgressCard";
-import { ProgressTracker } from "@/components/ProgressTracker";
+import ProgressTracker from "@/components/ProgressTracker";
 import { PlannerTaskCard } from "@/components/PlannerTaskCard";
 import { Clock, Calendar, BookOpen, GraduationCap } from 'lucide-react';
 
@@ -142,7 +142,7 @@ const Dashboard = () => {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatsCard
               title="Total Study Hours"
-              value="127"
+              value={127}
               description="Last 30 days"
               trend="up"
               trendValue="12%"
@@ -151,7 +151,7 @@ const Dashboard = () => {
             
             <StatsCard
               title="Active Courses"
-              value="5"
+              value={5}
               description="Currently enrolled"
               trend="same"
               icon={<BookOpen className="h-4 w-4 text-muted-foreground" />}
@@ -159,7 +159,7 @@ const Dashboard = () => {
             
             <StatsCard
               title="Upcoming Exams"
-              value="3"
+              value={3}
               description="Next 14 days"
               trend="up"
               trendValue="1"
@@ -168,7 +168,7 @@ const Dashboard = () => {
             
             <StatsCard
               title="Completion Rate"
-              value="86%"
+              value={86}
               description="Assignments & quizzes"
               trend="up"
               trendValue="4%"
@@ -230,11 +230,11 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent className="p-0">
                   <ScrollArea className="h-[135px] px-4 py-2">
-                    {mockExams.map((exam, index) => (
+                    {mockExams.map((exam) => (
                       <ExamCountdown
                         key={exam.id}
                         title={exam.title}
-                        date={exam.date}
+                        date={exam.date.toISOString()}
                         course={exam.course}
                       />
                     ))}
@@ -247,7 +247,7 @@ const Dashboard = () => {
                 {mockProgress.slice(0, 2).map((subject, index) => (
                   <ProgressCard
                     key={index}
-                    title={subject.subject}
+                    subject={subject.subject}
                     progress={subject.completion}
                   />
                 ))}
@@ -266,9 +266,13 @@ const Dashboard = () => {
                   .filter(task => !task.completed)
                   .slice(0, 3)
                   .map(task => (
-                    <PlannerTaskCard
+                    <TaskCard
                       key={task.id}
-                      task={task}
+                      id={task.id}
+                      title={task.title}
+                      description={task.description}
+                      dueDate={task.dueDate}
+                      priority={task.priority}
                       onComplete={() => handleCompleteTask(task.id)}
                     />
                   ))}
