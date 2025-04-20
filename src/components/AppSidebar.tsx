@@ -28,8 +28,8 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="sidebar-purple-white">
-      <SidebarHeader className="p-4 bg-gradient-to-r from-purple-100/80 to-purple-200/50 dark:from-purple-900/20 dark:to-purple-800/10">
+    <Sidebar className="sidebar-purple-white dark:bg-black">
+      <SidebarHeader className="p-4 bg-gradient-to-r from-purple-100/80 to-purple-200/50 dark:from-purple-900/20 dark:to-purple-800/10 dark:bg-black">
         <motion.div 
           className="flex items-center gap-2"
           initial={{ opacity: 0 }}
@@ -43,7 +43,7 @@ export function AppSidebar() {
         </motion.div>
       </SidebarHeader>
       
-      <SidebarContent className="bg-gradient-to-b from-white to-purple-50 dark:from-black dark:to-zinc-900">
+      <SidebarContent className="bg-gradient-to-b from-white to-purple-50 dark:from-black dark:to-black dark:bg-black">
         <div className="px-3 py-2">
           <h2 className="text-purple-800/90 dark:text-purple-300/90 text-xs font-medium uppercase mb-2">Core Features</h2>
           <nav className="space-y-1">
@@ -104,7 +104,7 @@ export function AppSidebar() {
         </div>
       </SidebarContent>
       
-      <SidebarFooter className="bg-purple-50 dark:bg-zinc-900 border-t border-purple-200 dark:border-zinc-800">
+      <SidebarFooter className="bg-purple-50 dark:bg-black border-t border-purple-200 dark:border-zinc-800">
         <div className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="w-8 h-8 border border-purple-200 dark:border-zinc-700">

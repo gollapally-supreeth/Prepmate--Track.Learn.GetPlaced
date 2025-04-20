@@ -115,7 +115,14 @@ const recommendations = [
   { text: "Your aptitude score is good, but practice more on time & work", category: 'Aptitude' }
 ];
 
-const ProgressTracker: React.FC = () => {
+interface ProgressTrackerProps {
+  subjects?: {
+    subject: string;
+    completion: number;
+  }[];
+}
+
+const ProgressTracker: React.FC<ProgressTrackerProps> = ({ subjects = skillCategories.map(cat => ({ subject: cat.name, completion: cat.progress })) }) => {
   const [activeCategory, setActiveCategory] = useState('dsa');
   const currentCategory = skillCategories.find(cat => cat.id === activeCategory) || skillCategories[0];
   const streak = 7; // Mock data for streak
@@ -299,4 +306,6 @@ const ProgressTracker: React.FC = () => {
   );
 };
 
+// Fix: Adding named export to fix module import issue
+export { ProgressTracker };
 export default ProgressTracker;

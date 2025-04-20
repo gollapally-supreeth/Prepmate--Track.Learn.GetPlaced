@@ -12,7 +12,7 @@ import { TaskCard } from "@/components/TaskCard";
 import { StatsCard } from "@/components/StatsCard";
 import { ExamCountdown } from "@/components/ExamCountdown";
 import { ProgressCard } from "@/components/ProgressCard";
-import ProgressTracker from "@/components/ProgressTracker";
+import { ProgressTracker } from "@/components/ProgressTracker";
 import { PlannerTaskCard } from "@/components/PlannerTaskCard";
 import { Clock, Calendar, BookOpen, GraduationCap } from 'lucide-react';
 
@@ -20,14 +20,14 @@ import { Clock, Calendar, BookOpen, GraduationCap } from 'lucide-react';
 const mockExams = [
   {
     id: "1",
-    title: "Data Structures & Algorithms Mid-term",
+    name: "Data Structures & Algorithms Mid-term",
     date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
     course: "Computer Science",
     timeRemaining: "5 days",
   },
   {
     id: "2",
-    title: "Database Systems Final",
+    name: "Database Systems Final",
     date: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000), // 12 days from now
     course: "Information Systems",
     timeRemaining: "12 days",
@@ -40,7 +40,7 @@ const mockTasks = [
     title: "Complete DS&A Assignment 3",
     description: "Implement a Red-Black Tree",
     dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-    priority: "High",
+    priority: "High" as const,
     completed: false,
   },
   {
@@ -48,7 +48,7 @@ const mockTasks = [
     title: "Prepare Database ER Diagram",
     description: "For the student management system project",
     dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-    priority: "Medium",
+    priority: "Medium" as const,
     completed: false,
   },
   {
@@ -56,7 +56,7 @@ const mockTasks = [
     title: "Review Lecture Notes",
     description: "Topics: Normalizations and Transactions",
     dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    priority: "Low",
+    priority: "Low" as const,
     completed: true,
   },
 ];
@@ -233,7 +233,7 @@ const Dashboard = () => {
                     {mockExams.map((exam) => (
                       <ExamCountdown
                         key={exam.id}
-                        title={exam.title}
+                        name={exam.name}
                         date={exam.date.toISOString()}
                         course={exam.course}
                       />

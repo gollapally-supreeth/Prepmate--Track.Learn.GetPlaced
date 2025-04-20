@@ -1,6 +1,6 @@
 
 import React from 'react';
-import ProgressTracker from '@/components/ProgressTracker';
+import { ProgressTracker } from '@/components/ProgressTracker';
 import { motion } from 'framer-motion';
 import { LineChart } from 'lucide-react';
 

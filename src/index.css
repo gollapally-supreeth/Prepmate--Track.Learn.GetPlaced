@@ -56,7 +56,7 @@
     --input: 240 3.7% 15.9%;
     --ring: 262 70% 60%;
     
-    /* Sidebar custom colors for dark mode - Using black as requested */
+    /* Sidebar custom colors for dark mode - Pure black as requested */
     --sidebar: 0 0% 0%; /* Pure black for dark mode sidebar */
     --sidebar-foreground: 262 90% 80%;
     --sidebar-border: 240 3.7% 15.9%; /* Slightly lighter for border */
@@ -78,7 +78,7 @@
 
 /* Custom sidebar styling for purple-white theme */
 .sidebar-purple-white {
-  @apply bg-gradient-to-b from-white to-purple-50 dark:from-black dark:to-zinc-900;
+  @apply bg-gradient-to-b from-white to-purple-50 dark:from-black dark:to-black;
 }
 
 .nav-link {
@@ -110,4 +110,9 @@
 
 .button-animated {
   @apply transition-all hover:scale-105 active:scale-95;
+}
+
+/* Dialog improvements */
+.dialog-overlay {
+  @apply bg-black/50 backdrop-blur-sm;
 }
