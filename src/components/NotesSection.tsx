@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog"
 
 interface Note {
@@ -223,11 +225,11 @@ export default function NotesSection() {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="flex justify-end space-x-2">
-                        <Dialog.Close asChild>
+                        <DialogClose asChild>
                           <Button type="button" variant="secondary">
                             Cancel
                           </Button>
-                        </Dialog.Close>
+                        </DialogClose>
                         <Button
                           type="submit"
                           variant="destructive"

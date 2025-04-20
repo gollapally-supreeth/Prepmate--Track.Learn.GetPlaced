@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarCheck2, Plus, Check, ChevronsUpDown } from 'lucide-react';
@@ -7,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import {
   Command,
@@ -64,7 +65,8 @@ const subjects = [
   "Foreign Language",
 ];
 
-const priorities = ["High", "Medium", "Low"];
+const priorities = ["High", "Medium", "Low"] as const;
+type Priority = typeof priorities[number];
 
 const Planner = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -75,7 +77,7 @@ const Planner = () => {
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
   const [subject, setSubject] = useState(subjects[0]);
-  const [priority, setPriority] = useState(priorities[0]);
+  const [priority, setPriority] = useState<Priority>(priorities[0]);
   const [isCompletedFilter, setIsCompletedFilter] = useState(false);
   const [subjectFilter, setSubjectFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
@@ -341,10 +343,10 @@ const Planner = () => {
 
       <Card className="glass-card">
         <CardHeader>
-          <h3 className="text-lg font-semibold">Progress Overview</h3>
-          <p className="text-sm text-muted-foreground">
+          <CardTitle>Progress Overview</CardTitle>
+          <CardDescription>
             Track your task completion rate.
-          </p>
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="mb-4 flex items-center justify-between">
@@ -364,7 +366,7 @@ const Planner = () => {
               <CardContent className="space-y-2">
                 <div className="flex items-start justify-between">
                   <h3 className="text-lg font-semibold">{task.title}</h3>
-                  <Badge variant={task.completed ? "success" : "secondary"}>
+                  <Badge variant="secondary">
                     {task.completed ? "Completed" : task.priority}
                   </Badge>
                 </div>
@@ -512,7 +514,7 @@ const Planner = () => {
               <Label htmlFor="priority" className="text-right">
                 Priority
               </Label>
-              <Select value={priority} onValueChange={setPriority}>
+              <Select value={priority} onValueChange={(value: Priority) => setPriority(value)}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
@@ -613,7 +615,7 @@ const Planner = () => {
               <Label htmlFor="priority" className="text-right">
                 Priority
               </Label>
-              <Select value={priority} onValueChange={setPriority}>
+              <Select value={priority} onValueChange={(value: Priority) => setPriority(value)}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>

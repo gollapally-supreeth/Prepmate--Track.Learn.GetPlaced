@@ -1,9 +1,9 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarCheck2, GraduationCap, ListChecks, PieChart, Presentation, Rocket, Timer } from 'lucide-react';
+import { CalendarCheck2, GraduationCap, ListChecks, PieChart, Presentation, Rocket, Timer, LayoutDashboard } from 'lucide-react';
 import { ProgressCard } from '@/components/ProgressCard';
 import { AppSidebar } from '@/components/AppSidebar';
-import { useState } from 'react';
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -82,7 +82,6 @@ import {
 } from "@/components/ui/form"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
-import { InputWithButton } from "@/components/InputWithButton";
 import { useForm } from "react-hook-form";
 import * as z from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -140,9 +139,6 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar"
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu"
-import { useDisclosure } from '@mantine/hooks';
-import { useMediaQuery } from '@mantine/hooks';
-import { useMantineTheme } from '@mantine/core';
 
 const taskFormSchema = z.object({
   title: z.string().min(2, {
@@ -209,7 +205,7 @@ const Dashboard = () => {
       description: "Finish all problems in chapter 3",
       subject: "Math",
       dueTime: "18:00",
-      priority: "High",
+      priority: "High" as const, // Use 'as const' to ensure correct type
       completed: false,
     },
     {
@@ -218,7 +214,7 @@ const Dashboard = () => {
       description: "Read and take notes on chapter 5",
       subject: "History",
       dueTime: "20:00",
-      priority: "Medium",
+      priority: "Medium" as const,
       completed: true,
     },
     {
@@ -227,15 +223,14 @@ const Dashboard = () => {
       description: "Create slides for the science presentation",
       subject: "Science",
       dueTime: "22:00",
-      priority: "Low",
+      priority: "Low" as const,
       completed: false,
     },
   ]);
 
-  const [open, { open: openDrawer, close: closeDrawer }] = useDisclosure(false);
-  const theme = useMantineTheme();
-  const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
-
+  const [open, setOpen] = useState(false);
+  const openDrawer = () => setOpen(true);
+  const closeDrawer = () => setOpen(false);
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
     defaultValues: {

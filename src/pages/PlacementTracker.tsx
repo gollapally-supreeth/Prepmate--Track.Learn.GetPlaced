@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,7 +45,7 @@ import UpcomingEvents from '@/components/placement/UpcomingEvents';
 import CompanyCard from '@/components/placement/CompanyCard';
 import OfferComparisonTool from '@/components/placement/OfferComparisonTool';
 import InterviewPreparationTracker from '@/components/placement/InterviewPreparationTracker';
-import AssessmentProgress from '@/components/placement/AssessmentProgress';
+import { AssessmentProgress } from '@/components/placement/AssessmentProgress';
 
 // Mock data for the dashboard
 const applicationData = [
