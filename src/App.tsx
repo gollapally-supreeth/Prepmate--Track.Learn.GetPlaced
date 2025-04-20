@@ -16,6 +16,7 @@ import Quizzes from "./pages/Quizzes";
 import ResumeBuilder from "./pages/ResumeBuilder";
 import PlacementTracker from "./pages/PlacementTracker";
 import NotFound from "./pages/NotFound";
+import { AnimatePresence } from "framer-motion";
 
 const queryClient = new QueryClient();
 
@@ -26,20 +27,22 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<AppLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="/planner" element={<Planner />} />
-              <Route path="/resources" element={<ResourcesHub />} />
-              <Route path="/notes" element={<Notes />} />
-              <Route path="/progress" element={<Progress />} />
-              <Route path="/quizzes" element={<Quizzes />} />
-              <Route path="/interview" element={<InterviewChatbot />} />
-              <Route path="/resume" element={<ResumeBuilder />} />
-              <Route path="/placements" element={<PlacementTracker />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AnimatePresence mode="wait">
+            <Routes>
+              <Route path="/" element={<AppLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="/planner" element={<Planner />} />
+                <Route path="/resources" element={<ResourcesHub />} />
+                <Route path="/notes" element={<Notes />} />
+                <Route path="/progress" element={<Progress />} />
+                <Route path="/quizzes" element={<Quizzes />} />
+                <Route path="/interview" element={<InterviewChatbot />} />
+                <Route path="/resume" element={<ResumeBuilder />} />
+                <Route path="/placements" element={<PlacementTracker />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AnimatePresence>
         </BrowserRouter>
       </ToastProvider>
     </TooltipProvider>

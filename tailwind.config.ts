@@ -54,22 +54,22 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
+					DEFAULT: 'hsl(var(--sidebar))',
 					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+					primary: 'hsl(var(--primary))',
+					'primary-foreground': 'hsl(var(--primary-foreground))',
 					accent: 'hsl(var(--sidebar-accent))',
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				focus: {
-					blue: '#3B82F6',
-					purple: '#8B5CF6',
-					indigo: '#6366F1',
-					green: '#10B981',
-					red: '#EF4444',
-					yellow: '#F59E0B'
+					blue: 'var(--focus-blue)',
+					purple: 'var(--focus-purple)',
+					indigo: 'var(--focus-indigo)',
+					green: 'var(--focus-green)',
+					red: 'var(--focus-red)',
+					yellow: 'var(--focus-yellow)'
 				}
 			},
 			borderRadius: {
@@ -101,13 +101,36 @@ export default {
 				'slide-in': {
 					from: { transform: 'translateX(-100%)' },
 					to: { transform: 'translateX(0)' }
+				},
+				'slide-up': {
+					from: { transform: 'translateY(10px)', opacity: '0' },
+					to: { transform: 'translateY(0)', opacity: '1' }
+				},
+				'scale-in': {
+					from: { transform: 'scale(0.95)', opacity: '0' },
+					to: { transform: 'scale(1)', opacity: '1' }
+				},
+				'pulse-subtle': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.85' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.5s ease-out forwards',
-				'slide-in': 'slide-in 0.5s ease-out forwards'
+				'slide-in': 'slide-in 0.5s ease-out forwards',
+				'slide-up': 'slide-up 0.5s ease-out forwards',
+				'scale-in': 'scale-in 0.3s ease-out forwards',
+				'pulse-subtle': 'pulse-subtle 2s infinite'
+			},
+			boxShadow: {
+				'glow': '0 0 10px rgba(139, 92, 246, 0.3), 0 0 20px rgba(139, 92, 246, 0.2)',
+				'card-hover': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
+			},
+			backgroundImage: {
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+				'gradient-subtle': 'linear-gradient(to right, rgba(139, 92, 246, 0.1), rgba(79, 70, 229, 0.1))'
 			}
 		}
 	},
