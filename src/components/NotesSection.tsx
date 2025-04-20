@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { v4 as uuidv4 } from 'uuid';
 import { motion } from "framer-motion";
 import { Edit, Trash2 } from 'lucide-react';
@@ -35,6 +34,9 @@ export default function NotesSection() {
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Properly wrap each Dialog around its DialogTrigger
+  const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false);
 
   // Fetch notes from API
   const { isLoading, error } = useQuery({
@@ -149,6 +151,7 @@ export default function NotesSection() {
 
   const handleDeleteNote = async (id:string) => {
     deleteNoteMutation.mutate(id);
+    setConfirmDeleteDialogOpen(false); // Close dialog after deleting
   };
 
   const handleNoteClick = (note: Note) => {
@@ -243,7 +246,9 @@ export default function NotesSection() {
                   >
                     Cancel
                   </Button>
-                  <Dialog>
+                  
+                  {/* Fixed the Dialog structure */}
+                  <Dialog open={confirmDeleteDialogOpen} onOpenChange={setConfirmDeleteDialogOpen}>
                     <DialogTrigger asChild>
                       <Button variant="destructive" className="btn-hover">
                         <Trash2 className="w-4 h-4 mr-2" />
@@ -258,21 +263,24 @@ export default function NotesSection() {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="flex justify-end space-x-2">
-                        <DialogClose asChild>
-                          <Button type="button" variant="secondary">
-                            Cancel
-                          </Button>
-                        </DialogClose>
+                        <Button 
+                          type="button" 
+                          variant="secondary" 
+                          onClick={() => setConfirmDeleteDialogOpen(false)}
+                        >
+                          Cancel
+                        </Button>
                         <Button
                           type="submit"
                           variant="destructive"
-                          onClick={() => handleDeleteNote(selectedNote.id)}
+                          onClick={() => selectedNote && handleDeleteNote(selectedNote.id)}
                         >
                           Delete
                         </Button>
                       </div>
                     </DialogContent>
                   </Dialog>
+                  
                   <Button className="btn-hover" onClick={handleUpdateNote}>
                     <Edit className="w-4 h-4 mr-2" />
                     Update Note
