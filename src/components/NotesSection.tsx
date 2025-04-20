@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -41,10 +40,8 @@ export default function NotesSection() {
     queryKey: ['notes'],
     queryFn: async () => {
       const response = await axios.get<Note[]>('/api/notes');
+      setNotes(response.data); // Set notes directly in queryFn instead of onSuccess
       return response.data;
-    },
-    onSuccess: (data) => {
-      setNotes(data);
     }
   });
 

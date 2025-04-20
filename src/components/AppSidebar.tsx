@@ -27,90 +27,90 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar>
-      <SidebarHeader className="p-4 bg-gradient-to-r from-white/10 to-transparent">
+    <Sidebar className="sidebar-purple-white">
+      <SidebarHeader className="p-4 bg-gradient-to-r from-purple-100/80 to-purple-200/50">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-            <span className="text-primary font-bold text-xl">P</span>
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+            <span className="text-white font-bold text-xl">P</span>
           </div>
-          <h1 className="text-sidebar-foreground font-bold text-xl">Prepmate</h1>
+          <h1 className="text-purple-900 font-bold text-xl">Prepmate</h1>
         </div>
       </SidebarHeader>
       
-      <SidebarContent>
+      <SidebarContent className="bg-gradient-to-b from-white to-purple-50">
         <div className="px-3 py-2">
-          <h2 className="text-sidebar-foreground/70 text-xs font-medium uppercase mb-2">Core Features</h2>
+          <h2 className="text-purple-800/90 text-xs font-medium uppercase mb-2">Core Features</h2>
           <nav className="space-y-1">
             <Link to="/" className={`nav-link ${isActive('/')}`}>
-              <LayoutDashboard size={18} />
-              <span>Dashboard</span>
+              <LayoutDashboard size={18} className="text-purple-600" />
+              <span className="text-purple-900">Dashboard</span>
             </Link>
             <Link to="/planner" className={`nav-link ${isActive('/planner')}`}>
-              <CalendarCheck size={18} />
-              <span>Daily Planner</span>
+              <CalendarCheck size={18} className="text-purple-600" />
+              <span className="text-purple-900">Daily Planner</span>
             </Link>
             <Link to="/resources" className={`nav-link ${isActive('/resources')}`}>
-              <BookMarked size={18} />
-              <span>Resources Hub</span>
+              <BookMarked size={18} className="text-purple-600" />
+              <span className="text-purple-900">Resources Hub</span>
             </Link>
             <Link to="/notes" className={`nav-link ${isActive('/notes')}`}>
-              <FileText size={18} />
-              <span>Notes</span>
+              <FileText size={18} className="text-purple-600" />
+              <span className="text-purple-900">Notes</span>
             </Link>
             <Link to="/progress" className={`nav-link ${isActive('/progress')}`}>
-              <LineChart size={18} />
-              <span>Progress Tracker</span>
+              <LineChart size={18} className="text-purple-600" />
+              <span className="text-purple-900">Progress Tracker</span>
             </Link>
             <Link to="/quizzes" className={`nav-link ${isActive('/quizzes')}`}>
-              <TestTube size={18} />
-              <span>Mock Tests</span>
+              <TestTube size={18} className="text-purple-600" />
+              <span className="text-purple-900">Mock Tests</span>
             </Link>
             <Link to="/resume" className={`nav-link ${isActive('/resume')}`}>
-              <FileCheck size={18} />
-              <span>Resume Builder</span>
+              <FileCheck size={18} className="text-purple-600" />
+              <span className="text-purple-900">Resume Builder</span>
             </Link>
           </nav>
         </div>
         
         <div className="px-3 py-2 mt-4">
-          <h2 className="text-sidebar-foreground/70 text-xs font-medium uppercase mb-2">Advanced Features</h2>
+          <h2 className="text-purple-800/90 text-xs font-medium uppercase mb-2">Advanced Features</h2>
           <nav className="space-y-1">
             <Link to="/focus-timer" className={`nav-link ${isActive('/focus-timer')}`}>
-              <Timer size={18} />
-              <span>Focus Timer</span>
+              <Timer size={18} className="text-purple-600" />
+              <span className="text-purple-900">Focus Timer</span>
             </Link>
             <Link to="/interview" className={`nav-link ${isActive('/interview')}`}>
-              <MessageSquare size={18} />
-              <span>Interview Chatbot</span>
+              <MessageSquare size={18} className="text-purple-600" />
+              <span className="text-purple-900">Interview Chatbot</span>
             </Link>
             <Link to="/placements" className={`nav-link ${isActive('/placements')}`}>
-              <Briefcase size={18} />
-              <span>Placement Tracker</span>
+              <Briefcase size={18} className="text-purple-600" />
+              <span className="text-purple-900">Placement Tracker</span>
             </Link>
           </nav>
         </div>
         
         {/* Add Focus Timer to sidebar */}
-        <div className="mt-6 border-t border-sidebar-border pt-4">
+        <div className="mt-6 border-t border-purple-200 pt-4">
           <FocusTimerProvider>
             <FocusTimerSidebar />
           </FocusTimerProvider>
         </div>
       </SidebarContent>
       
-      <SidebarFooter>
+      <SidebarFooter className="bg-purple-50 border-t border-purple-200">
         <div className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Avatar className="w-8 h-8 border border-sidebar-border">
+            <Avatar className="w-8 h-8 border border-purple-200">
               <AvatarImage src="" alt="User" />
-              <AvatarFallback className="bg-primary/10 text-primary">P</AvatarFallback>
+              <AvatarFallback className="bg-purple-100 text-purple-600">P</AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-sidebar-foreground text-sm font-medium">Pardhu</p>
-              <p className="text-sidebar-foreground/70 text-xs">Student</p>
+              <p className="text-purple-900 text-sm font-medium">Pardhu</p>
+              <p className="text-purple-600/70 text-xs">Student</p>
             </div>
           </div>
-          <Settings size={18} className="text-sidebar-foreground/70 hover:text-sidebar-foreground cursor-pointer" />
+          <Settings size={18} className="text-purple-600 hover:text-purple-900 cursor-pointer" />
         </div>
       </SidebarFooter>
     </Sidebar>

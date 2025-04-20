@@ -2,78 +2,70 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+
 @layer base {
   :root {
-    --background: 240 10% 98%;
+    --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 260 85% 55%;
+    --primary: 262 90% 40%; /* Purple hue */
     --primary-foreground: 0 0% 98%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 263 62% 65%;
+    --accent: 262 90% 95%; /* Light purple accent */
     --accent-foreground: 240 5.9% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 260 85% 55%;
-    --radius: 0.75rem;
-    --sidebar: 260 20% 12%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-border: 260 20% 18%;
-    --sidebar-ring: 260 85% 55%;
-    --sidebar-accent: 260 20% 18%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --focus-blue: #4c6ef5;
-    --focus-purple: #8b5cf6;
-    --focus-indigo: #6366f1;
-    --focus-green: #10b981;
-    --focus-red: #ef4444;
-    --focus-yellow: #f59e0b;
+    --ring: 262 90% 40%; /* Purple ring */
+    --radius: 0.5rem;
+
+    /* Sidebar custom colors */
+    --sidebar: 262 100% 99%;
+    --sidebar-foreground: 262 90% 30%;
+    --sidebar-border: 262 90% 90%;
+    --sidebar-ring: 262 90% 40%;
+    --sidebar-accent: 262 90% 95%;
+    --sidebar-accent-foreground: 262 90% 30%;
   }
- 
+
   .dark {
-    --background: 260 20% 10%;
+    --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
-    --card: 260 20% 12%;
+    --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
-    --popover: 260 20% 12%;
+    --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 260 85% 65%;
+    --primary: 262 90% 60%; /* Lighter purple for dark mode */
     --primary-foreground: 0 0% 98%;
-    --secondary: 260 20% 18%;
+    --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 260 20% 18%;
+    --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 263 62% 65%;
+    --accent: 262 80% 20%; /* Dark purple accent */
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 260 20% 18%;
-    --input: 260 20% 18%;
-    --ring: 260 85% 65%;
-    --sidebar: 260 20% 8%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-border: 260 20% 16%;
-    --sidebar-ring: 260 85% 65%;
-    --sidebar-accent: 260 20% 16%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --focus-blue: #5e7bf7;
-    --focus-purple: #9d71f7;
-    --focus-indigo: #7678f3;
-    --focus-green: #22c993;
-    --focus-red: #f15656;
-    --focus-yellow: #f6ad2d;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 262 70% 60%;
+    
+    /* Sidebar custom colors for dark mode */
+    --sidebar: 262 40% 15%;
+    --sidebar-foreground: 262 90% 80%;
+    --sidebar-border: 262 30% 20%;
+    --sidebar-ring: 262 70% 60%;
+    --sidebar-accent: 262 40% 25%;
+    --sidebar-accent-foreground: 262 90% 90%;
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
@@ -82,97 +74,27 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-bold tracking-tight;
-  }
-  
-  h1 {
-    @apply text-3xl md:text-4xl;
-  }
-  
-  h2 {
-    @apply text-2xl md:text-3xl;
-  }
-  
-  h3 {
-    @apply text-xl md:text-2xl;
-  }
 }
 
-@layer components {
-  .nav-link {
-    @apply flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:scale-105;
-  }
-  
-  .nav-link.active {
-    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground;
-  }
-  
-  .card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:border-primary/20;
-  }
-  
-  .btn-hover {
-    @apply hover:scale-105 transition-transform duration-200;
-  }
-  
-  .gradient-heading {
-    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
-  }
-  
-  .glass-card {
-    @apply bg-white/80 dark:bg-black/30 backdrop-blur-sm border border-white/20 dark:border-white/10;
-  }
-  
-  .card-gradient {
-    @apply bg-gradient-to-br from-card to-secondary/80;
-  }
+/* Custom sidebar styling for purple-white theme */
+.sidebar-purple-white {
+  background: linear-gradient(180deg, rgba(250,245,255,1) 0%, rgba(237,233,254,1) 100%);
 }
 
-@layer utilities {
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
-  }
-  
-  .animate-slide-up {
-    animation: slideUp 0.5s ease-out forwards;
-  }
-  
-  .animate-slide-in {
-    animation: slideIn 0.5s ease-out forwards;
-  }
-  
-  .animate-scale-in {
-    animation: scaleIn 0.3s ease-out forwards;
-  }
-  
-  .animate-pulse-subtle {
-    animation: pulseSlight 2s infinite;
-  }
+.nav-link {
+  @apply flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors hover:bg-purple-100/60;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.nav-link.active {
+  @apply bg-purple-200/70 font-medium;
 }
 
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+/* Fix for button hover styles */
+.btn-hover:hover {
+  @apply bg-primary/90;
 }
 
-@keyframes slideIn {
-  from { transform: translateX(-20px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes scaleIn {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-@keyframes pulseSlight {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.85; }
+/* Gradient heading text */
+.gradient-heading {
+  @apply bg-gradient-to-r from-purple-700 to-purple-500 bg-clip-text text-transparent;
 }

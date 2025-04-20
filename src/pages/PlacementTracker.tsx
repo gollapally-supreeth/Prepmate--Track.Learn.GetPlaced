@@ -78,6 +78,28 @@ const PlacementTracker = () => {
   const applicationSuccessRate = Math.round((totalOffers / totalApplications) * 100);
   const interviewSuccessRate = Math.round((totalOffers / totalInterviews) * 100);
 
+  // Mock assessment data for AssessmentProgress component
+  const mockAssessments = [
+    {
+      id: "1",
+      name: "Technical Interview Prep",
+      progress: 65,
+      dueDate: "Apr 28, 2025"
+    },
+    {
+      id: "2",
+      name: "HR Interview Practice",
+      progress: 40,
+      dueDate: "May 2, 2025"
+    },
+    {
+      id: "3",
+      name: "System Design",
+      progress: 25,
+      dueDate: "May 10, 2025"
+    }
+  ];
+
   return (
     <div className="container mx-auto py-6 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
@@ -230,8 +252,8 @@ const PlacementTracker = () => {
             <ApplicationList showHeader={true} limit={3} />
           </div>
           
-          {/* Assessment Progress */}
-          <AssessmentProgress />
+          {/* Assessment Progress - Pass the mock assessments data */}
+          <AssessmentProgress assessments={mockAssessments} />
         </TabsContent>
         
         {/* Applications Tab */}
