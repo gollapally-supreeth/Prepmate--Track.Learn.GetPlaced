@@ -15,6 +15,7 @@ import Notes from "./pages/Notes";
 import Quizzes from "./pages/Quizzes";
 import ResumeBuilder from "./pages/ResumeBuilder";
 import PlacementTracker from "./pages/PlacementTracker";
+import FocusTimer from "./pages/FocusTimer";
 import NotFound from "./pages/NotFound";
 import { AnimatePresence } from "framer-motion";
 
@@ -39,6 +40,7 @@ const App = () => (
                 <Route path="/interview" element={<InterviewChatbot />} />
                 <Route path="/resume" element={<ResumeBuilder />} />
                 <Route path="/placements" element={<PlacementTracker />} />
+                <Route path="/focus-timer" element={<FocusTimer />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

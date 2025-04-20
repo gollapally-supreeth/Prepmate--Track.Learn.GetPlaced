@@ -1,606 +1,503 @@
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CalendarCheck2, GraduationCap, ListChecks, PieChart, Presentation, Rocket, Timer } from 'lucide-react';
+import { ProgressCard } from '@/components/ProgressCard';
+import { AppSidebar } from '@/components/AppSidebar';
+import { useState } from 'react';
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
+import { useToast } from "@/hooks/use-toast"
+import { ToastAction } from "@/components/ui/toast"
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { format } from "date-fns"
+import { CalendarIcon } from "lucide-react"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command"
+import { Check, ChevronsUpDown } from "lucide-react"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Switch } from "@/components/ui/switch"
+import { Slider } from "@/components/ui/slider"
+import { InputWithButton } from "@/components/InputWithButton";
+import { useForm } from "react-hook-form";
+import * as z from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Progress } from "@/components/ui/progress"
+import {
+  CardHeader as ShadCardHeader,
+  CardTitle as ShadCardTitle,
+  CardDescription as ShadCardDescription,
+  CardContent as ShadCardContent,
+  CardFooter as ShadCardFooter,
+} from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+import { AspectRatio } from "@/components/ui/aspect-ratio"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
+import { Separator as RadixSeparator } from "@radix-ui/react-separator"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Menubar,
+  MenubarCheckboxItem,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarRadioGroup,
+  MenubarRadioItem,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger,
+  MenubarTrigger,
+} from "@/components/ui/menubar"
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu"
+import { useDisclosure } from '@mantine/hooks';
+import { useMediaQuery } from '@mantine/hooks';
+import { useMantineTheme } from '@mantine/core';
 
-import React, { useState, useEffect, } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TaskCard } from '@/components/TaskCard';
-import { ProgressCard } from "@/components/ProgressCard";
-import { StatsCard } from '@/components/StatsCard';
-import { ExamCountdown } from '@/components/ExamCountdown';
-import { CalendarCheck, BookMarked, LineChart, Award, Clock, Flame } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Check, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
-import { Label, } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Calendar } from '@/components/ui/calendar';
-import { Trash2 } from 'lucide-react';
-import { Play, Pause } from 'lucide-react';
-import { format } from 'date-fns';
+const taskFormSchema = z.object({
+  title: z.string().min(2, {
+    message: "Task title must be at least 2 characters.",
+  }),
+  description: z.string().optional(),
+  subject: z.string().min(2, {
+    message: "Subject must be at least 2 characters.",
+  }),
+  dueTime: z.string().min(5, {
+    message: "Due time must be in HH:MM format.",
+  }),
+  priority: z.enum(["Low", "Medium", "High"]),
+})
 
-interface StudySession {
-  startTime: Date;
-  endTime?: Date; // Optional, as the session might be ongoing
-}
+type TaskFormValues = z.infer<typeof taskFormSchema>
 
-interface UserStats {
-  dailyStreak: number;
-  studyTimeToday: number; // in minutes
-  tasksCompleted: {
-    completed: number;
-    total: number;
-
-  };
-  overallProgress: number; // percentage
-}
-
-interface Task {
-  id: number;
+interface TaskCardProps {
+  id: string;
   title: string;
-  dueTime: string;
+  description?: string;
   subject: string;
-  priority: 'High' | 'Medium' | 'Low';
+  dueTime: string;
+  priority: "Low" | "Medium" | "High";
   completed: boolean;
-};
+  onComplete: () => void;
+}
+
+function TaskCard({ id, title, description, subject, dueTime, priority, completed, onComplete }: TaskCardProps) {
+  const priorityColor =
+    priority === "High" ? "text-red-500" :
+    priority === "Medium" ? "text-yellow-500" :
+    "text-green-500";
+
+  return (
+    <Card className="shadow-md card-hover">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>{title}</CardTitle>
+          <Button variant="ghost" size="sm" onClick={onComplete}>
+            {completed ? "Mark Incomplete" : "Mark Complete"}
+          </Button>
+        </div>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">Subject: {subject}</p>
+            <p className="text-sm text-muted-foreground">Due Time: {dueTime}</p>
+          </div>
+          <Badge className={priorityColor}>{priority}</Badge>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 const Dashboard = () => {
-  interface Exam {
-    id: number;
-    examName: string;
-    date: Date | null;
+  const [tasks, setTasks] = useState([
+    {
+      id: "task-1",
+      title: "Complete Math Assignment",
+      description: "Finish all problems in chapter 3",
+      subject: "Math",
+      dueTime: "18:00",
+      priority: "High",
+      completed: false,
+    },
+    {
+      id: "task-2",
+      title: "Read History Chapter",
+      description: "Read and take notes on chapter 5",
+      subject: "History",
+      dueTime: "20:00",
+      priority: "Medium",
+      completed: true,
+    },
+    {
+      id: "task-3",
+      title: "Prepare Presentation",
+      description: "Create slides for the science presentation",
+      subject: "Science",
+      dueTime: "22:00",
+      priority: "Low",
+      completed: false,
+    },
+  ]);
+
+  const [open, { open: openDrawer, close: closeDrawer }] = useDisclosure(false);
+  const theme = useMantineTheme();
+  const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
+
+  const form = useForm<TaskFormValues>({
+    resolver: zodResolver(taskFormSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      subject: "",
+      dueTime: "",
+      priority: "Low",
+    },
+  })
+
+  const { toast } = useToast()
+
+  function onSubmit(values: TaskFormValues) {
+    // Here you would handle form submission, e.g., sending data to an API.
+    console.log(values)
+    toast({
+      title: "Task created.",
+      description: "Your task has been created.",
+      action: <ToastAction altText="Goto schedule">Undo</ToastAction>,
+    })
   }
 
-  // Load user stats from local storage or initialize with default values
-  const [userStats, setUserStats] = useState<UserStats>(() => {
-    if (typeof window !== 'undefined') {
-      const storedStats = localStorage.getItem('userStats');
-      return storedStats ? JSON.parse(storedStats) : {
-        dailyStreak: 0,
-        studyTimeToday: 0,
-        tasksCompleted: { completed: 0, total: 0 },
-        overallProgress: 0,
-      };
-    }
-    return { dailyStreak: 0, studyTimeToday: 0, tasksCompleted: { completed: 0, total: 0 }, overallProgress: 0 };
-  });
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('userStats', JSON.stringify(userStats));
-    }
-  }, [userStats]);
-
-
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const today = new Date();
-            const todayFormatted = today.toISOString().split('T')[0];
-            const lastActiveDate = localStorage.getItem('lastActiveDate');
-
-            if (lastActiveDate) {
-                if (lastActiveDate !== todayFormatted) {
-                    const lastActive = new Date(lastActiveDate);
-                    const diffTime = today.getTime() - lastActive.getTime();
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                    setUserStats(prevStats => {
-                        const newStreak = diffDays === 1 ? prevStats.dailyStreak + 1 : 1;
-                        localStorage.setItem('lastActiveDate', todayFormatted);
-                        return {
-                            ...prevStats,
-                            dailyStreak: newStreak,
-                        };
-                    });
-                }
-            }
-        }
-    }, []);
-
-    const updateStreak = () => {
-        const today = new Date();
-        const todayFormatted = today.toISOString().split('T')[0];
-        localStorage.setItem('lastActiveDate', todayFormatted);
-        setUserStats(prevStats => ({
-            ...prevStats,
-            dailyStreak: prevStats.dailyStreak + 1,
-        }));
-    };
-  // Load exams from local storage or initialize with an empty array
-    const [exams, setExams] = useState<Exam[]>(() => {
-        if (typeof window !== 'undefined') {
-            const storedExams = localStorage.getItem('upcomingExams');
-            return storedExams ? JSON.parse(storedExams) : [];
-        }
-        return [];
-    });
-
-  useEffect(() => {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('upcomingExams', JSON.stringify(exams));
-        }
-    }, [exams]);
-
-
-
-
-
-
-
-
-
-
-  const navigate = useNavigate();
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: 1, title: "Complete DSA Assignment #3", dueTime: "Today, 4:00 PM", subject: "CSE", priority: "High", completed: false },
-    { id: 2, title: "Review OS Process Synchronization", dueTime: "Today, 6:00 PM", subject: "Operating Systems", priority: "Medium", completed: false },
-    { id: 3, title: "Prepare for Technical Interview", dueTime: "Today, 8:00 PM", subject: "Placement Prep", priority: "High", completed: false },
-    { id: 4, title: "Read Chapter 5 of Database Systems", dueTime: "Today, 2:00 PM", subject: "DBMS", priority: "Medium", completed: true },
-  ]);
-  const [newTask, setNewTask] = useState<Partial<Task>>({});
-  const [showAddExamDialog, setShowAddExamDialog] = useState(false);
-  const [newExam, setNewExam] = useState<Partial<Exam>>({});
-
-  const addExam = () => {
-      if (newExam.examName && newExam.date) {
-        const nextId = exams.length > 0 ? Math.max(...exams.map(e => e.id)) + 1 : 1;
-        const fullNewExam: Exam = { id: nextId, ...newExam } as Exam;
-        setExams([...exams, fullNewExam]);
-        setNewExam({});
-        setShowAddExamDialog(false);
-      }
-    };
-
-    const handleAddTask = () => {
-    const nextId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
-    const fullNewTask: Task = { id: nextId, completed: false, ...newTask } as Task;
-    setTasks([...tasks, fullNewTask]);
-    setNewTask({});
-  };
-  const handleRemoveTask = (id: number) => setTasks(tasks.filter(task => task.id !== id));
-  const handleCompleteTask = (id: number) => {
-    setTasks(tasks.map(task => task.id === id ? { ...task, completed: !task.completed } : task));
-    const today = new Date();
-    const todayFormatted = today.toISOString().split('T')[0];
-    const lastActiveDate = localStorage.getItem('lastActiveDate');
-    let newStreak;
-
-    if (!lastActiveDate) {
-        newStreak = 1;
-        localStorage.setItem('lastActiveDate', todayFormatted);
-    } else if (lastActiveDate === todayFormatted) {
-        newStreak = undefined;
-    } else {
-        const lastActive = new Date(lastActiveDate);
-        const diffTime = today.getTime() - lastActive.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        newStreak = diffDays === 1 ? userStats.dailyStreak + 1 : 1;
-        localStorage.setItem('lastActiveDate', todayFormatted);
-    }
-
-
-  setUserStats(prevStats => {
-    const updatedTasks = tasks.map(task => task.id === id ? { ...task, completed: !task.completed } : task);
-    const completedTasksCount = updatedTasks.filter(task => task.completed).length;
-    
-    return {
-      ...prevStats,
-      dailyStreak: newStreak !== undefined ? newStreak : prevStats.dailyStreak,
-      tasksCompleted: {
-        completed: completedTasksCount,
-        total: updatedTasks.length,
-      },
-    };
-  });
-};
-    const handleRemoveExam = (id: number) => {
-    setExams(exams.filter((exam) => exam.id !== id));
-  };
-    const calculateDaysLeft = (date: Date | null): number => {
-    if (!date || !(date instanceof Date)) {
-      return 0;
-    }
-    return Math.ceil((date.getTime() - new Date().getTime()) / (1000 * 3600 * 24));
-  };
-
-  const [studySessions, setStudySessions] = useState<StudySession[]>([]);
-
-    const [isStudying, setIsStudying] = useState<boolean>(false);
-
-    useEffect(() => {
-        const today = new Date();
-        const todayFormatted = today.toISOString().split('T')[0];
-        const storageKey = `studySessions-${todayFormatted}`;
-
-        const storedSessions = localStorage.getItem(storageKey);
-        const sessions = storedSessions ? JSON.parse(storedSessions) : [];
-
-        setStudySessions(sessions);
-        setIsStudying(sessions.some((session: StudySession) => !session.endTime));
-
-        const lastSavedDate = localStorage.getItem('lastSavedStudyDate');
-        if (lastSavedDate && lastSavedDate !== todayFormatted) {
-            localStorage.removeItem(`studySessions-${lastSavedDate}`);
-            setStudySessions([]);
-        }
-        localStorage.setItem('lastSavedStudyDate', todayFormatted);
-    }, []);
-
-    const getPreviousDayStudyTime = (): number => {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayFormatted = yesterday.toISOString().split('T')[0];
-        const storageKey = `studySessions-${yesterdayFormatted}`;
-        const storedSessions = localStorage.getItem(storageKey);
-        const sessions: StudySession[] = storedSessions ? JSON.parse(storedSessions) : [];
-        let totalSeconds = 0;
-        for (const session of sessions) {
-            if (session.startTime instanceof Date) {
-                const endTime = session.endTime instanceof Date ? session.endTime : new Date();
-                const durationMs = endTime.getTime() - session.startTime.getTime();
-                totalSeconds += Math.floor(durationMs / 1000);
-            }
-        }
-        return totalSeconds;
-    };
-
-    useEffect(() => {
-        const formatTime = (totalSeconds: number): string => {
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-            return `${hours}h ${minutes}m ${seconds}s`;
-        };
-        let intervalId: NodeJS.Timeout | null = null;
-  
-      if (isStudying) {
-        intervalId = setInterval(() => {
-            const totalSeconds = calculateTotalStudyTime(studySessions);
-            setDisplayedStudyTime(formatTime(totalSeconds));
-        }, 1000);
-      } else if (intervalId !== null){
-        
-           clearInterval(intervalId);
-        
-        intervalId = null;
-      }
-  
-      return () => {
-        if(intervalId !== null) clearInterval(intervalId);
-      };
-    }, [isStudying, studySessions]);
-
-    const startStudy = () => {
-      const newSession: StudySession = { startTime: new Date() };
-      const updatedSessions = [...studySessions, newSession];
-      setStudySessions(updatedSessions);
-      localStorage.setItem(
-        `studySessions-${new Date().toISOString().split("T")[0]}`,
-        JSON.stringify(updatedSessions)
-      );
-      setIsStudying(true);
-    };
-
-    const stopStudy = () => {
-        const updatedSessions = studySessions.map((session: StudySession) => {
-            if (!session.endTime) {
-                return { ...session, endTime: new Date() };
-            }
-            return session;
-        });
-        setStudySessions(updatedSessions);
-        localStorage.setItem(`studySessions-${new Date().toISOString().split('T')[0]}`, JSON.stringify(updatedSessions));
-        setIsStudying(false);
-    };
-
-    const calculateTotalStudyTime = (sessions: StudySession[]): number => { // Change: Calculate in seconds
-      let totalSeconds = 0;
-      for (const session of sessions) {
-        if (session.startTime instanceof Date) {
-          const endTime = session.endTime instanceof Date ? session.endTime : new Date();
-          const durationMs = endTime.getTime() - session.startTime.getTime();
-          totalSeconds += Math.floor(durationMs / 1000); // Change: Calculate in seconds
-        }
-      }
-      return totalSeconds;
-    };
-
-    const [studyTimeTrend, setStudyTimeTrend] = useState<number>(0);
-    const [displayedStudyTime, setDisplayedStudyTime] = useState<string>('0h 0m 0s');
-
-    useEffect(() => {
-        console.log("studySessions updated:", studySessions);
-        const totalSeconds = calculateTotalStudyTime(studySessions);
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-        setDisplayedStudyTime(`${hours}h ${minutes}m ${seconds}s`); // Updated formatting
-
-        const previousDaySeconds = getPreviousDayStudyTime(); // Get previous day in seconds
-        const trend = previousDaySeconds === 0 ? 0 : Math.round(((totalSeconds - previousDaySeconds) / previousDaySeconds) * 100);
-        setStudyTimeTrend(trend);
-    }, [studySessions]);
-
-  
-
-  
-
-    return (
-        <div className="space-y-8 animate-fade-in">
-          <div>
-              <h1 className="text-3xl font-bold">Hey Pardhu, Ready to crush it today? 🚀</h1>
-              <p className="text-muted-foreground mt-1">Let's make progress on your goals!</p>
-          </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatsCard
-                    title="Daily Streak"
-                    value={`${userStats.dailyStreak} days`}
-                    icon={<Flame size={24} className="text-primary" />}
-                    trend={userStats.dailyStreak > 0 ? 1 : 0}
-                    trendLabel="vs last week"
-                />
-                <StatsCard
-                    onClick={() => (isStudying ? stopStudy() : startStudy())}
-                    className="cursor-pointer"
-                    title="Study Time Today"
-                    value={displayedStudyTime}
-                    icon={isStudying ? (
-                        <Pause size={24} className="text-focus-blue" />
-                    ) : (
-                        <Play size={24} className="text-focus-blue" />
-                    )}
-                    trend={studyTimeTrend}
-                    trendLabel="vs yesterday"
-                />
-                <StatsCard
-                    title="Tasks Completed"
-                    value={`${userStats.tasksCompleted.completed}/${userStats.tasksCompleted.total}`}
-                    icon={<CalendarCheck size={24} className="text-focus-green" />}
-                    trend={
-                        userStats.tasksCompleted.total > 0
-                            ? (userStats.tasksCompleted.completed / userStats.tasksCompleted.total) * 100
-                            : 0
-                    }
-
-                />
-                <StatsCard
-                    title="Overall Progress"
-                    value="68%"
-                    icon={<Award size={24} className="text-focus-yellow" />}
-                    trend={12}
-                    trendLabel="this week"
-                />
-            </div>
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold">Upcoming Exams</h2>
-                    <Dialog open={showAddExamDialog} onOpenChange={setShowAddExamDialog}>
-                        <DialogTrigger asChild>
-                            <Button variant="outline" size="sm">Add Exam</Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                            <DialogHeader>
-                                <DialogTitle>Add New Exam</DialogTitle>
-                                <DialogDescription>
-                                    Fill in the details for the new exam.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className='grid grid-cols-1 gap-4 py-4'>
-                                <div className='space-y-1'>
-                                    <Label htmlFor='examName'>Exam Name</Label>
-                                    <Input
-                                        id='examName'
-                                        value={newExam.examName || ''}
-                                        onChange={(e) => setNewExam({ ...newExam, examName: e.target.value })}
-                                        className='border-gray-300 rounded-md text-sm'
-                                        placeholder='e.g. Data Structures Midterm'
-                                    />
-                                </div>
-                                <div className='space-y-1'>
-                                    <Label htmlFor='examDate'>Exam Date</Label>
-                                    <Calendar
-                                        mode="single"
-                                        selected={newExam.date}
-                                        onSelect={(date) => setNewExam({ ...newExam, date })}
-                                        className="rounded-md border"
-                                    />
-                                </div>
-                            </div>
-                            <DialogFooter>
-                                <Button type='submit' onClick={addExam}>Add Exam</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {exams.length === 0 && (
-                        <div className="text-center text-gray-500 col-span-full">
-                            No upcoming exams. Add some exams to get started!
-                        </div>
-                    )}
-                    {exams.map((exam) => (
-                        <div key={exam.id} className="bg-white rounded-lg shadow-md p-4 relative">
-                            <ExamCountdown
-                                examName={exam.examName}
-                                date={exam.date ? format(exam.date, 'MMMM dd, yyyy') : ''}                            
-                                daysLeft={exam.date ? calculateDaysLeft(exam.date) : 0}
-
-                            />
-                            <Button variant="destructive" size="sm" className="w-full mt-2 bg-purple-200 hover:bg-purple-300 text-white-900" onClick={() => handleRemoveExam(exam.id)}>
-                                Remove Exam
-                            </Button>
-
-                        </div>
-
-                    ))}
-                </div>
-            </div>
-              <Tabs defaultValue="tasks">
-                <TabsList className="grid grid-cols-3 w-full max-w-md mb-4">
-                    <TabsTrigger value="tasks" className="flex items-center gap-2">
-                        <CalendarCheck size={16} />
-                        <span>Today's Tasks</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="resources" className="flex items-center gap-2">
-                        <BookMarked size={16} />
-                        <span>Resources</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="progress" className="flex items-center gap-2">
-                        <LineChart size={16} />
-                        <span>Progress</span>
-                    </TabsTrigger>
-                </TabsList>
-                  <TabsContent value="tasks" className="mt-0">
-                    <Card>
-                        <CardContent className="p-6">
-                            <div className="mb-6">
-                                <h3 className="text-lg font-medium">Today's Priority Tasks</h3>
-                            </div>
-                            <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
-                                <div className='space-y-1'>
-                                    <Label htmlFor="taskTitle" className="text-sm font-medium">Title</Label>
-                                    <Input id="taskTitle" className="border-gray-300 rounded-md text-sm" placeholder="Enter task title" value={newTask.title || ''} onChange={(e) => setNewTask({ ...newTask, title: e.target.value })} />
-                                </div>
-                                <div className='space-y-1'>
-                                    <Label htmlFor="taskDueTime" className="text-sm font-medium">Due Time</Label>
-                                    <Input id="taskDueTime" className="border-gray-300 rounded-md text-sm" placeholder="e.g., Today, 4:00 PM" value={newTask.dueTime || ''} onChange={(e) => setNewTask({ ...newTask, dueTime: e.target.value })} />
-                                </div>
-                                <div className='space-y-1'>
-                                    <Label htmlFor="taskSubject" className="text-sm font-medium">Subject</Label>
-                                    <Input id="taskSubject" className="border-gray-300 rounded-md text-sm" placeholder="e.g., CSE" value={newTask.subject || ''} onChange={(e) => setNewTask({ ...newTask, subject: e.target.value })} />
-                                </div>
-                                <div className='space-y-1'>
-                                    <Label htmlFor="priority" className="text-sm font-medium">Priority</Label>
-                                    <Select onValueChange={(value) => setNewTask({ ...newTask, priority: value as "High" | "Medium" | "Low" })} defaultValue={"High"}>
-                                        <SelectTrigger id="priority" className="border-gray-300 rounded-md text-sm">
-                                            <SelectValue placeholder="Select priority" />
-                                        </SelectTrigger>
-                                        <SelectContent className='text-sm'>
-                                            <SelectItem value="High">High</SelectItem>
-                                            <SelectItem value="Medium">Medium</SelectItem>
-                                            <SelectItem value="Low">Low</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className='space-y-1 flex items-end'>
-                                    <Button size="sm" className="rounded-md" onClick={handleAddTask}>Add Task</Button>
-                                </div>
-                            </div>
-                            {/* Task List Section */}
-                            <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
-                                {tasks.length === 0 && (
-                                    <div className="text-center text-gray-500">
-                                        No tasks for today. Add some tasks to get started!
-                                    </div>
-                                )}
-                                <div className="space-y-3">
-
-                                    {/* Task Item List */}
-
-                                    {tasks.map((task) => (
-                                        <div key={task.id} className='flex items-center justify-between bg-white p-3 rounded-md shadow-sm'>
-                                            <TaskCard
-                                                title={task.title}
-                                                dueTime={task.dueTime}
-                                                subject={task.subject}
-                                                priority={task.priority}
-                                                completed={task.completed}
-                                            />
-                                            <div className='flex gap-2'>
-                                                <Button variant='outline' size='icon' onClick={() => handleCompleteTask(task.id)} className='rounded-full'>
-                                                    <Check
-                                                        className="h-4 w-4"
-                                                    />
-                                                </Button>
-                                                <Button variant='outline' size='icon' onClick={() => handleRemoveTask(task.id)} className='rounded-full'>
-                                                    <X
-                                                        className="h-4 w-4"
-                                                    />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="mt-4 flex justify-center">
-                                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/Planner')}>
-                                    View All Tasks
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                  <TabsContent value="resources" className="mt-0">
-                    <Card>
-                        <CardContent className="p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-medium">Recently Added Resources</h3>
-                                <Button size="sm">Add Resource</Button>
-                            </div>
-
-                            <div className="space-y-3">
-                                <div className="bg-muted/30 rounded-lg p-4">
-                                    <h4 className="font-medium mb-2">DSA Mastery Course</h4>
-                                    <p className="text-sm text-muted-foreground mb-3">A comprehensive video series covering all Data Structure topics for interviews.</p>
-                                    <Button variant="outline" size="sm">Open Resource</Button>
-                                </div>
-
-                                <div className="bg-muted/30 rounded-lg p-4">
-                                    <h4 className="font-medium mb-2">Operating Systems Notes</h4>
-                                    <p className="text-sm text-muted-foreground mb-3">Complete compilation of OS concepts with diagrams and examples.</p>
-                                    <Button variant="outline" size="sm">Open Resource</Button>
-                                </div>
-                            </div>
-
-                            <div className="mt-4 flex justify-center">
-                                <Button variant="outline" size="sm" className="w-full">
-                                    View All Resources
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                  <TabsContent value="progress" className="mt-0">
-                    <Card>
-                        <CardContent className="p-6">
-                            <h3 className="text-lg font-medium mb-4">Subject Progress</h3>
-
-                            <div className="space-y-3">
-                                <ProgressCard
-                                    subject="Data Structures & Algorithms"
-                                    progress={60}
-                                    color="bg-focus-blue"
-                                />
-                                <ProgressCard
-                                    subject="Web Development"
-                                    progress={30}
-                                    color="bg-focus-green"
-                                />
-                                <ProgressCard
-                                    subject="Operating Systems"
-                                    progress={90}
-                                    color="bg-focus-purple"
-                                />
-                                <ProgressCard
-                                    subject="Database Management"
-                                    progress={45}
-                                    color="bg-focus-yellow"
-                                />
-                            </div>
-
-                            <div className="mt-4 flex justify-center">
-                                <Button variant="outline" size="sm" className="w-full">
-                                    View Detailed Progress
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
-          </div>
+  const toggleComplete = (taskId: string) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId ? { ...task, completed: !task.completed } : task
+      )
     );
+  };
+
+  return (
+    <div className="container mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <LayoutDashboard className="h-5 w-5 text-primary" />
+          </div>
+          <h1 className="text-3xl font-bold gradient-heading">Dashboard</h1>
+        </div>
+        <DrawerTrigger asChild>
+          <Button variant="outline">Add Task</Button>
+        </DrawerTrigger>
+      </div>
+
+      <p className="text-muted-foreground">
+        Here's an overview of your study progress, upcoming tasks, and important resources.
+      </p>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="card-hover">
+          <CardHeader>
+            <CardTitle>Total Subjects</CardTitle>
+            <CardDescription>All subjects you are currently studying</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">8</div>
+            <p className="text-sm text-muted-foreground">Including Math, Science, History...</p>
+          </CardContent>
+        </Card>
+
+        <Card className="card-hover">
+          <CardHeader>
+            <CardTitle>Weekly Study Time</CardTitle>
+            <CardDescription>Total hours spent studying this week</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">25 Hours</div>
+            <p className="text-sm text-muted-foreground">Keep up the great work!</p>
+          </CardContent>
+        </Card>
+
+        <Card className="card-hover">
+          <CardHeader>
+            <CardTitle>Upcoming Exams</CardTitle>
+            <CardDescription>Number of exams scheduled for the next month</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">3 Exams</div>
+            <p className="text-sm text-muted-foreground">Prepare and stay focused!</p>
+          </CardContent>
+        </Card>
+
+        <Card className="card-hover">
+          <CardHeader>
+            <CardTitle>Resources Accessed</CardTitle>
+            <CardDescription>Number of study resources you've accessed</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">120+</div>
+            <p className="text-sm text-muted-foreground">Explore more to enhance your knowledge!</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <ProgressCard
+          subject="Mathematics"
+          progress={75}
+          color="bg-focus-blue"
+          icon={<PieChart className="h-4 w-4 text-focus-blue" />}
+        />
+        <ProgressCard
+          subject="Computer Science"
+          progress={60}
+          color="bg-focus-purple"
+          icon={<Rocket className="h-4 w-4 text-focus-purple" />}
+        />
+        <ProgressCard
+          subject="History"
+          progress={90}
+          color="bg-focus-green"
+          icon={<GraduationCap className="h-4 w-4 text-focus-green" />}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle>Upcoming Tasks</CardTitle>
+            <CardDescription>Stay organized with your tasks</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {tasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                id={task.id}
+                title={task.title}
+                description={task.description}
+                subject={task.subject}
+                dueTime={task.dueTime}
+                priority={task.priority}
+                completed={task.completed}
+                onComplete={() => toggleComplete(task.id)}
+              />
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle>Quick Links</CardTitle>
+            <CardDescription>Access your favorite resources quickly</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-4">
+            <Button variant="secondary" className="btn-hover">
+              <CalendarCheck2 className="w-4 h-4 mr-2" />
+              Planner
+            </Button>
+            <Button variant="secondary" className="btn-hover">
+              <ListChecks className="w-4 h-4 mr-2" />
+              Notes
+            </Button>
+            <Button variant="secondary" className="btn-hover">
+              <Presentation className="w-4 h-4 mr-2" />
+              Resources
+            </Button>
+            <Button variant="secondary" className="btn-hover">
+              <Timer className="w-4 h-4 mr-2" />
+              Focus Timer
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Drawer open={open} onOpenChange={open ? closeDrawer : openDrawer}>
+        <DrawerContent className="bg-white dark:bg-gray-900">
+          <DrawerHeader>
+            <DrawerTitle>Add New Task</DrawerTitle>
+            <DrawerDescription>
+              Create a new task to stay organized.
+            </DrawerDescription>
+          </DrawerHeader>
+          <DrawerFooter>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Task Title" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Add a detailed description"
+                          className="resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="subject"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subject</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Subject" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="dueTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Due Time</FormLabel>
+                      <FormControl>
+                        <Input placeholder="HH:MM" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Priority</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a priority" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Low">Low</SelectItem>
+                          <SelectItem value="Medium">Medium</SelectItem>
+                          <SelectItem value="High">High</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit">Add Task</Button>
+              </form>
+            </Form>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    </div>
+  );
 };
 
 export default Dashboard;

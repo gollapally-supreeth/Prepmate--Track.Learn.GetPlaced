@@ -106,7 +106,7 @@
   }
   
   .nav-link.active {
-    @apply bg-primary text-primary-foreground;
+    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground;
   }
   
   .card-hover {

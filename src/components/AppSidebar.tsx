@@ -16,6 +16,8 @@ import {
   FileCheck 
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { FocusTimerProvider } from './focus-timer/FocusTimerContext';
+import { FocusTimerSidebar } from './focus-timer/FocusTimerSidebar';
 
 export function AppSidebar() {
   const location = useLocation();
@@ -26,7 +28,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="p-4">
+      <SidebarHeader className="p-4 bg-gradient-to-r from-white/10 to-transparent">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
             <span className="text-primary font-bold text-xl">P</span>
@@ -86,6 +88,13 @@ export function AppSidebar() {
               <span>Placement Tracker</span>
             </Link>
           </nav>
+        </div>
+        
+        {/* Add Focus Timer to sidebar */}
+        <div className="mt-6 border-t border-sidebar-border pt-4">
+          <FocusTimerProvider>
+            <FocusTimerSidebar />
+          </FocusTimerProvider>
         </div>
       </SidebarContent>
       

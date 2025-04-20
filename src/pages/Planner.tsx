@@ -1,462 +1,640 @@
-
-import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { useToast } from "@/components/ui/use-toast";
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PlannerTaskCard } from '@/components/PlannerTaskCard';
-import { 
-  Search, 
-  PlusCircle, 
-  Filter, 
-  Calendar, 
-  Clock, 
-  Tag, 
-  AlertCircle 
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarCheck2, Plus, Check, ChevronsUpDown } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/select"
+import { cn } from "@/lib/utils"
+import { useToast } from "@/hooks/use-toast"
+import { motion } from 'framer-motion';
 
 interface Task {
-  id: number;
+  id: string;
   title: string;
   description: string;
-  dueTime: string;
+  dueDate: Date | undefined;
   subject: string;
   priority: 'High' | 'Medium' | 'Low';
-  status: 'todo' | 'in-progress' | 'completed';
-  
-  completed?: boolean;
+  completed: boolean;
 }
 
-interface NewTask extends Partial<Task> {
-  title: string;
-  description: string;
-  dueTime: string;
-}
-
-// Sample task data
-const sampleTasks = [
-  {
-    id: 1,
-    title: "Revise Graphs in DSA",
-    dueTime: "Today, 8:00 PM",
-    subject: "CSE",
-    priority: "High" as const,
-    status: "todo",
-    description: "Prepare for DSA assignment",
-  },
-  {
-    id: 2,
-    title: "Complete Web Dev Assignment",
-    dueTime: "Today, 5:00 PM",
-    subject: "Web Dev",
-    priority: "Medium" as const,
-    status: "todo",
-    description: "Complete web dev assignment",
-  },
-  {
-    id: 3,
-    title: "Study SQL Joins",
-    dueTime: "Tomorrow, 12:00 PM",
-    subject: "DBMS",
-    priority: "Medium" as const,
-    status: "in-progress",
-    description: "Study for sql joins",
-  },
-  {
-    id: 4,
-    title: "Research for OS Project",
-    dueTime: "Today, 3:00 PM",
-    subject: "Operating Systems",
-    priority: "Low" as const,
-    status: "in-progress",
-    description: "Do some research for OS project",
-  },
-  {
-    id: 5,
-    title: "Practice Python Problems",
-    dueTime: "Yesterday, 6:00 PM",
-    subject: "Programming",
-    priority: "Medium" as const,
-    status: "completed" ,
-    description: "Complete some python problems",
-    completed: true
-    
-  },
-  {
-    id: 6,
-    title: "Read Chapter 3 of Computer Networks",
-    dueTime: "Yesterday, 7:00 PM",
-    subject: "Networks",
-     priority: "High" as const,
-     status: "completed",
-     description: "complete reading of CN chapter 3",
-    completed: true
-  },
+const subjects = [
+  "Mathematics",
+  "Science",
+  "History",
+  "English",
+  "Computer Science",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "Economics",
+  "Geography",
+  "Art",
+  "Music",
+  "Physical Education",
+  "Foreign Language",
 ];
 
+const priorities = ["High", "Medium", "Low"];
+
 const Planner = () => {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [open, setOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
+  const [subject, setSubject] = useState(subjects[0]);
+  const [priority, setPriority] = useState(priorities[0]);
+  const [isCompletedFilter, setIsCompletedFilter] = useState(false);
+  const [subjectFilter, setSubjectFilter] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState<Date | null>(null);
   const { toast } = useToast();
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    if (typeof window !== 'undefined') {
-      const storedTasks = localStorage.getItem('plannerTasks');
-      return storedTasks ? JSON.parse(storedTasks) : sampleTasks;
-    }
-    return sampleTasks;
-  });
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('plannerTasks', JSON.stringify(tasks));
+    const storedTasks = localStorage.getItem('tasks');
+    if (storedTasks) {
+      setTasks(JSON.parse(storedTasks));
     }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
-  
-  const [newTask, setNewTask] = useState<NewTask>({ title: '', description: '', dueTime: '' });
-  
-  const handleAddTask = () => {
-    if (newTask.title && newTask.description && newTask.dueTime && newTask.subject && newTask.priority ) {
-      const nextId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
-      const fullNewTask: Task = { id: nextId, status: "todo", completed: false, ...newTask } as Task;
-      setTasks([...tasks, fullNewTask]);
-      setNewTask({ title: '', description: '', dueTime: '' });
-      toast({ description: "Task created successfully!", position: "bottom-center" });
+
+  const createTask = () => {
+    if (!title || !dueDate || !subject || !priority) {
+      toast({
+        title: "Missing fields",
+        description: "Please fill in all fields.",
+      });
+      return;
     }
+
+    const newTask: Task = {
+      id: Math.random().toString(36).substring(2, 9),
+      title,
+      description,
+      dueDate,
+      subject,
+      priority,
+      completed: false,
+    };
+
+    setTasks([...tasks, newTask]);
+    setOpen(false);
+    setTitle('');
+    setDescription('');
+    setDueDate(undefined);
+    setSubject(subjects[0]);
+    setPriority(priorities[0]);
+    toast({
+      title: "Task created",
+      description: "Your task has been created",
+    });
   };
 
-  const handleCompleteTask = (id: number) => {
-    setTasks(tasks.map(task => {
-      if (task.id === id) {
-        return { ...task, status: 'completed', completed: true };
-      }
-      return task;
-    }));
-    toast({ description: "Task completed!", position: "bottom-center" });
+  const editTask = () => {
+    if (!selectedTask) return;
+
+    const updatedTask = {
+      ...selectedTask,
+      title,
+      description,
+      dueDate,
+      subject,
+      priority,
+    };
+
+    setTasks(tasks.map(task => task.id === selectedTask.id ? updatedTask : task));
+    setEditOpen(false);
+    setSelectedTask(null);
+    setTitle('');
+    setDescription('');
+    setDueDate(undefined);
+    setSubject(subjects[0]);
+    setPriority(priorities[0]);
+    toast({
+      title: "Task updated",
+      description: "Your task has been updated",
+    });
   };
 
-  const handleMoveToInProgress = (id: number) => {
-    setTasks(tasks.map(task => {
-      if (task.id === id) {
-        return { ...task, status: 'in-progress' };
-      }
-      return task;
-    }));
-  };
-
-  const handleRemoveTask = (id: number) => {
+  const deleteTask = (id: string) => {
     setTasks(tasks.filter(task => task.id !== id));
+    toast({
+      title: "Task deleted",
+      description: "Your task has been deleted",
+    });
   };
 
-  const handleEditTask = (id: number, updatedTask: Partial<Task>) => {
-    setTasks(tasks.map(task => task.id === id ? { ...task, ...updatedTask } : task));
+  const toggleComplete = (id: string) => {
+    setTasks(
+      tasks.map(task =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
   };
 
-  const handleStatusChange = (id: number, newStatus: Task['status']) => {
-    setTasks(tasks.map(task => task.id === id ? { ...task, status: newStatus } : task));
+  const clearFilters = () => {
+    setIsCompletedFilter(false);
+    setSubjectFilter('');
+    setPriorityFilter('');
+    setDateFilter(null);
   };
 
-
-   const [filter, setFilter] = useState("all");
-    const [subject, setSubject] = useState("all");
-    const [searchTerm, setSearchTerm] = useState("");
-
-  const filteredTasks = tasks.filter((task) => {
-    
-     if (filter !== "all" && task.status !== filter) return false;
-    if (subject !== "all" && task.subject !== subject) return false;
+  const filteredTasks = tasks.filter(task => {
+    if (isCompletedFilter && !task.completed) {
+      return false;
+    }
+    if (subjectFilter && task.subject !== subjectFilter) {
+      return false;
+    }
+    if (priorityFilter && task.priority !== priorityFilter) {
+      return false;
+    }
+    if (dateFilter && (!task.dueDate || task.dueDate.toDateString() !== dateFilter.toDateString())) {
+      return false;
+    }
     return true;
   });
-  
 
-  
-  const todoTasks = filteredTasks.filter(task => task.status === "todo");
-  const inProgressTasks = filteredTasks.filter(task => task.status === "in-progress");
-  const completedTasks = filteredTasks.filter(task => task.status === "completed");
-  const taskTitleRef = useRef<HTMLInputElement>(null);
-  
+  const calculateProgress = () => {
+    if (tasks.length === 0) return 0;
+    const completedTasks = tasks.filter(task => task.completed).length;
+    return (completedTasks / tasks.length) * 100;
+  };
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-3xl font-bold">Daily Planner</h1>
-        <p className="text-muted-foreground mt-1">Organize your tasks efficiently</p>
+    <motion.div
+      className="container mx-auto space-y-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-1 bg-primary rounded-full animate-pulse-subtle"></div>
+          <h1 className="text-3xl font-bold gradient-heading">Daily Planner</h1>
+        </div>
+        <Button onClick={() => setOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Task
+        </Button>
       </div>
-      
-      {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-          <Input
-            placeholder="Search tasks..."
-            className="pl-10"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
 
-        </div>
-        
-        <div className="flex gap-3">
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="todo">To Do</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={subject} onValueChange={setSubject}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Subject" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Subjects</SelectItem>
-              <SelectItem value="CSE">CSE</SelectItem>
-              <SelectItem value="Web Dev">Web Dev</SelectItem>
-              <SelectItem value="DBMS">DBMS</SelectItem>
-              <SelectItem value="Operating Systems">Operating Systems</SelectItem>
-              <SelectItem value="Programming">Programming</SelectItem>
-              <SelectItem value="Networks">Networks</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Button variant="outline" className="gap-2">
-            <Filter size={16} />
-            <span className="hidden sm:inline">More Filters</span>
-          </Button>
-        </div>
-      </div>
-      
-      {/* Add Task Button */}
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
-        <div className='space-y-1'>
-          <Label htmlFor="taskTitle" className="text-sm font-medium">Title</Label>
-          <Input
-            id="taskTitle"
-            className="border-gray-300 rounded-md text-sm"
-            placeholder="Enter task title"
-            ref={taskTitleRef}
-            value={newTask.title || ''}
-            onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-          />
-        </div>
-        <div className='space-y-1'>
-          <Label htmlFor="taskDescription" className="text-sm font-medium">Description</Label>
-          <Input
-            id="taskDescription"
-            className="border-gray-300 rounded-md text-sm"
-            placeholder="Enter task description"
-            value={newTask.description || ''}
-            onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-          />
-        </div>
-        <div className='space-y-1'>
-          <Label htmlFor="taskDueTime" className="text-sm font-medium">Due Time</Label>
-          <Input
-            id="taskDueTime"
-            className="border-gray-300 rounded-md text-sm"
-            placeholder="e.g., Today, 4:00 PM"
-            value={newTask.dueTime || ''}
-            onChange={(e) => setNewTask({ ...newTask, dueTime: e.target.value })}
-          />
-        </div>
-        <div className='space-y-1'>
-          <Label htmlFor="taskSubject" className="text-sm font-medium">Subject</Label>
-          <Input
-            id="taskSubject"
-            className="border-gray-300 rounded-md text-sm"
-            placeholder="e.g., CSE"
-            value={newTask.subject || ''}
-            onChange={(e) => setNewTask({ ...newTask, subject: e.target.value })}
-          />
-        </div>
-        <div className='space-y-1'>
-          <Label htmlFor="priority" className="text-sm font-medium">Priority</Label>
-          <Select onValueChange={(value) => setNewTask({ ...newTask, priority: value as "High" | "Medium" | "Low" })} defaultValue={"High"}>
-            <SelectTrigger id="priority" className="border-gray-300 rounded-md text-sm">
-              <SelectValue placeholder="Select priority" />
-            </SelectTrigger>
-            <SelectContent className='text-sm'>
-              <SelectItem value="High">High</SelectItem>
-              <SelectItem value="Medium">Medium</SelectItem>
-              <SelectItem value="Low">Low</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className='space-y-1 flex items-end'>
-          <Button size="sm" className="rounded-md" onClick={handleAddTask}>Add Task</Button>
-        </div>
-      </div>
-      
-      {/* Tasks Kanban Board */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* To Do Column */}
-        <Card className="overflow-hidden">
-          <div className="bg-secondary p-3 border-b">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium flex items-center gap-2">
-                <AlertCircle size={16} className="text-focus-red" />
-                <span>To Do</span>
-                <span className="bg-focus-red/10 text-focus-red px-1.5 rounded-full text-xs">
-                  {todoTasks.length}
-                </span>
-              </h3>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <PlusCircle size={16} />
+      <p className="text-muted-foreground">
+        Organize your day, manage tasks, and boost your productivity.
+      </p>
+
+      <Card className="glass-card">
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="space-y-2">
+              <Label>Completed Tasks</Label>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-sm"
+                onClick={() => setIsCompletedFilter(!isCompletedFilter)}
+              >
+                <Check className="mr-2 h-4 w-4" />
+                {isCompletedFilter ? 'Hide Completed' : 'Show Completed'}
               </Button>
-            </div> 
-          
+            </div>
 
-          </div>
-          <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto">
-            {todoTasks
-            .filter((task) => {
-              const lowerCaseSearchTerm = searchTerm.toLowerCase();
-              return (
-                task.title.toLowerCase().includes(lowerCaseSearchTerm) 
-              );
-            })
-            .map(task => (
-              <div className='flex flex-col'>
-                <PlannerTaskCard
-                  key={task.id}
-                  
-                  subject={task.subject}
-                  priority={task.priority}
-                  completed={task.completed}
-                  title={task.title}
-                  dueTime={task.dueTime}
-                  description={task.description}
-                  subject={task.subject}
-                  priority={task.priority}
-                  completed={task.completed}
-                  onComplete={handleCompleteTask}
-                  id={task.id}
-                  subject={task.subject}
-                  priority={task.priority}
-                  completed={task.completed}
-                  onComplete={handleCompleteTask}
-                  description={task.description}
-                  id={task.id}
-                  onMoveToInProgress={handleMoveToInProgress}
-                  onRemove={handleRemoveTask}
-                  />
-              </div>
-            ))}
-            {todoTasks.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-32 text-center" >
-                <p className="text-muted-foreground text-sm">No tasks found. Create a new task?</p>
+            <div className="space-y-2">
+              <Label>Subject</Label>
+              <Popover>
+                <PopoverTrigger asChild>
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-2"
-                 
-                    
-                    onClick={() => taskTitleRef.current?.focus()}
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !subjectFilter && "text-muted-foreground"
+                    )}
                   >
-                New Task
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        
-        {/* In Progress Column */}
-        <Card className="overflow-hidden">
-          <div className="bg-secondary p-3 border-b">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium flex items-center gap-2">
-                <Clock size={16} className="text-focus-yellow" />
-                <span>In Progress</span>
-                <span className="bg-focus-yellow/10 text-focus-yellow px-1.5 rounded-full text-xs">
-                  {inProgressTasks.length}
-                </span>
-              </h3>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <PlusCircle size={16} />
-              </Button>
+                    {subjectFilter
+                      ? subjects.find((s) => s === subjectFilter)
+                      : "Select subject"}
+                    <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search subject..." />
+                    <CommandList>
+                      <CommandEmpty>No subject found.</CommandEmpty>
+                      <CommandGroup>
+                        {subjects.map((subject) => (
+                          <CommandItem
+                            value={subject}
+                            key={subject}
+                            onSelect={() => {
+                              setSubjectFilter(subject === subjectFilter ? "" : subject)
+                            }}
+                          >
+                            {subject}
+                            <Check
+                              className={cn(
+                                "ml-auto h-4 w-4",
+                                subjectFilter === subject ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                      <CommandSeparator />
+                      <CommandItem onSelect={() => setSubjectFilter("")}>
+                        Clear
+                      </CommandItem>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Priority</Label>
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  {priorities.map(priority => (
+                    <SelectItem key={priority} value={priority}>
+                      {priority}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="">Clear</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Due Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !dateFilter && "text-muted-foreground"
+                    )}
+                  >
+                    {dateFilter ? (
+                      <span>{dateFilter?.toLocaleDateString()}</span>
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                    <CalendarCheck2 className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start" side="bottom">
+                  <Calendar
+                    mode="single"
+                    selected={dateFilter}
+                    onSelect={setDateFilter}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
-          <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto">
-            {inProgressTasks.map(task => (
-              <div className='flex flex-col'>
-                <PlannerTaskCard
-                  key={task.id}
-                  title={task.title}
-                  dueTime={task.dueTime}
-                  description={task.description}
-                  subject={task.subject}
-                  priority={task.priority}
-                  completed={task.completed}
-                  onComplete={handleCompleteTask}
-                  description={task.description}
-                  id={task.id}
-                  onMoveToInProgress={handleMoveToInProgress}
-                  onRemove={handleRemoveTask}
-                  />
-              </div>
-            ))}
-            {inProgressTasks.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-32 text-center">
-                <p className="text-muted-foreground text-sm">No tasks in progress</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        
-        {/* Completed Column */}
-        <Card className="overflow-hidden">
-          <div className="bg-secondary p-3 border-b">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium flex items-center gap-2">
-                <Calendar size={16} className="text-focus-green" />
-                <span>Completed</span>
-                <span className="bg-focus-green/10 text-focus-green px-1.5 rounded-full text-xs">
-                  {completedTasks.length}
-                </span>
-              </h3>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <PlusCircle size={16} />
-              </Button>
-            </div>
+
+          <Button variant="link" onClick={clearFilters} className="mt-4">
+            Clear All Filters
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="glass-card">
+        <CardHeader>
+          <h3 className="text-lg font-semibold">Progress Overview</h3>
+          <p className="text-sm text-muted-foreground">
+            Track your task completion rate.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4 flex items-center justify-between">
+            <span>Tasks Completed</span>
+            <span className="text-sm text-muted-foreground">
+              {tasks.filter(task => task.completed).length} / {tasks.length}
+            </span>
           </div>
-          <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto">
-            {completedTasks.map(task => (
-              <div className='flex flex-col'>
-                <PlannerTaskCard
-                  key={task.id}
-                  title={task.title}
-                  dueTime={task.dueTime}
-                  description={task.description}
-                  subject={task.subject}
-                  priority={task.priority}
-                  completed={task.completed}
-                  onComplete={handleCompleteTask}
-                  description={task.description}
-                  id={task.id}
-                  onMoveToInProgress={handleMoveToInProgress}
-                  onRemove={handleRemoveTask}
-                  />
-              </div>
-            ))}
-            {completedTasks.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-32 text-center">
-                <p className="text-muted-foreground text-sm">No completed tasks</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          <Progress value={calculateProgress()} />
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        {filteredTasks.length > 0 ? (
+          filteredTasks.map(task => (
+            <Card key={task.id} className="card-hover">
+              <CardContent className="space-y-2">
+                <div className="flex items-start justify-between">
+                  <h3 className="text-lg font-semibold">{task.title}</h3>
+                  <Badge variant={task.completed ? "success" : "secondary"}>
+                    {task.completed ? "Completed" : task.priority}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{task.description}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    Due: {task.dueDate?.toLocaleDateString()}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button size="icon" variant="outline" onClick={() => {
+                      setSelectedTask(task);
+                      setTitle(task.title);
+                      setDescription(task.description);
+                      setDueDate(task.dueDate);
+                      setSubject(task.subject);
+                      setPriority(task.priority);
+                      setEditOpen(true);
+                    }}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-4 w-4"
+                      >
+                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                      </svg>
+                    </Button>
+                    <Button size="icon" variant="destructive" onClick={() => deleteTask(task.id)}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-4 w-4"
+                      >
+                        <path d="M3 6h18" />
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                        <line x1="10" x2="10" y1="11" y2="17" />
+                        <line x1="14" x2="14" y1="11" y2="17" />
+                      </svg>
+                    </Button>
+                    <Button size="icon" variant="secondary" onClick={() => toggleComplete(task.id)}>
+                      <Check className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <div className="col-span-full text-center">
+            <p className="text-muted-foreground">No tasks found.</p>
+          </div>
+        )}
       </div>
-    </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Task</DialogTitle>
+            <DialogDescription>
+              Create a new task to add to your planner.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="title" className="text-right">
+                Title
+              </Label>
+              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Description
+              </Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="dueDate" className="text-right">
+                Due Date
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-[240px] justify-start text-left font-normal",
+                      !dueDate && "text-muted-foreground"
+                    )}
+                  >
+                    {dueDate ? (
+                      <span>{dueDate?.toLocaleDateString()}</span>
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                    <CalendarCheck2 className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start" side="bottom">
+                  <Calendar
+                    mode="single"
+                    selected={dueDate}
+                    onSelect={setDueDate}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="subject" className="text-right">
+                Subject
+              </Label>
+              <Select value={subject} onValueChange={setSubject}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select a subject" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subjects.map(subject => (
+                    <SelectItem key={subject} value={subject}>
+                      {subject}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="priority" className="text-right">
+                Priority
+              </Label>
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  {priorities.map(priority => (
+                    <SelectItem key={priority} value={priority}>
+                      {priority}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" onClick={createTask}>
+              Create Task
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+            <DialogDescription>
+              Edit the details of your task.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="title" className="text-right">
+                Title
+              </Label>
+              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Description
+              </Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="dueDate" className="text-right">
+                Due Date
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-[240px] justify-start text-left font-normal",
+                      !dueDate && "text-muted-foreground"
+                    )}
+                  >
+                    {dueDate ? (
+                      <span>{dueDate?.toLocaleDateString()}</span>
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                    <CalendarCheck2 className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start" side="bottom">
+                  <Calendar
+                    mode="single"
+                    selected={dueDate}
+                    onSelect={setDueDate}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="subject" className="text-right">
+                Subject
+              </Label>
+              <Select value={subject} onValueChange={setSubject}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select a subject" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subjects.map(subject => (
+                    <SelectItem key={subject} value={subject}>
+                      {subject}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="priority" className="text-right">
+                Priority
+              </Label>
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  {priorities.map(priority => (
+                    <SelectItem key={priority} value={priority}>
+                      {priority}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" onClick={editTask}>
+              Edit Task
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </motion.div>
   );
 };
 
