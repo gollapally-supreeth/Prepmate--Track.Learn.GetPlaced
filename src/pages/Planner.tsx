@@ -1,28 +1,13 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PlannerTaskCard } from '@/components/PlannerTaskCard';
-import { 
-  Search, 
-  PlusCircle, 
-  Filter, 
-  Calendar, 
-  Clock, 
-  Tag, 
-  AlertCircle 
-} from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Search, PlusCircle, Filter, Calendar, Clock, Tag, AlertCircle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from '@/components/ui/label';
+import { motion } from 'framer-motion';
 
 interface Task {
   id: number;
@@ -183,27 +168,29 @@ const Planner = () => {
   
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-3xl font-bold">Daily Planner</h1>
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-3xl font-bold gradient-heading">Daily Planner</h1>
         <p className="text-muted-foreground mt-1">Organize your tasks efficiently</p>
-      </div>
+      </motion.div>
       
-      {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
           <Input
             placeholder="Search tasks..."
-            className="pl-10"
+            className="pl-10 bg-card border-primary/10 focus:border-primary/20"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-
         </div>
         
         <div className="flex gap-3">
           <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-[150px] border-primary/10">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -215,7 +202,7 @@ const Planner = () => {
           </Select>
           
           <Select value={subject} onValueChange={setSubject}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-[150px] border-primary/10">
               <SelectValue placeholder="Subject" />
             </SelectTrigger>
             <SelectContent>
@@ -228,61 +215,82 @@ const Planner = () => {
               <SelectItem value="Networks">Networks</SelectItem>
             </SelectContent>
           </Select>
-          
-          <Button variant="outline" className="gap-2">
-            <Filter size={16} />
-            <span className="hidden sm:inline">More Filters</span>
-          </Button>
         </div>
       </div>
       
-      {/* Add Task Button */}
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
-        <div className='space-y-1'>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-card/50 p-6 rounded-lg border border-primary/5">
+        <motion.div 
+          className="space-y-1"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
           <Label htmlFor="taskTitle" className="text-sm font-medium">Title</Label>
           <Input
             id="taskTitle"
-            className="border-gray-300 rounded-md text-sm"
+            className="border-primary/10 focus:border-primary/20"
             placeholder="Enter task title"
             ref={taskTitleRef}
             value={newTask.title || ''}
             onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
           />
-        </div>
-        <div className='space-y-1'>
+        </motion.div>
+        
+        <motion.div 
+          className="space-y-1"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+        >
           <Label htmlFor="taskDescription" className="text-sm font-medium">Description</Label>
           <Input
             id="taskDescription"
-            className="border-gray-300 rounded-md text-sm"
+            className="border-primary/10 focus:border-primary/20"
             placeholder="Enter task description"
             value={newTask.description || ''}
             onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
           />
-        </div>
-        <div className='space-y-1'>
+        </motion.div>
+        
+        <motion.div 
+          className="space-y-1"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
           <Label htmlFor="taskDueTime" className="text-sm font-medium">Due Time</Label>
           <Input
             id="taskDueTime"
-            className="border-gray-300 rounded-md text-sm"
+            className="border-primary/10 focus:border-primary/20"
             placeholder="e.g., Today, 4:00 PM"
             value={newTask.dueTime || ''}
             onChange={(e) => setNewTask({ ...newTask, dueTime: e.target.value })}
           />
-        </div>
-        <div className='space-y-1'>
+        </motion.div>
+        <motion.div 
+          className="space-y-1"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.25 }}
+        >
           <Label htmlFor="taskSubject" className="text-sm font-medium">Subject</Label>
           <Input
             id="taskSubject"
-            className="border-gray-300 rounded-md text-sm"
+            className="border-primary/10 focus:border-primary/20"
             placeholder="e.g., CSE"
             value={newTask.subject || ''}
             onChange={(e) => setNewTask({ ...newTask, subject: e.target.value })}
           />
-        </div>
-        <div className='space-y-1'>
+        </motion.div>
+        <motion.div 
+          className="space-y-1"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+        >
           <Label htmlFor="priority" className="text-sm font-medium">Priority</Label>
           <Select onValueChange={(value) => setNewTask({ ...newTask, priority: value as "High" | "Medium" | "Low" })} defaultValue={"High"}>
-            <SelectTrigger id="priority" className="border-gray-300 rounded-md text-sm">
+            <SelectTrigger id="priority" className="border-primary/10">
               <SelectValue placeholder="Select priority" />
             </SelectTrigger>
             <SelectContent className='text-sm'>
@@ -291,33 +299,38 @@ const Planner = () => {
               <SelectItem value="Low">Low</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-        <div className='space-y-1 flex items-end'>
-          <Button size="sm" className="rounded-md" onClick={handleAddTask}>Add Task</Button>
-        </div>
+        </motion.div>
+        
+        <motion.div 
+          className="space-y-1 flex items-end"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+        >
+          <Button 
+            size="sm" 
+            className="w-full bg-primary/90 hover:bg-primary" 
+            onClick={handleAddTask}
+          >
+            Add Task
+          </Button>
+        </motion.div>
       </div>
       
-      {/* Tasks Kanban Board */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* To Do Column */}
-        <Card className="overflow-hidden">
-          <div className="bg-secondary p-3 border-b">
+        <Card className="overflow-hidden border-primary/10">
+          <div className="bg-primary/5 p-3 border-b border-primary/10">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium flex items-center gap-2">
+              <h3 className="font-medium flex items-center gap-2 text-primary">
                 <AlertCircle size={16} className="text-focus-red" />
                 <span>To Do</span>
                 <span className="bg-focus-red/10 text-focus-red px-1.5 rounded-full text-xs">
                   {todoTasks.length}
                 </span>
               </h3>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <PlusCircle size={16} />
-              </Button>
-            </div> 
-          
-
+            </div>
           </div>
-          <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto">
+          <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto custom-scrollbar">
             {todoTasks
             .filter((task) => {
               const lowerCaseSearchTerm = searchTerm.toLowerCase();
@@ -370,23 +383,19 @@ const Planner = () => {
           </CardContent>
         </Card>
         
-        {/* In Progress Column */}
-        <Card className="overflow-hidden">
-          <div className="bg-secondary p-3 border-b">
+        <Card className="overflow-hidden border-primary/10">
+          <div className="bg-primary/5 p-3 border-b border-primary/10">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium flex items-center gap-2">
+              <h3 className="font-medium flex items-center gap-2 text-primary">
                 <Clock size={16} className="text-focus-yellow" />
                 <span>In Progress</span>
                 <span className="bg-focus-yellow/10 text-focus-yellow px-1.5 rounded-full text-xs">
                   {inProgressTasks.length}
                 </span>
               </h3>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <PlusCircle size={16} />
-              </Button>
             </div>
           </div>
-          <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto">
+          <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto custom-scrollbar">
             {inProgressTasks.map(task => (
               <div className='flex flex-col'>
                 <PlannerTaskCard
@@ -413,23 +422,19 @@ const Planner = () => {
           </CardContent>
         </Card>
         
-        {/* Completed Column */}
-        <Card className="overflow-hidden">
-          <div className="bg-secondary p-3 border-b">
+        <Card className="overflow-hidden border-primary/10">
+          <div className="bg-primary/5 p-3 border-b border-primary/10">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium flex items-center gap-2">
+              <h3 className="font-medium flex items-center gap-2 text-primary">
                 <Calendar size={16} className="text-focus-green" />
                 <span>Completed</span>
                 <span className="bg-focus-green/10 text-focus-green px-1.5 rounded-full text-xs">
                   {completedTasks.length}
                 </span>
               </h3>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <PlusCircle size={16} />
-              </Button>
             </div>
           </div>
-          <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto">
+          <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto custom-scrollbar">
             {completedTasks.map(task => (
               <div className='flex flex-col'>
                 <PlannerTaskCard
