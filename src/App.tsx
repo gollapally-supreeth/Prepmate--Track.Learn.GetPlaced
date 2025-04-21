@@ -4,8 +4,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
+import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Planner from "./pages/Planner";
 import ResourcesHub from "./pages/ResourcesHub";
@@ -30,8 +31,10 @@ const App = () => (
         <BrowserRouter>
           <AnimatePresence mode="wait">
             <Routes>
+              <Route path="/login" element={<Login />} />
               <Route path="/" element={<AppLayout />}>
-                <Route index element={<Dashboard />} />
+                <Route index element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/planner" element={<Planner />} />
                 <Route path="/resources" element={<ResourcesHub />} />
                 <Route path="/notes" element={<Notes />} />

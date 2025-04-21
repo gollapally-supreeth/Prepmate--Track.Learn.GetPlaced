@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroupContent, SidebarGroup, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from '@/components/ui/sidebar';
@@ -59,90 +58,129 @@ export function AppSidebar() {
           <h2 className="text-primary/80 dark:text-primary/90 text-xs font-medium uppercase mb-2">Core Features</h2>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton isActive={isActive('/')} as={Link} to="/">
-                <LayoutDashboard size={18} className="text-primary/90 dark:text-primary/80" />
-                <span className="text-sidebar-foreground dark:text-primary-foreground/90">Dashboard</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            
-            <SidebarMenuItem>
-              <SidebarMenuButton isActive={isActive('/planner')} as={Link} to="/planner">
-                <CalendarCheck size={18} className="text-primary/90 dark:text-primary/80" />
-                <span className="text-sidebar-foreground dark:text-primary-foreground/90">Daily Planner</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            
-            <SidebarMenuItem>
-              <SidebarMenuButton 
-                isActive={isResourcesActive()} 
-                onClick={() => setShowResourcesMenu(!showResourcesMenu)}
+              <Link 
+                to="/"
                 className={cn(
-                  showResourcesMenu && "bg-primary/10 text-primary"
+                  "flex items-center gap-2 px-3 py-2 rounded-md transition-colors",
+                  isActive('/') ? "bg-primary/10 text-primary" : "text-sidebar-foreground hover:bg-primary/5"
                 )}
               >
-                <BookMarked size={18} className={cn(
-                  "text-primary/90 dark:text-primary/80",
-                  isResourcesActive() && "text-primary"
-                )} />
-                <span className={cn(
-                  "text-sidebar-foreground dark:text-primary-foreground/90",
-                  isResourcesActive() && "text-primary font-medium"
-                )}>
-                  Resources Hub
-                </span>
-              </SidebarMenuButton>
+                <LayoutDashboard size={18} className="text-primary/90" />
+                <span>Dashboard</span>
+              </Link>
+            </SidebarMenuItem>
+            
+            <SidebarMenuItem>
+              <Link 
+                to="/planner"
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md transition-colors",
+                  isActive('/planner') ? "bg-primary/10 text-primary" : "text-sidebar-foreground hover:bg-primary/5"
+                )}
+              >
+                <CalendarCheck size={18} className="text-primary/90" />
+                <span>Daily Planner</span>
+              </Link>
+            </SidebarMenuItem>
+            
+            <SidebarMenuItem>
+              <button
+                onClick={() => setShowResourcesMenu(!showResourcesMenu)}
+                className={cn(
+                  "flex items-center gap-2 w-full px-3 py-2 rounded-md transition-colors text-left",
+                  isResourcesActive() ? "bg-primary/10 text-primary" : "text-sidebar-foreground hover:bg-primary/5"
+                )}
+              >
+                <BookMarked size={18} className="text-primary/90" />
+                <span>Resources Hub</span>
+              </button>
               
-              {/* Resources Hub Submenu */}
               {showResourcesMenu && (
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton as={Link} to="/resources" isActive={isActive('/resources')}>
-                      <Search size={14} className="text-primary/70" />
-                      <span>All Resources</span>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton as={Link} to="/resources?view=bookmarks">
-                      <BookmarkPlus size={14} className="text-primary/70" />
-                      <span>My Bookmarks</span>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton as={Link} to="/resources?view=paths">
-                      <Clock size={14} className="text-primary/70" />
-                      <span>Learning Paths</span>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
+                <div className="pl-6 mt-1 space-y-1">
+                  <Link
+                    to="/resources"
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors",
+                      isActive('/resources') ? "bg-primary/10 text-primary" : "text-sidebar-foreground/90 hover:bg-primary/5"
+                    )}
+                  >
+                    <Search size={14} />
+                    <span>All Resources</span>
+                  </Link>
+                  <Link
+                    to="/resources?view=bookmarks"
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors",
+                      isActive('/resources?view=bookmarks') ? "bg-primary/10 text-primary" : "text-sidebar-foreground/90 hover:bg-primary/5"
+                    )}
+                  >
+                    <BookmarkPlus size={14} />
+                    <span>My Bookmarks</span>
+                  </Link>
+                  <Link
+                    to="/resources?view=paths"
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors",
+                      isActive('/resources?view=paths') ? "bg-primary/10 text-primary" : "text-sidebar-foreground/90 hover:bg-primary/5"
+                    )}
+                  >
+                    <Clock size={14} />
+                    <span>Learning Paths</span>
+                  </Link>
+                </div>
               )}
             </SidebarMenuItem>
             
             <SidebarMenuItem>
-              <SidebarMenuButton isActive={isActive('/notes')} as={Link} to="/notes">
-                <FileText size={18} className="text-primary/90 dark:text-primary/80" />
-                <span className="text-sidebar-foreground dark:text-primary-foreground/90">Notes</span>
-              </SidebarMenuButton>
+              <Link 
+                to="/notes"
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md transition-colors",
+                  isActive('/notes') ? "bg-primary/10 text-primary" : "text-sidebar-foreground hover:bg-primary/5"
+                )}
+              >
+                <FileText size={18} className="text-primary/90" />
+                <span>Notes</span>
+              </Link>
             </SidebarMenuItem>
             
             <SidebarMenuItem>
-              <SidebarMenuButton isActive={isActive('/progress')} as={Link} to="/progress">
-                <LineChart size={18} className="text-primary/90 dark:text-primary/80" />
-                <span className="text-sidebar-foreground dark:text-primary-foreground/90">Progress Tracker</span>
-              </SidebarMenuButton>
+              <Link 
+                to="/progress"
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md transition-colors",
+                  isActive('/progress') ? "bg-primary/10 text-primary" : "text-sidebar-foreground hover:bg-primary/5"
+                )}
+              >
+                <LineChart size={18} className="text-primary/90" />
+                <span>Progress Tracker</span>
+              </Link>
             </SidebarMenuItem>
             
             <SidebarMenuItem>
-              <SidebarMenuButton isActive={isActive('/quizzes')} as={Link} to="/quizzes">
-                <TestTube size={18} className="text-primary/90 dark:text-primary/80" />
-                <span className="text-sidebar-foreground dark:text-primary-foreground/90">Mock Tests</span>
-              </SidebarMenuButton>
+              <Link 
+                to="/quizzes"
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md transition-colors",
+                  isActive('/quizzes') ? "bg-primary/10 text-primary" : "text-sidebar-foreground hover:bg-primary/5"
+                )}
+              >
+                <TestTube size={18} className="text-primary/90" />
+                <span>Mock Tests</span>
+              </Link>
             </SidebarMenuItem>
             
             <SidebarMenuItem>
-              <SidebarMenuButton isActive={isActive('/resume')} as={Link} to="/resume">
-                <FileCheck size={18} className="text-primary/90 dark:text-primary/80" />
-                <span className="text-sidebar-foreground dark:text-primary-foreground/90">Resume Builder</span>
-              </SidebarMenuButton>
+              <Link 
+                to="/resume"
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md transition-colors",
+                  isActive('/resume') ? "bg-primary/10 text-primary" : "text-sidebar-foreground hover:bg-primary/5"
+                )}
+              >
+                <FileCheck size={18} className="text-primary/90" />
+                <span>Resume Builder</span>
+              </Link>
             </SidebarMenuItem>
           </SidebarMenu>
         </div>
@@ -151,24 +189,42 @@ export function AppSidebar() {
           <h2 className="text-primary/80 dark:text-primary/90 text-xs font-medium uppercase mb-2">Advanced Features</h2>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton isActive={isActive('/focus-timer')} as={Link} to="/focus-timer">
-                <Timer size={18} className="text-primary/90 dark:text-primary/80" />
-                <span className="text-sidebar-foreground dark:text-primary-foreground/90">Focus Timer</span>
-              </SidebarMenuButton>
+              <Link 
+                to="/focus-timer"
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md transition-colors",
+                  isActive('/focus-timer') ? "bg-primary/10 text-primary" : "text-sidebar-foreground hover:bg-primary/5"
+                )}
+              >
+                <Timer size={18} className="text-primary/90" />
+                <span>Focus Timer</span>
+              </Link>
             </SidebarMenuItem>
             
             <SidebarMenuItem>
-              <SidebarMenuButton isActive={isActive('/interview')} as={Link} to="/interview">
-                <MessageSquare size={18} className="text-primary/90 dark:text-primary/80" />
-                <span className="text-sidebar-foreground dark:text-primary-foreground/90">Interview Chatbot</span>
-              </SidebarMenuButton>
+              <Link 
+                to="/interview"
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md transition-colors",
+                  isActive('/interview') ? "bg-primary/10 text-primary" : "text-sidebar-foreground hover:bg-primary/5"
+                )}
+              >
+                <MessageSquare size={18} className="text-primary/90" />
+                <span>Interview Chatbot</span>
+              </Link>
             </SidebarMenuItem>
             
             <SidebarMenuItem>
-              <SidebarMenuButton isActive={isActive('/placements')} as={Link} to="/placements">
-                <Briefcase size={18} className="text-primary/90 dark:text-primary/80" />
-                <span className="text-sidebar-foreground dark:text-primary-foreground/90">Placement Tracker</span>
-              </SidebarMenuButton>
+              <Link 
+                to="/placements"
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md transition-colors",
+                  isActive('/placements') ? "bg-primary/10 text-primary" : "text-sidebar-foreground hover:bg-primary/5"
+                )}
+              >
+                <Briefcase size={18} className="text-primary/90" />
+                <span>Placement Tracker</span>
+              </Link>
             </SidebarMenuItem>
           </SidebarMenu>
         </div>

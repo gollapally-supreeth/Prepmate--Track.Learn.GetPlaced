@@ -1,37 +1,28 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { CalendarDays } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
 interface ExamCountdownProps {
   examName: string;
-  date: string;
-  daysLeft: number;
+  examDate: string;
+  courseName: string;
 }
 
-export function ExamCountdown({ examName, date, daysLeft }: ExamCountdownProps) {
-  const displayDate = date ? date : "Date not set";
-  return (
-    <Card className="overflow-hidden">
-      <div className="absolute top-2 right-2 px-3 py-1 bg-primary rounded-l-md rounded-br-md text-xs text-primary-foreground">
-        {daysLeft} days left
-      </div>
+export function ExamCountdown({ examName, examDate, courseName }: ExamCountdownProps) {
+  const targetDate = new Date(examDate);
 
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <CalendarDays size={16} className="text-primary" />              
-              <p className="text-sm text-muted-foreground">{displayDate}</p>
-            </div>
-            <h3 className="font-medium">{examName}</h3>
-          </div>
-          <div className="flex flex-col gap-2 items-end">
-            <div className="bg-primary-foreground px-3 py-2 rounded-lg">
-              <p className="text-xl font-bold text-primary">{daysLeft}</p>
-            </div>
-          </div>
+  return (
+    <Card className="bg-gradient-to-br from-primary/10 to-background/50 border border-primary/20">
+      <CardContent className="flex flex-col gap-3 p-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Clock size={14} className="text-primary" />
+          <span>{courseName} Exam</span>
         </div>
+        <h3 className="font-semibold text-lg">{examName}</h3>
+        <p className="text-muted-foreground text-sm">
+          {formatDistanceToNow(targetDate, { addSuffix: true })}
+        </p>
       </CardContent>
     </Card>
   );

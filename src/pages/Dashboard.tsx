@@ -1,325 +1,124 @@
-
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { StatsCard } from '@/components/StatsCard';
-import { TaskCard } from '@/components/TaskCard';
-import { CalendarCheck, Clock, Target, BookOpen, LineChart, Brain, CheckCircle2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { ExamCountdown } from '@/components/ExamCountdown';
-import ProgressTracker from '@/components/ProgressTracker';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "lucide-react";
+import { ExamCountdown } from "@/components/ExamCountdown";
+import { StatsCard } from "@/components/StatsCard";
+import { ProgressChart } from "@/components/ProgressChart";
+import { TaskList } from "@/components/TaskList";
+import { RecentActivity } from "@/components/RecentActivity";
+import { AppSidebar } from "@/components/AppSidebar";
+import { LayoutDashboard, BookMarked, FileText, LineChart, TestTube, Timer, MessageSquare, Briefcase } from 'lucide-react';
 
-// Sample data for upcoming exams/deadlines
-const upcomingExams = [
-  { key: '1', name: 'Google Online Assessment', date: 'May 15, 2025', course: 'DSA' },
-  { key: '2', name: 'Microsoft Interview Round 1', date: 'May 22, 2025', course: 'System Design' },
-  { key: '3', name: 'Amazon Final Round', date: 'June 5, 2025', course: 'Behavioral' }
+// Define task priority
+type Priority = "High" | "Medium" | "Low";
+
+// Sample task data
+interface Task {
+  title: string;
+  deadline: string;
+  priority: Priority;
+  progress: number;
+}
+
+// Update priority values to match the enum
+const tasks = [
+  {
+    title: "Complete DSA Assignment",
+    deadline: "2024-04-25",
+    priority: "High",
+    progress: 75
+  },
+  {
+    title: "Review React Hooks",
+    deadline: "2024-04-26",
+    priority: "Medium",
+    progress: 30
+  },
+  {
+    title: "Prepare System Design",
+    deadline: "2024-04-28",
+    priority: "High",
+    progress: 90
+  },
+  {
+    title: "Study Database Normalization",
+    deadline: "2024-04-29",
+    priority: "Low",
+    progress: 60
+  }
 ];
 
 const Dashboard = () => {
   return (
-    <div className="space-y-6">
-      {/* Header Section */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight gradient-heading">Welcome back, Pardhu</h1>
-        <p className="text-muted-foreground mt-1">Here's an overview of your progress and upcoming tasks.</p>
-      </div>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Exam Countdown */}
+      <Card className="col-span-full lg:col-span-1">
+        <CardContent className="flex flex-col gap-4">
+          <h2 className="text-lg font-semibold">Upcoming Exam</h2>
+          <ExamCountdown examName="Data Structures" examDate="2024-05-05" courseName="CS101" />
+        </CardContent>
+      </Card>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title="Study Time"
-          value="12h 30m"
-          description="This week"
-          trend={+15}
-          icon={<Clock className="h-5 w-5 text-primary" />}
-          color="bg-primary/15"
-        />
-        <StatsCard
-          title="Tasks Completed"
-          value="24/30"
-          description="80% completion"
-          trend={+5}
-          icon={<CheckCircle2 className="h-5 w-5 text-emerald-500" />}
-          color="bg-emerald-500/15"
-        />
-        <StatsCard
-          title="Topics Covered"
-          value="18"
-          description="This month"
-          trend={+8}
-          icon={<BookOpen className="h-5 w-5 text-amber-500" />}
-          color="bg-amber-500/15"
-        />
-        <StatsCard
-          title="Mock Interviews"
-          value="5"
-          description="This month"
-          trend={0}
-          icon={<Target className="h-5 w-5 text-blue-500" />}
-          color="bg-blue-500/15"
-        />
-      </div>
+      {/* Quick Stats */}
+      <StatsCard
+        title="Resources Viewed"
+        value="24"
+        trend={12}
+        icon={<BookMarked size={20} />}
+        color="text-focus-green"
+      />
+      <StatsCard
+        title="Notes Taken"
+        value="18"
+        trend={-5}
+        icon={<FileText size={20} />}
+        color="text-focus-blue"
+      />
+      <StatsCard
+        title="Practice Tests"
+        value="8"
+        trend={8}
+        icon={<TestTube size={20} />}
+        color="text-focus-red"
+      />
+      <StatsCard
+        title="Focus Sessions"
+        value="32"
+        trend={15}
+        icon={<Timer size={20} />}
+        color="text-focus-purple"
+      />
 
-      {/* Progress Tracker */}
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
-        {/* Progress Cards */}
-        <Card className="col-span-1 card-enhanced">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xl flex items-center gap-2">
-              <Brain className="h-5 w-5 text-primary" />
-              Learning Progress
-            </CardTitle>
-            <CardDescription>Your subject mastery</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span>Data Structures</span>
-                <span className="font-medium">78%</span>
-              </div>
-              <Progress className="h-2" value={78} />
-            </div>
-            
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span>Algorithms</span>
-                <span className="font-medium">65%</span>
-              </div>
-              <Progress className="h-2" value={65} />
-            </div>
-            
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span>System Design</span>
-                <span className="font-medium">42%</span>
-              </div>
-              <Progress className="h-2" value={42} />
-            </div>
-            
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span>Database Management</span>
-                <span className="font-medium">50%</span>
-              </div>
-              <Progress className="h-2" value={50} />
-            </div>
-            
-            <Button variant="outline" size="sm" className="w-full mt-2">
-              View All Subjects
+      {/* Progress Chart */}
+      <Card className="col-span-full lg:col-span-2">
+        <CardContent className="flex flex-col gap-4">
+          <h2 className="text-lg font-semibold">Course Progress</h2>
+          <ProgressChart />
+        </CardContent>
+      </Card>
+
+      {/* Task List */}
+      <Card className="col-span-full lg:col-span-2">
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Today's Tasks</h2>
+            <Button size="sm">
+              <Calendar className="mr-2 h-4 w-4" />
+              View All
             </Button>
-          </CardContent>
-        </Card>
-        
-        {/* Upcoming Tasks */}
-        <Card className="col-span-1 card-enhanced">
-          <CardHeader className="pb-2">
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-xl flex items-center gap-2">
-                  <CalendarCheck className="h-5 w-5 text-primary" />
-                  Today's Tasks
-                </CardTitle>
-                <CardDescription>Your schedule for today</CardDescription>
-              </div>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button>Add Task</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Add New Task</DialogTitle>
-                    <DialogDescription>Create a new task for your study schedule</DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="task-name">Task Name</Label>
-                      <Input id="task-name" placeholder="Enter task name" />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="task-description">Description</Label>
-                      <Textarea id="task-description" placeholder="Enter task description" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label htmlFor="due-date">Due Date</Label>
-                        <Input id="due-date" type="date" />
-                      </div>
-                      <div>
-                        <Label htmlFor="priority">Priority</Label>
-                        <select id="priority" className="w-full border border-input bg-background px-3 py-2 text-sm rounded-md">
-                          <option>Low</option>
-                          <option>Medium</option>
-                          <option>High</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button>Save Task</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <TaskCard 
-              title="Review Graph Algorithms"
-              description="BFS, DFS, Dijkstra's Algorithm"
-              status="in-progress"
-              dueTime="2:00 PM"
-              priority="high"
-            />
-            
-            <TaskCard 
-              title="Solve LeetCode Problems"
-              description="5 medium difficulty problems"
-              status="not-started"
-              dueTime="4:00 PM"
-              priority="medium"
-            />
-            
-            <TaskCard 
-              title="Watch System Design Lecture"
-              description="Distributed Systems Fundamentals"
-              status="completed"
-              dueTime="10:00 AM"
-              priority="medium"
-            />
-            
-            <TaskCard 
-              title="Prepare for Mock Interview"
-              description="Review common behavioral questions"
-              status="not-started"
-              dueTime="7:00 PM"
-              priority="high"
-            />
-            
-            <Button variant="outline" size="sm" className="w-full mt-2">
-              View All Tasks
-            </Button>
-          </CardContent>
-        </Card>
-        
-        {/* Upcoming Exams */}
-        <Card className="col-span-1 card-enhanced">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xl flex items-center gap-2">
-              <Target className="h-5 w-5 text-primary" />
-              Upcoming Exams
-            </CardTitle>
-            <CardDescription>Prepare for these first</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {upcomingExams.map((exam) => (
-              <ExamCountdown key={exam.key} examName={exam.name} examDate={exam.date} courseName={exam.course} />
-            ))}
-            
-            <Button variant="outline" size="sm" className="w-full mt-2">
-              View All Exams
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Activity and Progress Tabs */}
-      <div className="grid grid-cols-1 gap-4">
-        <Card className="w-full card-enhanced">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xl flex items-center gap-2">
-              <LineChart className="h-5 w-5 text-primary" />
-              Performance Insights
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="activity">
-              <TabsList className="mb-4 w-full">
-                <TabsTrigger value="activity" className="flex-1">Recent Activity</TabsTrigger>
-                <TabsTrigger value="progress" className="flex-1">Progress Analysis</TabsTrigger>
-                <TabsTrigger value="suggestions" className="flex-1">Suggestions</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="activity" className="space-y-4">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-primary/15 p-3 rounded-full">
-                      <Target className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between mb-1">
-                        <h4 className="font-medium">Completed Mock Test: DSA Arrays & Strings</h4>
-                        <Badge>85%</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">You scored better than 70% of test takers</p>
-                      <p className="text-xs text-muted-foreground mt-1">Today at 10:32 AM</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4">
-                    <div className="bg-emerald-500/15 p-3 rounded-full">
-                      <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between mb-1">
-                        <h4 className="font-medium">Completed System Design Chapter 4</h4>
-                      </div>
-                      <p className="text-sm text-muted-foreground">You've reached 42% completion of the course</p>
-                      <p className="text-xs text-muted-foreground mt-1">Yesterday at 4:15 PM</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4">
-                    <div className="bg-blue-500/15 p-3 rounded-full">
-                      <BookOpen className="h-5 w-5 text-blue-500" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between mb-1">
-                        <h4 className="font-medium">Saved 3 new resources</h4>
-                      </div>
-                      <p className="text-sm text-muted-foreground">Interview preparation materials from Google</p>
-                      <p className="text-xs text-muted-foreground mt-1">Yesterday at 2:45 PM</p>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="progress" className="h-80">
-                <ProgressTracker />
-              </TabsContent>
-              
-              <TabsContent value="suggestions" className="space-y-4">
-                <div className="rounded-lg border bg-accent/50 p-4">
-                  <h4 className="font-medium mb-2">Recommended Next Steps</h4>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                      Complete more problems on graph algorithms
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                      Schedule a mock interview focusing on system design
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                      Review feedback from previous mock tests
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                      Start the advanced database course
-                    </li>
-                  </ul>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+          <TaskList tasks={tasks} />
+        </CardContent>
+      </Card>
+
+      {/* Recent Activity */}
+      <Card className="col-span-full">
+        <CardContent className="flex flex-col gap-4">
+          <h2 className="text-lg font-semibold">Recent Activity</h2>
+          <RecentActivity />
+        </CardContent>
+      </Card>
     </div>
   );
 };
