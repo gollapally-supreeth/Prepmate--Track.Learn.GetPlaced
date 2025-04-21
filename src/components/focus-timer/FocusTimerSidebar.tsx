@@ -22,15 +22,15 @@ export function FocusTimerSidebar({ className }: FocusTimerSidebarProps) {
       transition={{ duration: 0.5, delay: 0.2 }}
     >
       <div className="flex items-center gap-2 px-3 mb-2">
-        <Timer className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-        <h2 className="text-sm font-medium text-purple-900 dark:text-purple-100">Focus Timer</h2>
+        <Timer className="h-4 w-4 text-primary dark:text-primary/90" />
+        <h2 className="text-sm font-medium text-sidebar-foreground dark:text-primary-foreground/90">Focus Timer</h2>
       </div>
       
       <div className="px-2">
         <TimerDisplay compact />
       </div>
       
-      <div className="border-t border-purple-200 dark:border-zinc-800 pt-2">
+      <div className="border-t border-sidebar-border dark:border-zinc-800/50 pt-2">
         <TaskList compact />
       </div>
     </motion.div>

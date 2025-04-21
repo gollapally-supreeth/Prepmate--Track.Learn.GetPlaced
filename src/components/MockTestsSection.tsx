@@ -98,9 +98,9 @@ const mockTests: MockTest[] = [
 
 const categories = ['All', 'DSA', 'Web Dev', 'AI/ML', 'Aptitude', 'CS Fundamentals', 'Company'];
 const difficultyColors = {
-  Easy: 'bg-green-500',
-  Medium: 'bg-yellow-500',
-  Hard: 'bg-red-500'
+  Easy: 'bg-emerald-500 dark:bg-emerald-600',
+  Medium: 'bg-amber-500 dark:bg-amber-600',
+  Hard: 'bg-rose-500 dark:bg-rose-600'
 };
 
 const MockTestsSection: React.FC = () => {
@@ -131,9 +131,9 @@ const MockTestsSection: React.FC = () => {
     <div className="mock-tests-section space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
+        <Card className="card-enhanced hover-card">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-primary/10 p-3 rounded-full">
+            <div className="bg-primary/15 p-3 rounded-full">
               <TestTube className="h-6 w-6 text-primary" />
             </div>
             <div>
@@ -143,9 +143,9 @@ const MockTestsSection: React.FC = () => {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="card-enhanced hover-card">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-primary/10 p-3 rounded-full">
+            <div className="bg-primary/15 p-3 rounded-full">
               <Star className="h-6 w-6 text-primary" />
             </div>
             <div>
@@ -155,9 +155,9 @@ const MockTestsSection: React.FC = () => {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="card-enhanced hover-card">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-primary/10 p-3 rounded-full">
+            <div className="bg-primary/15 p-3 rounded-full">
               <Award className="h-6 w-6 text-primary" />
             </div>
             <div>
@@ -169,38 +169,40 @@ const MockTestsSection: React.FC = () => {
       </div>
 
       {/* Search and Filters */}
-      <Card>
+      <Card className="card-enhanced">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-xl font-semibold flex items-center gap-2">
               <TestTube className="h-5 w-5 text-primary" />
               Mock Tests
             </CardTitle>
-            <Button>Create Custom Test</Button>
+            <Button className="button-animated">Create Custom Test</Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col md:flex-row gap-4">
-            <Input
-              placeholder="Search tests..."
-              className="flex-1"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              prefix={<Search className="h-4 w-4 text-muted-foreground" />}
-            />
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search tests..."
+                className="pl-9 input-enhanced"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+              />
+            </div>
             
             <div className="flex gap-2">
               <Button 
                 variant={filter === 'all' ? 'default' : 'outline'}
                 onClick={() => setFilter('all')}
-                className="flex-1"
+                className="flex-1 button-animated"
               >
                 All
               </Button>
               <Button 
                 variant={filter === 'attempted' ? 'default' : 'outline'}
                 onClick={() => setFilter('attempted')}
-                className="flex-1"
+                className="flex-1 button-animated"
               >
                 <CheckCircle className="h-4 w-4 mr-1" />
                 Completed
@@ -208,7 +210,7 @@ const MockTestsSection: React.FC = () => {
               <Button 
                 variant={filter === 'not-attempted' ? 'default' : 'outline'}
                 onClick={() => setFilter('not-attempted')}
-                className="flex-1"
+                className="flex-1 button-animated"
               >
                 <XCircle className="h-4 w-4 mr-1" />
                 New
@@ -216,7 +218,7 @@ const MockTestsSection: React.FC = () => {
             </div>
           </div>
 
-          <Tabs defaultValue="All" onValueChange={setSelectedCategory}>
+          <Tabs defaultValue="All" onValueChange={setSelectedCategory} className="w-full">
             <TabsList className="w-full flex overflow-x-auto hide-scrollbar">
               {categories.map(category => (
                 <TabsTrigger key={category} value={category} className="flex-1 whitespace-nowrap">
@@ -229,12 +231,12 @@ const MockTestsSection: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
             {filteredTests.length > 0 ? (
               filteredTests.map(test => (
-                <Card key={test.id} className="overflow-hidden">
+                <Card key={test.id} className="overflow-hidden hover-card">
                   <div className={`h-1 w-full ${difficultyColors[test.difficulty]}`}></div>
                   <CardContent className="p-5">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-medium">{test.title}</h3>
-                      {test.attempted && <Badge className="bg-green-500">Completed</Badge>}
+                      {test.attempted && <Badge className="bg-emerald-500 dark:bg-emerald-600">Completed</Badge>}
                     </div>
                     
                     <div className="flex flex-wrap gap-2 mb-3">
@@ -246,9 +248,9 @@ const MockTestsSection: React.FC = () => {
                       <Badge 
                         variant="secondary"
                         className={`
-                          ${test.difficulty === 'Easy' && 'bg-green-500/20 text-green-700'} 
-                          ${test.difficulty === 'Medium' && 'bg-yellow-500/20 text-yellow-700'} 
-                          ${test.difficulty === 'Hard' && 'bg-red-500/20 text-red-700'}
+                          ${test.difficulty === 'Easy' && 'bg-emerald-500/20 text-emerald-700 dark:bg-emerald-500/30 dark:text-emerald-300'} 
+                          ${test.difficulty === 'Medium' && 'bg-amber-500/20 text-amber-700 dark:bg-amber-500/30 dark:text-amber-300'} 
+                          ${test.difficulty === 'Hard' && 'bg-rose-500/20 text-rose-700 dark:bg-rose-500/30 dark:text-rose-300'}
                         `}
                       >
                         {test.difficulty}
@@ -265,15 +267,15 @@ const MockTestsSection: React.FC = () => {
                           <span className="text-sm">Your Score</span>
                           <span className="text-sm font-medium">{test.score}%</span>
                         </div>
-                        <Progress value={test.score} className="h-1.5" />
+                        <Progress value={test.score} className="h-1.5 progress-bar" />
                       </>
                     )}
                     
                     <div className="mt-4 grid grid-cols-2 gap-2">
-                      <Button variant={test.attempted ? "outline" : "default"}>
+                      <Button variant={test.attempted ? "outline" : "default"} className="button-animated">
                         {test.attempted ? 'Retake' : 'Start'} Test
                       </Button>
-                      <Button variant="outline">View Details</Button>
+                      <Button variant="outline" className="button-animated">View Details</Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -288,7 +290,7 @@ const MockTestsSection: React.FC = () => {
       </Card>
 
       {/* Performance Analytics */}
-      <Card>
+      <Card className="card-enhanced">
         <CardHeader className="pb-2">
           <CardTitle className="text-xl font-semibold flex items-center gap-2">
             <LineChart className="h-5 w-5 text-primary" />

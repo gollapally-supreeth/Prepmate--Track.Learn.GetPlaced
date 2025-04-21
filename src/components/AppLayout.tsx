@@ -62,14 +62,14 @@ export function AppLayout() {
       <div className="min-h-screen flex w-full bg-gradient-to-br from-background to-background/90 transition-colors duration-300">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
-          <header className="h-16 border-b bg-card/80 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10 shadow-sm">
+          <header className="h-16 border-b bg-card/60 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10 shadow-sm">
             <div className="flex items-center gap-4">
               <SidebarTrigger className="lg:hidden">
                 <Menu className="h-5 w-5" />
               </SidebarTrigger>
               <div className="relative hidden md:flex items-center max-w-md">
                 <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search..." className="w-[200px] lg:w-[300px] pl-9 bg-background/50" />
+                <Input placeholder="Search..." className="w-[200px] lg:w-[300px] pl-9 bg-background/60 hover:bg-background/80 focus:bg-background transition-colors input-enhanced" />
               </div>
             </div>
             
@@ -78,34 +78,34 @@ export function AppLayout() {
                 variant="ghost" 
                 size="icon"
                 onClick={toggleDarkMode}
-                className="rounded-full transition-transform hover:scale-110"
+                className="rounded-full transition-all hover:scale-110 hover:bg-primary/10"
               >
-                {darkMode ? <Sun className="h-[1.2rem] w-[1.2rem] text-yellow-400" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
+                {darkMode ? <Sun className="h-[1.2rem] w-[1.2rem] text-yellow-300" /> : <Moon className="h-[1.2rem] w-[1.2rem] text-primary" />}
               </Button>
               
               <div className="relative">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative rounded-full h-9 w-9 p-0">
+                    <Button variant="ghost" className="relative rounded-full h-9 w-9 p-0 hover:bg-primary/10">
                       <Bell size={18} className="text-muted-foreground hover:text-foreground" />
-                      <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center" variant="destructive">3</Badge>
+                      <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-primary" variant="destructive">3</Badge>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-80 mt-1 animate-scale-in">
                     <div className="p-4 font-medium border-b">Notifications</div>
-                    <DropdownMenuItem className="p-3 cursor-pointer">
+                    <DropdownMenuItem className="p-3 cursor-pointer hover:bg-accent transition-colors">
                       <div className="space-y-1">
                         <p className="text-sm font-medium">New interview slot available</p>
                         <p className="text-xs text-muted-foreground">Google has opened new interview slots</p>
                       </div>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="p-3 cursor-pointer">
+                    <DropdownMenuItem className="p-3 cursor-pointer hover:bg-accent transition-colors">
                       <div className="space-y-1">
                         <p className="text-sm font-medium">Resume feedback received</p>
                         <p className="text-xs text-muted-foreground">Your resume has been reviewed</p>
                       </div>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="p-3 cursor-pointer">
+                    <DropdownMenuItem className="p-3 cursor-pointer hover:bg-accent transition-colors">
                       <div className="space-y-1">
                         <p className="text-sm font-medium">Mock test scheduled</p>
                         <p className="text-xs text-muted-foreground">Your DSA test is in 2 days</p>
@@ -123,10 +123,10 @@ export function AppLayout() {
                   </Avatar>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="mt-1 animate-scale-in">
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
-                  <DropdownMenuItem>Support</DropdownMenuItem>
-                  <DropdownMenuItem>Log out</DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">Profile</DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">Settings</DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">Support</DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">Log out</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

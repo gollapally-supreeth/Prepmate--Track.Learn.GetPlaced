@@ -125,12 +125,13 @@ export default {
 				'pulse-subtle': 'pulse-subtle 2s infinite'
 			},
 			boxShadow: {
-				'glow': '0 0 10px rgba(139, 92, 246, 0.3), 0 0 20px rgba(139, 92, 246, 0.2)',
-				'card-hover': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
+				'glow': '0 0 15px rgba(139, 92, 246, 0.3), 0 0 30px rgba(139, 92, 246, 0.15)',
+				'card-hover': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.08)'
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-				'gradient-subtle': 'linear-gradient(to right, rgba(139, 92, 246, 0.1), rgba(79, 70, 229, 0.1))'
+				'gradient-subtle': 'linear-gradient(to right, rgba(139, 92, 246, 0.1), rgba(79, 70, 229, 0.08))',
+				'gradient-brand': 'linear-gradient(to right, hsl(var(--gradient-start)), hsl(var(--gradient-end)))'
 			}
 		}
 	},

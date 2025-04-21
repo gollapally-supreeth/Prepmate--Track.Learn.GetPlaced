@@ -1,606 +1,327 @@
 
-import React, { useState, useEffect, } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TaskCard } from '@/components/TaskCard';
-import { ProgressCard } from "@/components/ProgressCard";
 import { StatsCard } from '@/components/StatsCard';
-import { ExamCountdown } from '@/components/ExamCountdown';
-import { CalendarCheck, BookMarked, LineChart, Award, Clock, Flame } from 'lucide-react';
+import { TaskCard } from '@/components/TaskCard';
+import { CalendarCheck, Clock, Target, BookOpen, LineChart, Brain, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Check, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label, } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Calendar } from '@/components/ui/calendar';
-import { Trash2 } from 'lucide-react';
-import { Play, Pause } from 'lucide-react';
-import { format } from 'date-fns';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { ExamCountdown } from '@/components/ExamCountdown';
+import ProgressTracker from '@/components/ProgressTracker';
 
-interface StudySession {
-  startTime: Date;
-  endTime?: Date; // Optional, as the session might be ongoing
-}
-
-interface UserStats {
-  dailyStreak: number;
-  studyTimeToday: number; // in minutes
-  tasksCompleted: {
-    completed: number;
-    total: number;
-
-  };
-  overallProgress: number; // percentage
-}
-
-interface Task {
-  id: number;
-  title: string;
-  dueTime: string;
-  subject: string;
-  priority: 'High' | 'Medium' | 'Low';
-  completed: boolean;
-};
+// Sample data for upcoming exams/deadlines
+const upcomingExams = [
+  { key: '1', name: 'Google Online Assessment', date: 'May 15, 2025', course: 'DSA' },
+  { key: '2', name: 'Microsoft Interview Round 1', date: 'May 22, 2025', course: 'System Design' },
+  { key: '3', name: 'Amazon Final Round', date: 'June 5, 2025', course: 'Behavioral' }
+];
 
 const Dashboard = () => {
-  interface Exam {
-    id: number;
-    examName: string;
-    date: Date | null;
-  }
+  return (
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight gradient-heading">Welcome back, Pardhu</h1>
+        <p className="text-muted-foreground mt-1">Here's an overview of your progress and upcoming tasks.</p>
+      </div>
 
-  // Load user stats from local storage or initialize with default values
-  const [userStats, setUserStats] = useState<UserStats>(() => {
-    if (typeof window !== 'undefined') {
-      const storedStats = localStorage.getItem('userStats');
-      return storedStats ? JSON.parse(storedStats) : {
-        dailyStreak: 0,
-        studyTimeToday: 0,
-        tasksCompleted: { completed: 0, total: 0 },
-        overallProgress: 0,
-      };
-    }
-    return { dailyStreak: 0, studyTimeToday: 0, tasksCompleted: { completed: 0, total: 0 }, overallProgress: 0 };
-  });
+      {/* Stats Grid */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <StatsCard
+          title="Study Time"
+          value="12h 30m"
+          description="This week"
+          trend={+15}
+          icon={<Clock className="h-5 w-5 text-primary" />}
+          color="bg-primary/15"
+        />
+        <StatsCard
+          title="Tasks Completed"
+          value="24/30"
+          description="80% completion"
+          trend={+5}
+          icon={<CheckCircle2 className="h-5 w-5 text-emerald-500" />}
+          color="bg-emerald-500/15"
+        />
+        <StatsCard
+          title="Topics Covered"
+          value="18"
+          description="This month"
+          trend={+8}
+          icon={<BookOpen className="h-5 w-5 text-amber-500" />}
+          color="bg-amber-500/15"
+        />
+        <StatsCard
+          title="Mock Interviews"
+          value="5"
+          description="This month"
+          trend={0}
+          icon={<Target className="h-5 w-5 text-blue-500" />}
+          color="bg-blue-500/15"
+        />
+      </div>
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('userStats', JSON.stringify(userStats));
-    }
-  }, [userStats]);
-
-
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const today = new Date();
-            const todayFormatted = today.toISOString().split('T')[0];
-            const lastActiveDate = localStorage.getItem('lastActiveDate');
-
-            if (lastActiveDate) {
-                if (lastActiveDate !== todayFormatted) {
-                    const lastActive = new Date(lastActiveDate);
-                    const diffTime = today.getTime() - lastActive.getTime();
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                    setUserStats(prevStats => {
-                        const newStreak = diffDays === 1 ? prevStats.dailyStreak + 1 : 1;
-                        localStorage.setItem('lastActiveDate', todayFormatted);
-                        return {
-                            ...prevStats,
-                            dailyStreak: newStreak,
-                        };
-                    });
-                }
-            }
-        }
-    }, []);
-
-    const updateStreak = () => {
-        const today = new Date();
-        const todayFormatted = today.toISOString().split('T')[0];
-        localStorage.setItem('lastActiveDate', todayFormatted);
-        setUserStats(prevStats => ({
-            ...prevStats,
-            dailyStreak: prevStats.dailyStreak + 1,
-        }));
-    };
-  // Load exams from local storage or initialize with an empty array
-    const [exams, setExams] = useState<Exam[]>(() => {
-        if (typeof window !== 'undefined') {
-            const storedExams = localStorage.getItem('upcomingExams');
-            return storedExams ? JSON.parse(storedExams) : [];
-        }
-        return [];
-    });
-
-  useEffect(() => {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('upcomingExams', JSON.stringify(exams));
-        }
-    }, [exams]);
-
-
-
-
-
-
-
-
-
-
-  const navigate = useNavigate();
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: 1, title: "Complete DSA Assignment #3", dueTime: "Today, 4:00 PM", subject: "CSE", priority: "High", completed: false },
-    { id: 2, title: "Review OS Process Synchronization", dueTime: "Today, 6:00 PM", subject: "Operating Systems", priority: "Medium", completed: false },
-    { id: 3, title: "Prepare for Technical Interview", dueTime: "Today, 8:00 PM", subject: "Placement Prep", priority: "High", completed: false },
-    { id: 4, title: "Read Chapter 5 of Database Systems", dueTime: "Today, 2:00 PM", subject: "DBMS", priority: "Medium", completed: true },
-  ]);
-  const [newTask, setNewTask] = useState<Partial<Task>>({});
-  const [showAddExamDialog, setShowAddExamDialog] = useState(false);
-  const [newExam, setNewExam] = useState<Partial<Exam>>({});
-
-  const addExam = () => {
-      if (newExam.examName && newExam.date) {
-        const nextId = exams.length > 0 ? Math.max(...exams.map(e => e.id)) + 1 : 1;
-        const fullNewExam: Exam = { id: nextId, ...newExam } as Exam;
-        setExams([...exams, fullNewExam]);
-        setNewExam({});
-        setShowAddExamDialog(false);
-      }
-    };
-
-    const handleAddTask = () => {
-    const nextId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
-    const fullNewTask: Task = { id: nextId, completed: false, ...newTask } as Task;
-    setTasks([...tasks, fullNewTask]);
-    setNewTask({});
-  };
-  const handleRemoveTask = (id: number) => setTasks(tasks.filter(task => task.id !== id));
-  const handleCompleteTask = (id: number) => {
-    setTasks(tasks.map(task => task.id === id ? { ...task, completed: !task.completed } : task));
-    const today = new Date();
-    const todayFormatted = today.toISOString().split('T')[0];
-    const lastActiveDate = localStorage.getItem('lastActiveDate');
-    let newStreak;
-
-    if (!lastActiveDate) {
-        newStreak = 1;
-        localStorage.setItem('lastActiveDate', todayFormatted);
-    } else if (lastActiveDate === todayFormatted) {
-        newStreak = undefined;
-    } else {
-        const lastActive = new Date(lastActiveDate);
-        const diffTime = today.getTime() - lastActive.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        newStreak = diffDays === 1 ? userStats.dailyStreak + 1 : 1;
-        localStorage.setItem('lastActiveDate', todayFormatted);
-    }
-
-
-  setUserStats(prevStats => {
-    const updatedTasks = tasks.map(task => task.id === id ? { ...task, completed: !task.completed } : task);
-    const completedTasksCount = updatedTasks.filter(task => task.completed).length;
-    
-    return {
-      ...prevStats,
-      dailyStreak: newStreak !== undefined ? newStreak : prevStats.dailyStreak,
-      tasksCompleted: {
-        completed: completedTasksCount,
-        total: updatedTasks.length,
-      },
-    };
-  });
-};
-    const handleRemoveExam = (id: number) => {
-    setExams(exams.filter((exam) => exam.id !== id));
-  };
-    const calculateDaysLeft = (date: Date | null): number => {
-    if (!date || !(date instanceof Date)) {
-      return 0;
-    }
-    return Math.ceil((date.getTime() - new Date().getTime()) / (1000 * 3600 * 24));
-  };
-
-  const [studySessions, setStudySessions] = useState<StudySession[]>([]);
-
-    const [isStudying, setIsStudying] = useState<boolean>(false);
-
-    useEffect(() => {
-        const today = new Date();
-        const todayFormatted = today.toISOString().split('T')[0];
-        const storageKey = `studySessions-${todayFormatted}`;
-
-        const storedSessions = localStorage.getItem(storageKey);
-        const sessions = storedSessions ? JSON.parse(storedSessions) : [];
-
-        setStudySessions(sessions);
-        setIsStudying(sessions.some((session: StudySession) => !session.endTime));
-
-        const lastSavedDate = localStorage.getItem('lastSavedStudyDate');
-        if (lastSavedDate && lastSavedDate !== todayFormatted) {
-            localStorage.removeItem(`studySessions-${lastSavedDate}`);
-            setStudySessions([]);
-        }
-        localStorage.setItem('lastSavedStudyDate', todayFormatted);
-    }, []);
-
-    const getPreviousDayStudyTime = (): number => {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayFormatted = yesterday.toISOString().split('T')[0];
-        const storageKey = `studySessions-${yesterdayFormatted}`;
-        const storedSessions = localStorage.getItem(storageKey);
-        const sessions: StudySession[] = storedSessions ? JSON.parse(storedSessions) : [];
-        let totalSeconds = 0;
-        for (const session of sessions) {
-            if (session.startTime instanceof Date) {
-                const endTime = session.endTime instanceof Date ? session.endTime : new Date();
-                const durationMs = endTime.getTime() - session.startTime.getTime();
-                totalSeconds += Math.floor(durationMs / 1000);
-            }
-        }
-        return totalSeconds;
-    };
-
-    useEffect(() => {
-        const formatTime = (totalSeconds: number): string => {
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-            return `${hours}h ${minutes}m ${seconds}s`;
-        };
-        let intervalId: NodeJS.Timeout | null = null;
-  
-      if (isStudying) {
-        intervalId = setInterval(() => {
-            const totalSeconds = calculateTotalStudyTime(studySessions);
-            setDisplayedStudyTime(formatTime(totalSeconds));
-        }, 1000);
-      } else if (intervalId !== null){
-        
-           clearInterval(intervalId);
-        
-        intervalId = null;
-      }
-  
-      return () => {
-        if(intervalId !== null) clearInterval(intervalId);
-      };
-    }, [isStudying, studySessions]);
-
-    const startStudy = () => {
-      const newSession: StudySession = { startTime: new Date() };
-      const updatedSessions = [...studySessions, newSession];
-      setStudySessions(updatedSessions);
-      localStorage.setItem(
-        `studySessions-${new Date().toISOString().split("T")[0]}`,
-        JSON.stringify(updatedSessions)
-      );
-      setIsStudying(true);
-    };
-
-    const stopStudy = () => {
-        const updatedSessions = studySessions.map((session: StudySession) => {
-            if (!session.endTime) {
-                return { ...session, endTime: new Date() };
-            }
-            return session;
-        });
-        setStudySessions(updatedSessions);
-        localStorage.setItem(`studySessions-${new Date().toISOString().split('T')[0]}`, JSON.stringify(updatedSessions));
-        setIsStudying(false);
-    };
-
-    const calculateTotalStudyTime = (sessions: StudySession[]): number => { // Change: Calculate in seconds
-      let totalSeconds = 0;
-      for (const session of sessions) {
-        if (session.startTime instanceof Date) {
-          const endTime = session.endTime instanceof Date ? session.endTime : new Date();
-          const durationMs = endTime.getTime() - session.startTime.getTime();
-          totalSeconds += Math.floor(durationMs / 1000); // Change: Calculate in seconds
-        }
-      }
-      return totalSeconds;
-    };
-
-    const [studyTimeTrend, setStudyTimeTrend] = useState<number>(0);
-    const [displayedStudyTime, setDisplayedStudyTime] = useState<string>('0h 0m 0s');
-
-    useEffect(() => {
-        console.log("studySessions updated:", studySessions);
-        const totalSeconds = calculateTotalStudyTime(studySessions);
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-        setDisplayedStudyTime(`${hours}h ${minutes}m ${seconds}s`); // Updated formatting
-
-        const previousDaySeconds = getPreviousDayStudyTime(); // Get previous day in seconds
-        const trend = previousDaySeconds === 0 ? 0 : Math.round(((totalSeconds - previousDaySeconds) / previousDaySeconds) * 100);
-        setStudyTimeTrend(trend);
-    }, [studySessions]);
-
-  
-
-  
-
-    return (
-        <div className="space-y-8 animate-fade-in">
-          <div>
-              <h1 className="text-3xl font-bold">Hey Pardhu, Ready to crush it today? 🚀</h1>
-              <p className="text-muted-foreground mt-1">Let's make progress on your goals!</p>
-          </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatsCard
-                    title="Daily Streak"
-                    value={`${userStats.dailyStreak} days`}
-                    icon={<Flame size={24} className="text-primary" />}
-                    trend={userStats.dailyStreak > 0 ? 1 : 0}
-                    trendLabel="vs last week"
-                />
-                <StatsCard
-                    onClick={() => (isStudying ? stopStudy() : startStudy())}
-                    className="cursor-pointer"
-                    title="Study Time Today"
-                    value={displayedStudyTime}
-                    icon={isStudying ? (
-                        <Pause size={24} className="text-focus-blue" />
-                    ) : (
-                        <Play size={24} className="text-focus-blue" />
-                    )}
-                    trend={studyTimeTrend}
-                    trendLabel="vs yesterday"
-                />
-                <StatsCard
-                    title="Tasks Completed"
-                    value={`${userStats.tasksCompleted.completed}/${userStats.tasksCompleted.total}`}
-                    icon={<CalendarCheck size={24} className="text-focus-green" />}
-                    trend={
-                        userStats.tasksCompleted.total > 0
-                            ? (userStats.tasksCompleted.completed / userStats.tasksCompleted.total) * 100
-                            : 0
-                    }
-
-                />
-                <StatsCard
-                    title="Overall Progress"
-                    value="68%"
-                    icon={<Award size={24} className="text-focus-yellow" />}
-                    trend={12}
-                    trendLabel="this week"
-                />
+      {/* Progress Tracker */}
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
+        {/* Progress Cards */}
+        <Card className="col-span-1 card-enhanced">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Brain className="h-5 w-5 text-primary" />
+              Learning Progress
+            </CardTitle>
+            <CardDescription>Your subject mastery</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <span>Data Structures</span>
+                <span className="font-medium">78%</span>
+              </div>
+              <Progress className="h-2" value={78} />
             </div>
+            
+            <div className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <span>Algorithms</span>
+                <span className="font-medium">65%</span>
+              </div>
+              <Progress className="h-2" value={65} />
+            </div>
+            
+            <div className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <span>System Design</span>
+                <span className="font-medium">42%</span>
+              </div>
+              <Progress className="h-2" value={42} />
+            </div>
+            
+            <div className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <span>Database Management</span>
+                <span className="font-medium">50%</span>
+              </div>
+              <Progress className="h-2" value={50} />
+            </div>
+            
+            <Button variant="outline" size="sm" className="w-full mt-2">
+              View All Subjects
+            </Button>
+          </CardContent>
+        </Card>
+        
+        {/* Upcoming Tasks */}
+        <Card className="col-span-1 card-enhanced">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-start">
               <div>
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold">Upcoming Exams</h2>
-                    <Dialog open={showAddExamDialog} onOpenChange={setShowAddExamDialog}>
-                        <DialogTrigger asChild>
-                            <Button variant="outline" size="sm">Add Exam</Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                            <DialogHeader>
-                                <DialogTitle>Add New Exam</DialogTitle>
-                                <DialogDescription>
-                                    Fill in the details for the new exam.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className='grid grid-cols-1 gap-4 py-4'>
-                                <div className='space-y-1'>
-                                    <Label htmlFor='examName'>Exam Name</Label>
-                                    <Input
-                                        id='examName'
-                                        value={newExam.examName || ''}
-                                        onChange={(e) => setNewExam({ ...newExam, examName: e.target.value })}
-                                        className='border-gray-300 rounded-md text-sm'
-                                        placeholder='e.g. Data Structures Midterm'
-                                    />
-                                </div>
-                                <div className='space-y-1'>
-                                    <Label htmlFor='examDate'>Exam Date</Label>
-                                    <Calendar
-                                        mode="single"
-                                        selected={newExam.date}
-                                        onSelect={(date) => setNewExam({ ...newExam, date })}
-                                        className="rounded-md border"
-                                    />
-                                </div>
-                            </div>
-                            <DialogFooter>
-                                <Button type='submit' onClick={addExam}>Add Exam</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {exams.length === 0 && (
-                        <div className="text-center text-gray-500 col-span-full">
-                            No upcoming exams. Add some exams to get started!
-                        </div>
-                    )}
-                    {exams.map((exam) => (
-                        <div key={exam.id} className="bg-white rounded-lg shadow-md p-4 relative">
-                            <ExamCountdown
-                                examName={exam.examName}
-                                date={exam.date ? format(exam.date, 'MMMM dd, yyyy') : ''}                            
-                                daysLeft={exam.date ? calculateDaysLeft(exam.date) : 0}
-
-                            />
-                            <Button variant="destructive" size="sm" className="w-full mt-2 bg-purple-200 hover:bg-purple-300 text-white-900" onClick={() => handleRemoveExam(exam.id)}>
-                                Remove Exam
-                            </Button>
-
-                        </div>
-
-                    ))}
-                </div>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <CalendarCheck className="h-5 w-5 text-primary" />
+                  Today's Tasks
+                </CardTitle>
+                <CardDescription>Your schedule for today</CardDescription>
+              </div>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button>Add Task</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New Task</DialogTitle>
+                    <DialogDescription>Create a new task for your study schedule</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="task-name">Task Name</Label>
+                      <Input id="task-name" placeholder="Enter task name" />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="task-description">Description</Label>
+                      <Textarea id="task-description" placeholder="Enter task description" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label htmlFor="due-date">Due Date</Label>
+                        <Input id="due-date" type="date" />
+                      </div>
+                      <div>
+                        <Label htmlFor="priority">Priority</Label>
+                        <select id="priority" className="w-full border border-input bg-background px-3 py-2 text-sm rounded-md">
+                          <option>Low</option>
+                          <option>Medium</option>
+                          <option>High</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button>Save Task</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
-              <Tabs defaultValue="tasks">
-                <TabsList className="grid grid-cols-3 w-full max-w-md mb-4">
-                    <TabsTrigger value="tasks" className="flex items-center gap-2">
-                        <CalendarCheck size={16} />
-                        <span>Today's Tasks</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="resources" className="flex items-center gap-2">
-                        <BookMarked size={16} />
-                        <span>Resources</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="progress" className="flex items-center gap-2">
-                        <LineChart size={16} />
-                        <span>Progress</span>
-                    </TabsTrigger>
-                </TabsList>
-                  <TabsContent value="tasks" className="mt-0">
-                    <Card>
-                        <CardContent className="p-6">
-                            <div className="mb-6">
-                                <h3 className="text-lg font-medium">Today's Priority Tasks</h3>
-                            </div>
-                            <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
-                                <div className='space-y-1'>
-                                    <Label htmlFor="taskTitle" className="text-sm font-medium">Title</Label>
-                                    <Input id="taskTitle" className="border-gray-300 rounded-md text-sm" placeholder="Enter task title" value={newTask.title || ''} onChange={(e) => setNewTask({ ...newTask, title: e.target.value })} />
-                                </div>
-                                <div className='space-y-1'>
-                                    <Label htmlFor="taskDueTime" className="text-sm font-medium">Due Time</Label>
-                                    <Input id="taskDueTime" className="border-gray-300 rounded-md text-sm" placeholder="e.g., Today, 4:00 PM" value={newTask.dueTime || ''} onChange={(e) => setNewTask({ ...newTask, dueTime: e.target.value })} />
-                                </div>
-                                <div className='space-y-1'>
-                                    <Label htmlFor="taskSubject" className="text-sm font-medium">Subject</Label>
-                                    <Input id="taskSubject" className="border-gray-300 rounded-md text-sm" placeholder="e.g., CSE" value={newTask.subject || ''} onChange={(e) => setNewTask({ ...newTask, subject: e.target.value })} />
-                                </div>
-                                <div className='space-y-1'>
-                                    <Label htmlFor="priority" className="text-sm font-medium">Priority</Label>
-                                    <Select onValueChange={(value) => setNewTask({ ...newTask, priority: value as "High" | "Medium" | "Low" })} defaultValue={"High"}>
-                                        <SelectTrigger id="priority" className="border-gray-300 rounded-md text-sm">
-                                            <SelectValue placeholder="Select priority" />
-                                        </SelectTrigger>
-                                        <SelectContent className='text-sm'>
-                                            <SelectItem value="High">High</SelectItem>
-                                            <SelectItem value="Medium">Medium</SelectItem>
-                                            <SelectItem value="Low">Low</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className='space-y-1 flex items-end'>
-                                    <Button size="sm" className="rounded-md" onClick={handleAddTask}>Add Task</Button>
-                                </div>
-                            </div>
-                            {/* Task List Section */}
-                            <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
-                                {tasks.length === 0 && (
-                                    <div className="text-center text-gray-500">
-                                        No tasks for today. Add some tasks to get started!
-                                    </div>
-                                )}
-                                <div className="space-y-3">
-
-                                    {/* Task Item List */}
-
-                                    {tasks.map((task) => (
-                                        <div key={task.id} className='flex items-center justify-between bg-white p-3 rounded-md shadow-sm'>
-                                            <TaskCard
-                                                title={task.title}
-                                                dueTime={task.dueTime}
-                                                subject={task.subject}
-                                                priority={task.priority}
-                                                completed={task.completed}
-                                            />
-                                            <div className='flex gap-2'>
-                                                <Button variant='outline' size='icon' onClick={() => handleCompleteTask(task.id)} className='rounded-full'>
-                                                    <Check
-                                                        className="h-4 w-4"
-                                                    />
-                                                </Button>
-                                                <Button variant='outline' size='icon' onClick={() => handleRemoveTask(task.id)} className='rounded-full'>
-                                                    <X
-                                                        className="h-4 w-4"
-                                                    />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="mt-4 flex justify-center">
-                                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/Planner')}>
-                                    View All Tasks
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                  <TabsContent value="resources" className="mt-0">
-                    <Card>
-                        <CardContent className="p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-medium">Recently Added Resources</h3>
-                                <Button size="sm">Add Resource</Button>
-                            </div>
-
-                            <div className="space-y-3">
-                                <div className="bg-muted/30 rounded-lg p-4">
-                                    <h4 className="font-medium mb-2">DSA Mastery Course</h4>
-                                    <p className="text-sm text-muted-foreground mb-3">A comprehensive video series covering all Data Structure topics for interviews.</p>
-                                    <Button variant="outline" size="sm">Open Resource</Button>
-                                </div>
-
-                                <div className="bg-muted/30 rounded-lg p-4">
-                                    <h4 className="font-medium mb-2">Operating Systems Notes</h4>
-                                    <p className="text-sm text-muted-foreground mb-3">Complete compilation of OS concepts with diagrams and examples.</p>
-                                    <Button variant="outline" size="sm">Open Resource</Button>
-                                </div>
-                            </div>
-
-                            <div className="mt-4 flex justify-center">
-                                <Button variant="outline" size="sm" className="w-full">
-                                    View All Resources
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                  <TabsContent value="progress" className="mt-0">
-                    <Card>
-                        <CardContent className="p-6">
-                            <h3 className="text-lg font-medium mb-4">Subject Progress</h3>
-
-                            <div className="space-y-3">
-                                <ProgressCard
-                                    subject="Data Structures & Algorithms"
-                                    progress={60}
-                                    color="bg-focus-blue"
-                                />
-                                <ProgressCard
-                                    subject="Web Development"
-                                    progress={30}
-                                    color="bg-focus-green"
-                                />
-                                <ProgressCard
-                                    subject="Operating Systems"
-                                    progress={90}
-                                    color="bg-focus-purple"
-                                />
-                                <ProgressCard
-                                    subject="Database Management"
-                                    progress={45}
-                                    color="bg-focus-yellow"
-                                />
-                            </div>
-
-                            <div className="mt-4 flex justify-center">
-                                <Button variant="outline" size="sm" className="w-full">
-                                    View Detailed Progress
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <TaskCard 
+              title="Review Graph Algorithms"
+              description="BFS, DFS, Dijkstra's Algorithm"
+              status="in-progress"
+              dueTime="2:00 PM"
+              priority="high"
+            />
+            
+            <TaskCard 
+              title="Solve LeetCode Problems"
+              description="5 medium difficulty problems"
+              status="not-started"
+              dueTime="4:00 PM"
+              priority="medium"
+            />
+            
+            <TaskCard 
+              title="Watch System Design Lecture"
+              description="Distributed Systems Fundamentals"
+              status="completed"
+              dueTime="10:00 AM"
+              priority="medium"
+            />
+            
+            <TaskCard 
+              title="Prepare for Mock Interview"
+              description="Review common behavioral questions"
+              status="not-started"
+              dueTime="7:00 PM"
+              priority="high"
+            />
+            
+            <Button variant="outline" size="sm" className="w-full mt-2">
+              View All Tasks
+            </Button>
+          </CardContent>
+        </Card>
+        
+        {/* Upcoming Exams */}
+        <Card className="col-span-1 card-enhanced">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              Upcoming Exams
+            </CardTitle>
+            <CardDescription>Prepare for these first</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {upcomingExams.map((exam) => (
+              <ExamCountdown key={exam.key} examName={exam.name} examDate={exam.date} courseName={exam.course} />
+            ))}
+            
+            <Button variant="outline" size="sm" className="w-full mt-2">
+              View All Exams
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Activity and Progress Tabs */}
+      <div className="grid grid-cols-1 gap-4">
+        <Card className="w-full card-enhanced">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <LineChart className="h-5 w-5 text-primary" />
+              Performance Insights
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="activity">
+              <TabsList className="mb-4 w-full">
+                <TabsTrigger value="activity" className="flex-1">Recent Activity</TabsTrigger>
+                <TabsTrigger value="progress" className="flex-1">Progress Analysis</TabsTrigger>
+                <TabsTrigger value="suggestions" className="flex-1">Suggestions</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="activity" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-primary/15 p-3 rounded-full">
+                      <Target className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between mb-1">
+                        <h4 className="font-medium">Completed Mock Test: DSA Arrays & Strings</h4>
+                        <Badge>85%</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">You scored better than 70% of test takers</p>
+                      <p className="text-xs text-muted-foreground mt-1">Today at 10:32 AM</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <div className="bg-emerald-500/15 p-3 rounded-full">
+                      <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between mb-1">
+                        <h4 className="font-medium">Completed System Design Chapter 4</h4>
+                      </div>
+                      <p className="text-sm text-muted-foreground">You've reached 42% completion of the course</p>
+                      <p className="text-xs text-muted-foreground mt-1">Yesterday at 4:15 PM</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <div className="bg-blue-500/15 p-3 rounded-full">
+                      <BookOpen className="h-5 w-5 text-blue-500" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between mb-1">
+                        <h4 className="font-medium">Saved 3 new resources</h4>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Interview preparation materials from Google</p>
+                      <p className="text-xs text-muted-foreground mt-1">Yesterday at 2:45 PM</p>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="progress" className="h-80">
+                <ProgressTracker />
+              </TabsContent>
+              
+              <TabsContent value="suggestions" className="space-y-4">
+                <div className="rounded-lg border bg-accent/50 p-4">
+                  <h4 className="font-medium mb-2">Recommended Next Steps</h4>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                      Complete more problems on graph algorithms
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                      Schedule a mock interview focusing on system design
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                      Review feedback from previous mock tests
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                      Start the advanced database course
+                    </li>
+                  </ul>
+                </div>
+              </TabsContent>
             </Tabs>
-          </div>
-    );
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 };
 
 export default Dashboard;
