@@ -1,3 +1,4 @@
+
 import { ToastProvider } from "@/hooks/toast/toast-context";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -21,45 +22,36 @@ import { AnimatePresence } from "framer-motion";
 
 const queryClient = new QueryClient();
 
-const App = () => {
-  // Check if user is logged in (for now, just check localStorage)
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ToastProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AnimatePresence mode="wait">
-              <Routes>
-                <Route path="/login" element={
-                  isLoggedIn ? <Navigate to="/dashboard" replace /> : <Login />
-                } />
-                <Route path="/" element={
-                  isLoggedIn ? <AppLayout /> : <Navigate to="/login" replace />
-                }>
-                  <Route index element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/planner" element={<Planner />} />
-                  <Route path="/resources" element={<ResourcesHub />} />
-                  <Route path="/notes" element={<Notes />} />
-                  <Route path="/progress" element={<Progress />} />
-                  <Route path="/quizzes" element={<Quizzes />} />
-                  <Route path="/interview" element={<InterviewChatbot />} />
-                  <Route path="/resume" element={<ResumeBuilder />} />
-                  <Route path="/placements" element={<PlacementTracker />} />
-                  <Route path="/focus-timer" element={<FocusTimer />} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AnimatePresence>
-          </BrowserRouter>
-        </ToastProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
-};
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <ToastProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AnimatePresence mode="wait">
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<AppLayout />}>
+                <Route index element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/planner" element={<Planner />} />
+                <Route path="/resources" element={<ResourcesHub />} />
+                <Route path="/notes" element={<Notes />} />
+                <Route path="/progress" element={<Progress />} />
+                <Route path="/quizzes" element={<Quizzes />} />
+                <Route path="/interview" element={<InterviewChatbot />} />
+                <Route path="/resume" element={<ResumeBuilder />} />
+                <Route path="/placements" element={<PlacementTracker />} />
+                <Route path="/focus-timer" element={<FocusTimer />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AnimatePresence>
+        </BrowserRouter>
+      </ToastProvider>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;

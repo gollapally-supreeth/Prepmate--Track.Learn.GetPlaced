@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -18,8 +19,7 @@ export default function Login() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // For now, accept any credentials
-    localStorage.setItem('isLoggedIn', 'true');
+    // TODO: Implement actual login logic
     toast({
       title: "Login successful",
       description: "Welcome back to PrepMate!"
