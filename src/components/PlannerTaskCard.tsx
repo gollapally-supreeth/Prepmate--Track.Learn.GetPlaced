@@ -1,108 +1,148 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Clock, Tag, Play, Trash2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { GripVertical, Clock, Tag, Trash2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 interface PlannerTaskCardProps {
   title: string;
   dueTime: string;
-  subject: string;
   description: string;
-  priority: "High" | "Medium" | "Low";
-  completed?: boolean;
-  id: number;
-  onComplete: (id: number) => void;
-  onMoveToInProgress: (id: number) => void;
-  onRemove: (id: number) => void;
+  subject: string;
+  priority: 'High' | 'Medium' | 'Low';
+  completed: boolean;
+  id: string;
+  onComplete: (id: string) => void;
+  onMoveToInProgress: (id: string) => void;
+  onRemove: (id: string) => void;
 }
 
-export function PlannerTaskCard({
+const priorityColors = {
+  High: 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20',
+  Medium: 'text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20',
+  Low: 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20'
+};
+
+const subjectColors = {
+  CSE: 'text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-900/20',
+  'Web Dev': 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/20',
+  DBMS: 'text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/20',
+  'Operating Systems': 'text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/20',
+  Programming: 'text-pink-600 dark:text-pink-400 bg-pink-100 dark:bg-pink-900/20',
+  Networks: 'text-cyan-600 dark:text-cyan-400 bg-cyan-100 dark:bg-cyan-900/20'
+};
+
+export const PlannerTaskCard: React.FC<PlannerTaskCardProps> = ({
   title,
   dueTime,
-  subject,
   description,
+  subject,
   priority,
-  completed = false,
+  completed,
   id,
   onComplete,
   onMoveToInProgress,
-  onRemove,
-}: PlannerTaskCardProps) {
-  const priorityColors = {
-    High: 'text-focus-red bg-focus-red/10',
-    Medium: 'text-focus-yellow bg-focus-yellow/10',
-    Low: 'text-focus-green bg-focus-green/10',
-  };
-
+  onRemove
+}) => {
   return (
     <motion.div
+      layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.2 }}
+      className="group"
     >
       <Card className={cn(
-        "group transition-all duration-200 hover:shadow-lg border-2",
-        completed ? "bg-muted/50 border-muted" : "bg-card hover:border-primary/20"
+        "relative border transition-all duration-200",
+        completed ? "opacity-80" : "hover:border-primary/30",
+        "bg-card dark:bg-card/80 backdrop-blur-sm"
       )}>
-        <CardContent className="flex items-start gap-3 p-4">
-          <div className="mt-1">
-            {completed ? (
-              <CheckCircle2 size={18} className="text-primary/70" />
-            ) : (
-              <button
-                onClick={() => onComplete(id)}
-                className={cn(
-                  "w-4 h-4 rounded-full border-2 transition-colors hover:border-primary",
-                  priorityColors[priority].split(' ')[0].replace('text', 'border')
-                )}
-              />
-            )}
+        <CardContent className="p-4">
+          <div className="absolute left-2 top-1/2 -translate-y-1/2 opacity-50 group-hover:opacity-100 cursor-grab active:cursor-grabbing">
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
           </div>
-          <div className="flex-1">
-            <h3 className={cn(
-              "font-medium text-sm mb-1",
-              completed && "line-through text-muted-foreground"
-            )}>
-              {title}
-            </h3>
-            <p className="text-xs text-muted-foreground">{description}</p>
-            <div className="mt-3 flex items-center gap-4 text-xs">
-              <div className="flex items-center gap-1 text-primary/70">
-                <Clock size={14} />
-                <span>{dueTime}</span>
+          
+          <div className="ml-6 space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  checked={completed}
+                  onCheckedChange={() => onComplete(id)}
+                  className="mt-1"
+                />
+                <div>
+                  <h3 className={cn(
+                    "font-medium line-clamp-2",
+                    completed && "line-through text-muted-foreground"
+                  )}>
+                    {title}
+                  </h3>
+                  {description && (
+                    <p className={cn(
+                      "text-sm text-muted-foreground mt-1 line-clamp-2",
+                      completed && "line-through"
+                    )}>
+                      {description}
+                    </p>
+                  )}
+                </div>
               </div>
-              <div className={cn(
-                "px-2 py-1 rounded-full flex items-center gap-1",
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              {dueTime && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Clock className="h-3 w-3" />
+                  <span>{dueTime}</span>
+                </div>
+              )}
+              
+              {subject && (
+                <span className={cn(
+                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                  subjectColors[subject as keyof typeof subjectColors] || "bg-gray-100 text-gray-600"
+                )}>
+                  <Tag className="h-3 w-3" />
+                  {subject}
+                </span>
+              )}
+              
+              <span className={cn(
+                "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
                 priorityColors[priority]
               )}>
-                <Tag size={12} />
-                <span>{subject}</span>
-              </div>
+                {priority}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              {!completed && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs hover:text-primary"
+                  onClick={() => onMoveToInProgress(id)}
+                >
+                  <ArrowRight className="h-3 w-3 mr-1" />
+                  Move to Progress
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+                onClick={() => onRemove(id)}
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                Remove
+              </Button>
             </div>
           </div>
         </CardContent>
-        <div className="flex justify-end items-center gap-2 py-2 px-4 border-t bg-muted/5">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => onMoveToInProgress(id)}
-            className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
-          >
-            <Play size={14} />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => onRemove(id)}
-            className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-          >
-            <Trash2 size={14} />
-          </Button>
-        </div>
       </Card>
     </motion.div>
   );
-}
+};

@@ -1,23 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { PlannerTaskCard } from '@/components/PlannerTaskCard';
-import { Search, PlusCircle, Filter, Calendar, Clock, Tag, AlertCircle } from 'lucide-react';
+import { Search, PlusCircle, Filter, Calendar, Clock, Tag, AlertCircle, GripVertical } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from '@/components/ui/label';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface Task {
-  id: number;
+  id: string;
   title: string;
   description: string;
   dueTime: string;
   subject: string;
   priority: 'High' | 'Medium' | 'Low';
   status: 'todo' | 'in-progress' | 'completed';
-  
   completed?: boolean;
 }
 
@@ -30,7 +31,7 @@ interface NewTask extends Partial<Task> {
 // Sample task data
 const sampleTasks = [
   {
-    id: 1,
+    id: "1",
     title: "Revise Graphs in DSA",
     dueTime: "Today, 8:00 PM",
     subject: "CSE",
@@ -39,7 +40,7 @@ const sampleTasks = [
     description: "Prepare for DSA assignment",
   },
   {
-    id: 2,
+    id: "2",
     title: "Complete Web Dev Assignment",
     dueTime: "Today, 5:00 PM",
     subject: "Web Dev",
@@ -48,7 +49,7 @@ const sampleTasks = [
     description: "Complete web dev assignment",
   },
   {
-    id: 3,
+    id: "3",
     title: "Study SQL Joins",
     dueTime: "Tomorrow, 12:00 PM",
     subject: "DBMS",
@@ -57,7 +58,7 @@ const sampleTasks = [
     description: "Study for sql joins",
   },
   {
-    id: 4,
+    id: "4",
     title: "Research for OS Project",
     dueTime: "Today, 3:00 PM",
     subject: "Operating Systems",
@@ -66,24 +67,23 @@ const sampleTasks = [
     description: "Do some research for OS project",
   },
   {
-    id: 5,
+    id: "5",
     title: "Practice Python Problems",
     dueTime: "Yesterday, 6:00 PM",
     subject: "Programming",
     priority: "Medium" as const,
-    status: "completed" ,
+    status: "completed",
     description: "Complete some python problems",
     completed: true
-    
   },
   {
-    id: 6,
+    id: "6",
     title: "Read Chapter 3 of Computer Networks",
     dueTime: "Yesterday, 7:00 PM",
     subject: "Networks",
-     priority: "High" as const,
-     status: "completed",
-     description: "complete reading of CN chapter 3",
+    priority: "High" as const,
+    status: "completed",
+    description: "complete reading of CN chapter 3",
     completed: true
   },
 ];
@@ -97,36 +97,48 @@ const Planner = () => {
     }
     return sampleTasks;
   });
+  const [showTutorial, setShowTutorial] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('plannerTutorialSeen') !== 'true';
+    }
+    return true;
+  });
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('plannerTasks', JSON.stringify(tasks));
     }
   }, [tasks]);
+
+  useEffect(() => {
+    if (showTutorial) {
+      localStorage.setItem('plannerTutorialSeen', 'true');
+    }
+  }, [showTutorial]);
   
   const [newTask, setNewTask] = useState<NewTask>({ title: '', description: '', dueTime: '' });
   
   const handleAddTask = () => {
-    if (newTask.title && newTask.description && newTask.dueTime && newTask.subject && newTask.priority ) {
-      const nextId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+    if (newTask.title && newTask.description && newTask.dueTime && newTask.subject && newTask.priority) {
+      const nextId = (tasks.length > 0 ? Math.max(...tasks.map(t => parseInt(t.id))) + 1 : 1).toString();
       const fullNewTask: Task = { id: nextId, status: "todo", completed: false, ...newTask } as Task;
       setTasks([...tasks, fullNewTask]);
       setNewTask({ title: '', description: '', dueTime: '' });
-      toast({ description: "Task created successfully!", position: "bottom-center" });
+      toast({ description: "Task created successfully!" });
     }
   };
 
-  const handleCompleteTask = (id: number) => {
+  const handleCompleteTask = (id: string) => {
     setTasks(tasks.map(task => {
       if (task.id === id) {
         return { ...task, status: 'completed', completed: true };
       }
       return task;
     }));
-    toast({ description: "Task completed!", position: "bottom-center" });
+    toast({ description: "Task completed!" });
   };
 
-  const handleMoveToInProgress = (id: number) => {
+  const handleMoveToInProgress = (id: string) => {
     setTasks(tasks.map(task => {
       if (task.id === id) {
         return { ...task, status: 'in-progress' };
@@ -135,15 +147,15 @@ const Planner = () => {
     }));
   };
 
-  const handleRemoveTask = (id: number) => {
+  const handleRemoveTask = (id: string) => {
     setTasks(tasks.filter(task => task.id !== id));
   };
 
-  const handleEditTask = (id: number, updatedTask: Partial<Task>) => {
+  const handleEditTask = (id: string, updatedTask: Partial<Task>) => {
     setTasks(tasks.map(task => task.id === id ? { ...task, ...updatedTask } : task));
   };
 
-  const handleStatusChange = (id: number, newStatus: Task['status']) => {
+  const handleStatusChange = (id: string, newStatus: Task['status']) => {
     setTasks(tasks.map(task => task.id === id ? { ...task, status: newStatus } : task));
   };
 
@@ -166,301 +178,278 @@ const Planner = () => {
   const completedTasks = filteredTasks.filter(task => task.status === "completed");
   const taskTitleRef = useRef<HTMLInputElement>(null);
   
+  const handleDragEnd = (status: Task['status'], items: Task[]) => {
+    const updatedTasks = tasks.map(task => {
+      const draggedTask = items.find(item => item.id === task.id);
+      if (draggedTask) {
+        return { ...draggedTask, status };
+      }
+      return task;
+    });
+    setTasks(updatedTasks);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
+      <Dialog open={showTutorial} onOpenChange={setShowTutorial}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Welcome to Daily Planner!</DialogTitle>
+            <DialogDescription>
+              New features have been added to help you manage tasks more efficiently:
+              <ul className="mt-2 space-y-2">
+                <li className="flex items-center gap-2">
+                  <GripVertical className="h-4 w-4 text-primary" />
+                  Drag and drop tasks between columns
+                </li>
+                <li className="flex items-center gap-2">
+                  <Tag className="h-4 w-4 text-primary" />
+                  Color-coded priorities and subjects
+                </li>
+                <li className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  Real-time status updates
+                </li>
+              </ul>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button onClick={() => setShowTutorial(false)}>Got it!</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="space-y-4"
       >
-        <h1 className="text-3xl font-bold gradient-heading">Daily Planner</h1>
-        <p className="text-muted-foreground mt-1">Organize your tasks efficiently</p>
-      </motion.div>
-      
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-          <Input
-            placeholder="Search tasks..."
-            className="pl-10 bg-card border-primary/10 focus:border-primary/20"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div>
+          <h1 className="text-3xl font-bold text-primary">Daily Planner</h1>
+          <p className="text-muted-foreground mt-1">Organize your tasks efficiently</p>
         </div>
-        
-        <div className="flex gap-3">
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-[150px] border-primary/10">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="todo">To Do</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={subject} onValueChange={setSubject}>
-            <SelectTrigger className="w-[150px] border-primary/10">
-              <SelectValue placeholder="Subject" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Subjects</SelectItem>
-              <SelectItem value="CSE">CSE</SelectItem>
-              <SelectItem value="Web Dev">Web Dev</SelectItem>
-              <SelectItem value="DBMS">DBMS</SelectItem>
-              <SelectItem value="Operating Systems">Operating Systems</SelectItem>
-              <SelectItem value="Programming">Programming</SelectItem>
-              <SelectItem value="Networks">Networks</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-card/50 p-6 rounded-lg border border-primary/5">
-        <motion.div 
-          className="space-y-1"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-        >
-          <Label htmlFor="taskTitle" className="text-sm font-medium">Title</Label>
-          <Input
-            id="taskTitle"
-            className="border-primary/10 focus:border-primary/20"
-            placeholder="Enter task title"
-            ref={taskTitleRef}
-            value={newTask.title || ''}
-            onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-          />
-        </motion.div>
-        
-        <motion.div 
-          className="space-y-1"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, delay: 0.15 }}
-        >
-          <Label htmlFor="taskDescription" className="text-sm font-medium">Description</Label>
-          <Input
-            id="taskDescription"
-            className="border-primary/10 focus:border-primary/20"
-            placeholder="Enter task description"
-            value={newTask.description || ''}
-            onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-          />
-        </motion.div>
-        
-        <motion.div 
-          className="space-y-1"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-        >
-          <Label htmlFor="taskDueTime" className="text-sm font-medium">Due Time</Label>
-          <Input
-            id="taskDueTime"
-            className="border-primary/10 focus:border-primary/20"
-            placeholder="e.g., Today, 4:00 PM"
-            value={newTask.dueTime || ''}
-            onChange={(e) => setNewTask({ ...newTask, dueTime: e.target.value })}
-          />
-        </motion.div>
-        <motion.div 
-          className="space-y-1"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, delay: 0.25 }}
-        >
-          <Label htmlFor="taskSubject" className="text-sm font-medium">Subject</Label>
-          <Input
-            id="taskSubject"
-            className="border-primary/10 focus:border-primary/20"
-            placeholder="e.g., CSE"
-            value={newTask.subject || ''}
-            onChange={(e) => setNewTask({ ...newTask, subject: e.target.value })}
-          />
-        </motion.div>
-        <motion.div 
-          className="space-y-1"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-        >
-          <Label htmlFor="priority" className="text-sm font-medium">Priority</Label>
-          <Select onValueChange={(value) => setNewTask({ ...newTask, priority: value as "High" | "Medium" | "Low" })} defaultValue={"High"}>
-            <SelectTrigger id="priority" className="border-primary/10">
-              <SelectValue placeholder="Select priority" />
-            </SelectTrigger>
-            <SelectContent className='text-sm'>
-              <SelectItem value="High">High</SelectItem>
-              <SelectItem value="Medium">Medium</SelectItem>
-              <SelectItem value="Low">Low</SelectItem>
-            </SelectContent>
-          </Select>
-        </motion.div>
-        
-        <motion.div 
-          className="space-y-1 flex items-end"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-        >
-          <Button 
-            size="sm" 
-            className="w-full bg-primary/90 hover:bg-primary" 
-            onClick={handleAddTask}
-          >
-            Add Task
-          </Button>
-        </motion.div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="overflow-hidden border-primary/10">
-          <div className="bg-primary/5 p-3 border-b border-primary/10">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium flex items-center gap-2 text-primary">
-                <AlertCircle size={16} className="text-focus-red" />
-                <span>To Do</span>
-                <span className="bg-focus-red/10 text-focus-red px-1.5 rounded-full text-xs">
-                  {todoTasks.length}
-                </span>
-              </h3>
-            </div>
-          </div>
-          <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto custom-scrollbar">
-            {todoTasks
-            .filter((task) => {
-              const lowerCaseSearchTerm = searchTerm.toLowerCase();
-              return (
-                task.title.toLowerCase().includes(lowerCaseSearchTerm) 
-              );
-            })
-            .map(task => (
-              <div className='flex flex-col'>
-                <PlannerTaskCard
-                  key={task.id}
-                  
-                  subject={task.subject}
-                  priority={task.priority}
-                  completed={task.completed}
-                  title={task.title}
-                  dueTime={task.dueTime}
-                  description={task.description}
-                  subject={task.subject}
-                  priority={task.priority}
-                  completed={task.completed}
-                  onComplete={handleCompleteTask}
-                  id={task.id}
-                  subject={task.subject}
-                  priority={task.priority}
-                  completed={task.completed}
-                  onComplete={handleCompleteTask}
-                  description={task.description}
-                  id={task.id}
-                  onMoveToInProgress={handleMoveToInProgress}
-                  onRemove={handleRemoveTask}
-                  />
+
+        <Card className="bg-card">
+          <CardContent className="pt-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-2">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={newTask.title}
+                  onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                  placeholder="Task title"
+                />
               </div>
-            ))}
-            {todoTasks.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-32 text-center" >
-                <p className="text-muted-foreground text-sm">No tasks found. Create a new task?</p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-2"
-                 
-                    
-                    onClick={() => taskTitleRef.current?.focus()}
-                  >
-                New Task
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Input
+                  id="description"
+                  value={newTask.description}
+                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                  placeholder="Task description"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="dueTime">Due Time</Label>
+                <Input
+                  id="dueTime"
+                  value={newTask.dueTime}
+                  onChange={(e) => setNewTask({ ...newTask, dueTime: e.target.value })}
+                  placeholder="e.g. Today, 3:00 PM"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="subject">Subject</Label>
+                <Select
+                  value={newTask.subject}
+                  onValueChange={(value) => setNewTask({ ...newTask, subject: value })}
+                >
+                  <SelectTrigger id="subject">
+                    <SelectValue placeholder="Select subject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CSE">CSE</SelectItem>
+                    <SelectItem value="Web Dev">Web Dev</SelectItem>
+                    <SelectItem value="DBMS">DBMS</SelectItem>
+                    <SelectItem value="Operating Systems">Operating Systems</SelectItem>
+                    <SelectItem value="Programming">Programming</SelectItem>
+                    <SelectItem value="Networks">Networks</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="priority">Priority</Label>
+                <Select
+                  value={newTask.priority}
+                  onValueChange={(value) => setNewTask({ ...newTask, priority: value as 'High' | 'Medium' | 'Low' })}
+                >
+                  <SelectTrigger id="priority">
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="High">High</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="Low">Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <Button onClick={handleAddTask} className="w-full">
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Add Task
                 </Button>
               </div>
-            )}
+            </div>
           </CardContent>
         </Card>
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+            <Input
+              placeholder="Search tasks..."
+              className="pl-10 bg-card border-primary/10 focus:border-primary/20"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex gap-3">
+            <Select value={filter} onValueChange={setFilter}>
+              <SelectTrigger className="w-[150px] border-primary/10">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="todo">To Do</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={subject} onValueChange={setSubject}>
+              <SelectTrigger className="w-[150px] border-primary/10">
+                <SelectValue placeholder="Subject" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Subjects</SelectItem>
+                <SelectItem value="CSE">CSE</SelectItem>
+                <SelectItem value="Web Dev">Web Dev</SelectItem>
+                <SelectItem value="DBMS">DBMS</SelectItem>
+                <SelectItem value="Operating Systems">Operating Systems</SelectItem>
+                <SelectItem value="Programming">Programming</SelectItem>
+                <SelectItem value="Networks">Networks</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         
-        <Card className="overflow-hidden border-primary/10">
-          <div className="bg-primary/5 p-3 border-b border-primary/10">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium flex items-center gap-2 text-primary">
-                <Clock size={16} className="text-focus-yellow" />
-                <span>In Progress</span>
-                <span className="bg-focus-yellow/10 text-focus-yellow px-1.5 rounded-full text-xs">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-card border-muted">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-primary flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-primary/70"></div>
+                To Do
+                <span className="ml-auto text-sm text-muted-foreground">
+                  {todoTasks.length}
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Reorder.Group
+                axis="y"
+                values={todoTasks}
+                onReorder={(items) => handleDragEnd('todo', items)}
+                className="space-y-3"
+              >
+                <AnimatePresence>
+                  {todoTasks.map((task) => (
+                    <Reorder.Item key={task.id} value={task}>
+                      <PlannerTaskCard
+                        {...task}
+                        completed={task.status === 'completed'}
+                        onComplete={handleCompleteTask}
+                        onMoveToInProgress={handleMoveToInProgress}
+                        onRemove={handleRemoveTask}
+                      />
+                    </Reorder.Item>
+                  ))}
+                </AnimatePresence>
+              </Reorder.Group>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-muted">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-primary flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-primary/70"></div>
+                In Progress
+                <span className="ml-auto text-sm text-muted-foreground">
                   {inProgressTasks.length}
                 </span>
-              </h3>
-            </div>
-          </div>
-          <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto custom-scrollbar">
-            {inProgressTasks.map(task => (
-              <div className='flex flex-col'>
-                <PlannerTaskCard
-                  key={task.id}
-                  title={task.title}
-                  dueTime={task.dueTime}
-                  description={task.description}
-                  subject={task.subject}
-                  priority={task.priority}
-                  completed={task.completed}
-                  onComplete={handleCompleteTask}
-                  description={task.description}
-                  id={task.id}
-                  onMoveToInProgress={handleMoveToInProgress}
-                  onRemove={handleRemoveTask}
-                  />
-              </div>
-            ))}
-            {inProgressTasks.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-32 text-center">
-                <p className="text-muted-foreground text-sm">No tasks in progress</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        
-        <Card className="overflow-hidden border-primary/10">
-          <div className="bg-primary/5 p-3 border-b border-primary/10">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium flex items-center gap-2 text-primary">
-                <Calendar size={16} className="text-focus-green" />
-                <span>Completed</span>
-                <span className="bg-focus-green/10 text-focus-green px-1.5 rounded-full text-xs">
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Reorder.Group
+                axis="y"
+                values={inProgressTasks}
+                onReorder={(items) => handleDragEnd('in-progress', items)}
+                className="space-y-3"
+              >
+                <AnimatePresence>
+                  {inProgressTasks.map((task) => (
+                    <Reorder.Item key={task.id} value={task}>
+                      <PlannerTaskCard
+                        {...task}
+                        completed={task.status === 'completed'}
+                        onComplete={handleCompleteTask}
+                        onMoveToInProgress={handleMoveToInProgress}
+                        onRemove={handleRemoveTask}
+                      />
+                    </Reorder.Item>
+                  ))}
+                </AnimatePresence>
+              </Reorder.Group>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-muted">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-primary flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-primary/70"></div>
+                Completed
+                <span className="ml-auto text-sm text-muted-foreground">
                   {completedTasks.length}
                 </span>
-              </h3>
-            </div>
-          </div>
-          <CardContent className="p-3 space-y-3 h-[calc(100vh-340px)] overflow-y-auto custom-scrollbar">
-            {completedTasks.map(task => (
-              <div className='flex flex-col'>
-                <PlannerTaskCard
-                  key={task.id}
-                  title={task.title}
-                  dueTime={task.dueTime}
-                  description={task.description}
-                  subject={task.subject}
-                  priority={task.priority}
-                  completed={task.completed}
-                  onComplete={handleCompleteTask}
-                  description={task.description}
-                  id={task.id}
-                  onMoveToInProgress={handleMoveToInProgress}
-                  onRemove={handleRemoveTask}
-                  />
-              </div>
-            ))}
-            {completedTasks.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-32 text-center">
-                <p className="text-muted-foreground text-sm">No completed tasks</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Reorder.Group
+                axis="y"
+                values={completedTasks}
+                onReorder={(items) => handleDragEnd('completed', items)}
+                className="space-y-3"
+              >
+                <AnimatePresence>
+                  {completedTasks.map((task) => (
+                    <Reorder.Item key={task.id} value={task}>
+                      <PlannerTaskCard
+                        {...task}
+                        completed={task.status === 'completed'}
+                        onComplete={handleCompleteTask}
+                        onMoveToInProgress={handleMoveToInProgress}
+                        onRemove={handleRemoveTask}
+                      />
+                    </Reorder.Item>
+                  ))}
+                </AnimatePresence>
+              </Reorder.Group>
+            </CardContent>
+          </Card>
+        </div>
+      </motion.div>
     </div>
   );
 };
