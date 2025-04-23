@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -26,6 +27,11 @@ import {
 } from 'lucide-react';
 
 const Dashboard = () => {
+  // Mock function for TaskCard onComplete prop
+  const handleCompleteTask = (id: number) => {
+    console.log(`Task ${id} marked as complete`);
+  };
+
   return (
     <div className="container space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
@@ -49,25 +55,29 @@ const Dashboard = () => {
           title="Total Study Hours"
           value="147h"
           percentageIncrease="+12%"
-          icon={Clock}
+          icon={<Clock className="text-blue-500" />}
+          color="bg-blue-50 dark:bg-blue-900/20"
         />
         <StatsCard
           title="Completed Tasks"
           value="23/30"
           percentageIncrease="+8%"
-          icon={ListChecks}
+          icon={<ListChecks className="text-green-500" />}
+          color="bg-green-50 dark:bg-green-900/20"
         />
         <StatsCard
           title="Resources Explored"
           value="85"
           percentageIncrease="+25%"
-          icon={BookOpen}
+          icon={<BookOpen className="text-amber-500" />}
+          color="bg-amber-50 dark:bg-amber-900/20"
         />
         <StatsCard
           title="Quizzes Passed"
           value="18/20"
           percentageIncrease="+5%"
-          icon={Code}
+          icon={<Code className="text-purple-500" />}
+          color="bg-purple-50 dark:bg-purple-900/20"
         />
       </motion.div>
       
@@ -136,7 +146,38 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[300px] pr-2">
-                <TaskCard />
+                <div className="space-y-3">
+                  <TaskCard 
+                    id={1}
+                    title="Complete DSA Assignment"
+                    dueTime="Today, 5:00 PM"
+                    subject="DSA"
+                    priority="High"
+                    completed={false}
+                    onComplete={handleCompleteTask}
+                    estimatedTime={60}
+                  />
+                  <TaskCard 
+                    id={2}
+                    title="Review Machine Learning Notes"
+                    dueTime="Today, 8:00 PM"
+                    subject="ML"
+                    priority="Medium"
+                    completed={false}
+                    onComplete={handleCompleteTask}
+                    estimatedTime={45}
+                  />
+                  <TaskCard 
+                    id={3}
+                    title="Submit Project Proposal"
+                    dueTime="Tomorrow, 12:00 PM"
+                    subject="Projects"
+                    priority="High"
+                    completed={true}
+                    onComplete={handleCompleteTask}
+                    estimatedTime={30}
+                  />
+                </div>
               </ScrollArea>
             </CardContent>
             <CardFooter className="justify-between">

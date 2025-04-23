@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -6,12 +7,13 @@ export interface StatsCardProps {
   title: string;
   value: string;
   description?: string;
-  trend: number;
+  trend?: number;
   icon: React.ReactNode;
-  color: string;
+  color?: string;
+  percentageIncrease?: string;
 }
 
-export function StatsCard({ title, value, description, trend, icon, color }: StatsCardProps) {
+export function StatsCard({ title, value, description, trend, icon, color, percentageIncrease }: StatsCardProps) {
   return (
     <Card className="shadow-sm border border-primary/20">
       <Card className="flex flex-col gap-2 p-4">
@@ -23,11 +25,16 @@ export function StatsCard({ title, value, description, trend, icon, color }: Sta
           <p className="text-2xl font-bold">{value}</p>
           {description && (
             <p className="text-xs text-muted-foreground">
-              <span className={trend > 0 ? "text-green-500" : "text-red-500"}>
-                {trend > 0 ? "+" : ""}
+              <span className={trend && trend > 0 ? "text-green-500" : "text-red-500"}>
+                {trend && trend > 0 ? "+" : ""}
                 {trend}%
               </span>{" "}
               {description}
+            </p>
+          )}
+          {percentageIncrease && (
+            <p className="text-xs text-muted-foreground">
+              <span className="text-green-500">{percentageIncrease}</span> vs. last month
             </p>
           )}
         </div>

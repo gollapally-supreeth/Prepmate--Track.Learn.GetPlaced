@@ -10,11 +10,26 @@ interface TaskCardProps {
   subject: string;
   priority: "High" | "Medium" | "Low";
   completed?: boolean;
-  id: number;
-  onComplete: (id: number) => void;
+  isCompleted?: boolean; // For backward compatibility
+  id?: number;
+  onComplete?: (id: number) => void;
+  estimatedTime?: number;
 }
 
-export function TaskCard({ title, dueTime, subject, priority, completed = false, id, onComplete }: TaskCardProps) {
+export function TaskCard({ 
+  title, 
+  dueTime, 
+  subject, 
+  priority, 
+  completed = false, 
+  isCompleted, 
+  id = 0, 
+  onComplete = () => {}, 
+  estimatedTime 
+}: TaskCardProps) {
+  // Use either completed or isCompleted for backward compatibility
+  const isTaskCompleted = completed || isCompleted || false;
+  
   const priorityColors = {
     High: 'text-focus-red border-focus-red',
     Medium: 'text-focus-yellow border-focus-yellow',
@@ -30,13 +45,13 @@ export function TaskCard({ title, dueTime, subject, priority, completed = false,
   return (
     <Card className={cn(
       "group flex items-start gap-3 p-4 transition-all duration-200",
-      completed 
+      isTaskCompleted 
         ? "bg-muted/30 border-muted" 
         : `hover:shadow-md hover:border-${priority.toLowerCase()}-400/30 card-hover`,
       priorityBgs[priority]
     )}>
       <div className="mt-1">
-        {completed ? (
+        {isTaskCompleted ? (
           <CheckCircle2 
             size={20} 
             className="text-focus-green cursor-pointer hover:scale-110 transition-transform" 
@@ -60,7 +75,7 @@ export function TaskCard({ title, dueTime, subject, priority, completed = false,
       <div className="flex-1">
         <h3 className={cn(
           "font-medium text-sm",
-          completed && "line-through text-muted-foreground"
+          isTaskCompleted && "line-through text-muted-foreground"
         )}>
           {title}
         </h3>
@@ -76,6 +91,12 @@ export function TaskCard({ title, dueTime, subject, priority, completed = false,
               priorityBgs[priority]
             )}>{subject}</span>
           </div>
+          {estimatedTime && (
+            <div className="flex items-center gap-1">
+              <Clock size={14} />
+              <span>{estimatedTime} min</span>
+            </div>
+          )}
         </div>
       </div>
     </Card>

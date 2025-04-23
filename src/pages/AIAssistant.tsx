@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 import { 
   Bot, 
   MessageSquare, 
@@ -11,7 +12,10 @@ import {
   Plus,
   ArrowRight,
   Sparkles,
-  Menu
+  Menu,
+  Code,
+  FileCheck,
+  Calendar
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
