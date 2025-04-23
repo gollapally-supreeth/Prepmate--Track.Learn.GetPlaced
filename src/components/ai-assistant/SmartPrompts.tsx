@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -7,7 +6,7 @@ import {
   MessageSquare, 
   Lightbulb, 
   Calendar,
-  Graduation,
+  GraduationCap,
   BookOpen
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -58,7 +57,7 @@ const SmartPrompts: React.FC<SmartPromptsProps> = ({ onSelectPrompt }) => {
       title: "Interview Tips",
       description: "Advice for tech interviews",
       prompt: "What are the most common behavioral questions in tech interviews, and how should I structure my answers using the STAR method?",
-      icon: Graduation,
+      icon: GraduationCap,
       category: "interview"
     },
     {

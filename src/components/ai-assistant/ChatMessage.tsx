@@ -1,24 +1,27 @@
 
 import React, { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bot, User, AlertTriangle, Copy, ThumbsUp, ThumbsDown, Loader2 } from 'lucide-react';
+import { Bot, User, AlertTriangle, Copy, ThumbsUp, ThumbsDown, Loader2, RotateCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { AIMessage } from './types';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { Card } from '@/components/ui/card';
 
 interface ChatMessageProps {
   message: AIMessage;
   onFeedback?: (messageId: string, feedback: 'positive' | 'negative') => void;
   onCopy?: (content: string) => void;
+  onRegenerate?: () => void;
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ 
   message, 
   onFeedback,
-  onCopy
+  onCopy,
+  onRegenerate
 }) => {
   const isUser = message.type === 'user';
   const isError = message.type === 'error';
@@ -61,23 +64,22 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       className={cn(
-        "py-6 px-4 group first:pt-4 last:pb-4 hover:bg-muted/40 transition-colors",
-        isUser && "bg-muted/30"
+        "py-6 px-4 sm:px-8 group first:pt-4 last:pb-24",
+        isUser ? "bg-transparent" : "bg-muted/10"
       )}
     >
       <div className="max-w-3xl mx-auto flex gap-4 items-start">
         <Avatar className={cn(
-          "h-8 w-8 mt-0.5 shrink-0",
-          isUser ? "bg-primary" : "bg-gradient-to-br from-purple-600 to-indigo-600",
-          isError && "bg-destructive/10"
+          "h-8 w-8 mt-0.5 rounded-xl shrink-0",
+          isUser ? "bg-muted-foreground" : "bg-gradient-to-br from-purple-600 to-indigo-600",
+          isError && "bg-destructive"
         )}>
           <AvatarFallback className={cn(
-            isUser ? "bg-primary text-primary-foreground" : "bg-gradient-to-br from-purple-600 to-indigo-600 text-white",
-            isError && "bg-destructive/10 text-destructive"
+            isUser ? "bg-muted-foreground text-background" : "bg-gradient-to-br from-purple-600 to-indigo-600 text-white",
+            isError && "bg-destructive text-destructive-foreground"
           )}>
             {isUser ? (
               <User size={16} />
@@ -89,9 +91,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
           </AvatarFallback>
         </Avatar>
         
-        <div className="flex-1 space-y-2">
+        <div className="flex-1 space-y-1">
           <div className="text-sm font-medium">
-            {isUser ? "You" : "PrepMate Assistant"}
+            {isUser ? "You" : "PrepMate AI"}
           </div>
           
           <div className="relative">
@@ -114,47 +116,59 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
           </div>
           
           {!isUser && !isLoading && !isError && (
-            <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex flex-wrap gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
               <Button 
-                variant="ghost" 
+                variant="secondary" 
                 size="sm" 
-                className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                className="h-8 px-3 text-xs font-normal"
                 onClick={handleCopy}
               >
-                <Copy className="h-3.5 w-3.5 mr-1" />
-                <span className="text-xs">Copy</span>
+                <Copy className="h-3.5 w-3.5 mr-2" />
+                <span>Copy</span>
               </Button>
               
+              {onRegenerate && (
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  className="h-8 px-3 text-xs font-normal"
+                  onClick={onRegenerate}
+                >
+                  <RotateCw className="h-3.5 w-3.5 mr-2" />
+                  <span>Regenerate</span>
+                </Button>
+              )}
+              
               <Button 
-                variant="ghost" 
+                variant="secondary" 
                 size="sm" 
                 className={cn(
-                  "h-8 px-2 text-muted-foreground hover:text-foreground",
-                  message.feedback === 'positive' && "text-green-600 hover:text-green-600"
+                  "h-8 px-3 text-xs font-normal",
+                  message.feedback === 'positive' && "bg-primary/10 text-primary"
                 )}
                 onClick={() => handleFeedback('positive')}
               >
-                <ThumbsUp className="h-3.5 w-3.5 mr-1" />
-                <span className="text-xs">Helpful</span>
+                <ThumbsUp className="h-3.5 w-3.5 mr-2" />
+                <span>Helpful</span>
               </Button>
               
               <Button 
-                variant="ghost" 
+                variant="secondary" 
                 size="sm" 
                 className={cn(
-                  "h-8 px-2 text-muted-foreground hover:text-foreground",
-                  message.feedback === 'negative' && "text-red-600 hover:text-red-600"
+                  "h-8 px-3 text-xs font-normal",
+                  message.feedback === 'negative' && "bg-destructive/10 text-destructive"
                 )}
                 onClick={() => handleFeedback('negative')}
               >
-                <ThumbsDown className="h-3.5 w-3.5 mr-1" />
-                <span className="text-xs">Not helpful</span>
+                <ThumbsDown className="h-3.5 w-3.5 mr-2" />
+                <span>Not helpful</span>
               </Button>
             </div>
           )}
           
           <div className="text-xs text-muted-foreground mt-1">
-            {new Date(message.timestamp).toLocaleTimeString()}
+            {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </div>
         </div>
       </div>

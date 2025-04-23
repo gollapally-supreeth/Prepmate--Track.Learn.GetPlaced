@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Loader2, Mic, MicOff, Plus } from 'lucide-react';
+import { Send, Loader2, Mic, MicOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface ChatInputProps {
@@ -13,6 +13,7 @@ interface ChatInputProps {
 const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
   const [message, setMessage] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const [recording, setRecording] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -43,6 +44,11 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
     }
   };
 
+  const toggleRecording = () => {
+    setRecording(!recording);
+    // In a real application, here we would implement speech-to-text functionality
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -52,8 +58,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
     >
       <form onSubmit={handleSubmit} className="relative">
         <div 
-          className={`relative rounded-xl border bg-background shadow-sm transition-all duration-200 ${
-            isFocused ? "ring-2 ring-primary/50 border-primary" : ""
+          className={`relative rounded-2xl border bg-background shadow-sm transition-all duration-200 ${
+            isFocused ? "ring-2 ring-primary/50 border-primary shadow-md" : ""
           }`}
         >
           <Textarea
@@ -63,8 +69,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
             onKeyDown={handleKeyDown}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder="Ask me anything about coding, interviews, resume tips..."
-            className="resize-none py-3 px-4 max-h-[150px] min-h-[56px] pr-24 border-none focus-visible:ring-0"
+            placeholder="Message PrepMate AI..."
+            className="resize-none py-3 px-4 max-h-[150px] min-h-[56px] pr-24 border-none focus-visible:ring-0 bg-transparent"
             disabled={isLoading}
           />
           
@@ -73,17 +79,22 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
               type="button"
               size="icon"
               variant="ghost"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground rounded-full"
               disabled={isLoading}
+              onClick={toggleRecording}
             >
-              <Mic size={20} />
+              {recording ? (
+                <MicOff size={20} className="text-primary" />
+              ) : (
+                <Mic size={20} />
+              )}
             </Button>
             
             <Button
               type="submit"
               size="icon"
               className={`rounded-full transition-all ${
-                message.trim() ? "bg-primary hover:bg-primary/90" : "bg-muted text-muted-foreground"
+                message.trim() && !isLoading ? "bg-primary hover:bg-primary/90" : "bg-muted text-muted-foreground"
               }`}
               disabled={!message.trim() || isLoading}
             >

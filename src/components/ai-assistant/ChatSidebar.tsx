@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +13,7 @@ import {
   Calendar,
   Code,
   FileCheck,
-  Graduation
+  GraduationCap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAIAssistant } from './AIAssistantContext';
@@ -63,7 +62,7 @@ const ChatSidebar: React.FC = () => {
     const firstMessage = session.messages[0]?.content?.toLowerCase() || '';
     
     if (firstMessage.includes('interview') || firstMessage.includes('behavioral')) {
-      return <Graduation size={14} className="text-amber-500" />;
+      return <GraduationCap size={14} className="text-amber-500" />;
     } else if (firstMessage.includes('dsa') || firstMessage.includes('algorithm') || firstMessage.includes('coding')) {
       return <Code size={14} className="text-blue-500" />;
     } else if (firstMessage.includes('resume') || firstMessage.includes('cv')) {

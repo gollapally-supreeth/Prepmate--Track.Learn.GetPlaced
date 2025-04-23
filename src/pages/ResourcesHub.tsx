@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ResourceCard } from '@/components/ResourceCard';
-import { Search, Filter, BookMarked, Youtube, Github, FileType, Plus, Bookmark, BookmarkPlus, Clock } from 'lucide-react';
+import { Search, Filter, BookMarked, Bookmark, BookmarkPlus, Clock } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -119,7 +119,7 @@ const ResourcesHub = () => {
   };
   
   return (
-    <div className="space-y-6 animate-fade-in pb-12 max-w-full overflow-x-hidden">
+    <div className="container animate-fade-in space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Resources Hub</h1>
@@ -129,7 +129,6 @@ const ResourcesHub = () => {
         <Dialog open={showSubmissionForm} onOpenChange={setShowSubmissionForm}>
           <DialogTrigger asChild>
             <Button className="gap-2 bg-gradient-to-r from-primary to-purple-500">
-              <Plus size={16} />
               <span>Submit Resource</span>
             </Button>
           </DialogTrigger>
@@ -147,7 +146,7 @@ const ResourcesHub = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
           <Input 
-            placeholder="Search resources with natural language... e.g. 'beginner friendly React tutorials'" 
+            placeholder="Search resources with natural language..." 
             className="pl-10 bg-background/60 border-primary/20 focus-visible:ring-primary/30" 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -167,7 +166,7 @@ const ResourcesHub = () => {
       
       {/* Resource Categories */}
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ResourceCategory)}>
-        <div className="relative overflow-x-auto pb-2">
+        <div className="relative pb-2">
           <TabsList className="w-full inline-flex justify-start overflow-x-auto no-scrollbar p-1 bg-background/60">
             <TabsTrigger value="all" className="flex-shrink-0">All Resources</TabsTrigger>
             <TabsTrigger value="dsa" className="flex-shrink-0">DSA</TabsTrigger>
@@ -176,11 +175,10 @@ const ResourcesHub = () => {
             <TabsTrigger value="dataScience" className="flex-shrink-0">Data Science</TabsTrigger>
             <TabsTrigger value="computerFundamentals" className="flex-shrink-0">Computer Fundamentals</TabsTrigger>
           </TabsList>
-          <div className="absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
         </div>
         
         {/* Tabs content */}
-        <TabsContent value={activeTab} className="mt-4 w-full">
+        <TabsContent value={activeTab} className="mt-4">
           <div className="flex items-center gap-2 mb-6">
             <BookMarked size={20} className="text-primary" />
             <h2 className="text-xl font-semibold">
@@ -197,7 +195,7 @@ const ResourcesHub = () => {
           </div>
           
           {/* Resources grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <AnimatePresence mode="popLayout">
               {filteredResources.length > 0 ? (
                 filteredResources.map(resource => (
@@ -265,14 +263,14 @@ const ResourcesHub = () => {
       </Tabs>
       
       {/* Learning Paths Section */}
-      <div className="pt-8 border-t border-border/50 w-full">
+      <div className="pt-8 border-t border-border/50 mb-16">
         <div className="flex items-center gap-2 mb-6">
           <Clock size={20} className="text-primary" />
           <h2 className="text-xl font-semibold">Learning Paths</h2>
           <Badge variant="outline" className="ml-2 bg-primary/10">AI Generated</Badge>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <LearningPathCard 
             title="Master Data Structures in 30 Days"
             description="A comprehensive learning path covering arrays, linked lists, trees, and graphs with daily exercises."

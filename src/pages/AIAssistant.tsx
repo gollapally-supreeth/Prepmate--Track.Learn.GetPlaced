@@ -9,11 +9,13 @@ import {
   PencilRuler,
   X,
   Plus,
-  ArrowRight
+  ArrowRight,
+  Sparkles,
+  Menu
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import ChatInput from '@/components/ai-assistant/ChatInput';
 import ChatMessage from '@/components/ai-assistant/ChatMessage';
 import ChatSidebar from '@/components/ai-assistant/ChatSidebar';
@@ -66,17 +68,29 @@ const AIAssistant = () => {
   };
 
   return (
-    <div className="flex h-[calc(100vh-80px)] animate-fade-in bg-background dark:bg-background">
-      {/* Mobile chat history drawer */}
+    <div className="flex h-[calc(100vh-80px)] bg-background dark:bg-background">
+      {/* Mobile menu button */}
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="absolute left-4 top-4 z-50 lg:hidden"
+        onClick={() => setShowSidebar(!showSidebar)}
+      >
+        <Menu size={20} />
+      </Button>
+
+      {/* Chat sidebar - desktop */}
+      <div className={cn(
+        "border-r h-full hidden lg:block transition-all duration-300 overflow-hidden",
+        showSidebar ? "w-80" : "w-0"
+      )}>
+        <ChatSidebar />
+      </div>
+
+      {/* Chat sidebar - mobile */}
       <Drawer>
         <DrawerTrigger asChild>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            className="absolute left-4 top-4 z-10 lg:hidden"
-          >
-            <MessageSquare size={18} />
-          </Button>
+          <span className="lg:hidden" />
         </DrawerTrigger>
         <DrawerContent>
           <div className="max-h-[80vh] overflow-y-auto p-4">
@@ -85,24 +99,21 @@ const AIAssistant = () => {
         </DrawerContent>
       </Drawer>
 
-      {/* Desktop chat sidebar */}
-      <div className={cn(
-        "border-r hidden lg:block transition-all duration-300 overflow-hidden",
-        showSidebar ? "w-72" : "w-0"
-      )}>
-        <ChatSidebar />
-      </div>
-
       {/* Main chat area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <div className="flex justify-between items-center border-b p-4">
-          <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8 bg-gradient-to-br from-purple-600 to-indigo-600">
-              <AvatarFallback className="text-white bg-gradient-to-br from-purple-600 to-indigo-600">AI</AvatarFallback>
+        <div className="flex justify-between items-center border-b bg-background/95 backdrop-blur-sm sticky top-0 z-10 p-4">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600">
+              <AvatarFallback className="text-white bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg">
+                <Bot size={20} />
+              </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-lg font-semibold">PrepMate Assistant</h2>
-              <p className="text-sm text-muted-foreground">AI-powered learning companion</p>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold">PrepMate Assistant</h2>
+                <Badge variant="outline" className="bg-primary/10 text-xs px-2 py-0">Beta</Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">Powered by Google Gemini</p>
             </div>
           </div>
           
@@ -112,6 +123,7 @@ const AIAssistant = () => {
               size="icon"
               onClick={() => setShowSidebar(!showSidebar)}
               className="hidden lg:flex"
+              title="Toggle sidebar"
             >
               <MessageSquare size={18} />
             </Button>
@@ -120,9 +132,9 @@ const AIAssistant = () => {
               variant="ghost" 
               size="icon"
               onClick={newSession}
+              title="New conversation"
             >
               <PencilRuler size={18} />
-              <span className="sr-only">New Chat</span>
             </Button>
           </div>
         </div>
@@ -135,10 +147,10 @@ const AIAssistant = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center space-y-3"
               >
-                <div className="mx-auto bg-gradient-to-br from-purple-600 to-indigo-600 w-16 h-16 rounded-full flex items-center justify-center">
+                <div className="mx-auto bg-gradient-to-br from-purple-600 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center">
                   <Bot size={30} className="text-white" />
                 </div>
-                <h2 className="text-2xl font-bold">PrepMate Assistant</h2>
+                <h2 className="text-2xl font-bold">PrepMate AI Assistant</h2>
                 <p className="text-muted-foreground max-w-md mx-auto">
                   Your AI-powered learning companion for DSA, coding interviews, resume help, and productivity.
                 </p>
@@ -151,7 +163,7 @@ const AIAssistant = () => {
                     <TabsTrigger value="help">Help Me With</TabsTrigger>
                   </TabsList>
                   
-                  <TabsContent value="explore" className="mt-4 space-y-4">
+                  <TabsContent value="explore" className="mt-6">
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -161,20 +173,25 @@ const AIAssistant = () => {
                     </motion.div>
                   </TabsContent>
                   
-                  <TabsContent value="help" className="mt-4">
+                  <TabsContent value="help" className="mt-6">
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.2 }}
-                      className="grid gap-3 md:grid-cols-2"
+                      className="grid grid-cols-1 md:grid-cols-2 gap-4"
                     >
                       <Button 
                         variant="outline" 
-                        className="h-auto py-4 px-4 flex flex-col items-start text-left gap-2 hover:border-primary/50 hover:bg-primary/5"
+                        className="h-auto py-4 px-4 flex flex-col items-start text-left gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-colors"
                         onClick={() => handleSendMessage("I'm preparing for a coding interview. Can you help me practice data structure and algorithm problems?")}
                       >
-                        <h3 className="font-medium">Coding Interview Prep</h3>
-                        <p className="text-sm text-muted-foreground">Practice DSA problems and system design</p>
+                        <div className="bg-primary/10 p-2 rounded-md group-hover:bg-primary/20 transition-colors">
+                          <Code className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="font-medium">Coding Interview Prep</h3>
+                          <p className="text-xs text-muted-foreground">Practice DSA problems and system design</p>
+                        </div>
                         <div className="flex items-center text-primary text-xs mt-1">
                           Ask now <ArrowRight className="h-3 w-3 ml-1" />
                         </div>
@@ -182,11 +199,16 @@ const AIAssistant = () => {
                       
                       <Button 
                         variant="outline" 
-                        className="h-auto py-4 px-4 flex flex-col items-start text-left gap-2 hover:border-primary/50 hover:bg-primary/5"
+                        className="h-auto py-4 px-4 flex flex-col items-start text-left gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-colors"
                         onClick={() => handleSendMessage("I need to optimize my resume for software engineering internships. Can you help me improve it for ATS systems?")}
                       >
-                        <h3 className="font-medium">Resume Optimization</h3>
-                        <p className="text-sm text-muted-foreground">Get resume feedback and ATS tips</p>
+                        <div className="bg-primary/10 p-2 rounded-md group-hover:bg-primary/20 transition-colors">
+                          <FileCheck className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="font-medium">Resume Optimization</h3>
+                          <p className="text-xs text-muted-foreground">Get resume feedback and ATS tips</p>
+                        </div>
                         <div className="flex items-center text-primary text-xs mt-1">
                           Ask now <ArrowRight className="h-3 w-3 ml-1" />
                         </div>
@@ -194,11 +216,16 @@ const AIAssistant = () => {
                       
                       <Button 
                         variant="outline" 
-                        className="h-auto py-4 px-4 flex flex-col items-start text-left gap-2 hover:border-primary/50 hover:bg-primary/5"
+                        className="h-auto py-4 px-4 flex flex-col items-start text-left gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-colors"
                         onClick={() => handleSendMessage("I'm struggling with time management during exam season. Can you suggest a study plan that will help me balance multiple courses?")}
                       >
-                        <h3 className="font-medium">Study Planning</h3>
-                        <p className="text-sm text-muted-foreground">Create effective study schedules</p>
+                        <div className="bg-primary/10 p-2 rounded-md group-hover:bg-primary/20 transition-colors">
+                          <Calendar className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="font-medium">Study Planning</h3>
+                          <p className="text-xs text-muted-foreground">Create effective study schedules</p>
+                        </div>
                         <div className="flex items-center text-primary text-xs mt-1">
                           Ask now <ArrowRight className="h-3 w-3 ml-1" />
                         </div>
@@ -206,11 +233,16 @@ const AIAssistant = () => {
                       
                       <Button 
                         variant="outline" 
-                        className="h-auto py-4 px-4 flex flex-col items-start text-left gap-2 hover:border-primary/50 hover:bg-primary/5"
+                        className="h-auto py-4 px-4 flex flex-col items-start text-left gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-colors"
                         onClick={() => handleSendMessage("I want to build a portfolio project that will impress recruiters. Can you suggest some ideas that showcase my programming skills?")}
                       >
-                        <h3 className="font-medium">Project Ideas</h3>
-                        <p className="text-sm text-muted-foreground">Find portfolio-worthy projects</p>
+                        <div className="bg-primary/10 p-2 rounded-md group-hover:bg-primary/20 transition-colors">
+                          <Sparkles className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="font-medium">Project Ideas</h3>
+                          <p className="text-xs text-muted-foreground">Find portfolio-worthy projects</p>
+                        </div>
                         <div className="flex items-center text-primary text-xs mt-1">
                           Ask now <ArrowRight className="h-3 w-3 ml-1" />
                         </div>
@@ -222,30 +254,37 @@ const AIAssistant = () => {
             </div>
           </div>
         ) : (
-          <ScrollArea className="flex-1 px-4">
-            <div className="max-w-3xl mx-auto py-4">
+          <ScrollArea className="flex-1 p-0 md:p-0">
+            <AnimatePresence initial={false}>
               {messages.map((message) => (
-                <ChatMessage 
-                  key={message.id} 
-                  message={message}
-                  onFeedback={handleFeedback}
-                  onCopy={handleCopyMessage} 
-                />
-              ))}
-              {suggestions.length > 0 && (
-                <div className="px-12 mb-4">
-                  <SmartSuggestions 
-                    suggestions={suggestions} 
-                    onSelectSuggestion={handleSendMessage} 
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <ChatMessage 
+                    message={message}
+                    onFeedback={handleFeedback}
+                    onCopy={handleCopyMessage} 
                   />
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            {suggestions.length > 0 && (
+              <div className="px-12 mb-4">
+                <SmartSuggestions 
+                  suggestions={suggestions} 
+                  onSelectSuggestion={handleSendMessage} 
+                />
+              </div>
+            )}
+            <div ref={messagesEndRef} className="h-[100px]" />
           </ScrollArea>
         )}
         
-        <div className="p-4 mt-auto border-t bg-background/80 backdrop-blur-sm">
+        <div className="p-4 mt-auto border-t bg-background/95 backdrop-blur-sm">
           <ChatInput 
             onSendMessage={handleSendMessage} 
             isLoading={isLoading} 

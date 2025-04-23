@@ -33,3 +33,6 @@ export interface SmartSuggestion {
   text: string;
   prompt: string;
 }
+
+// Add Badge component import to AIAssistant page
+import { Badge } from "@/components/ui/badge";
