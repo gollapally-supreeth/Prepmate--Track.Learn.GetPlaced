@@ -1,17 +1,21 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from '@/lib/uuid';
-import { AIMessage, ChatSession } from './types';
+import { AIMessage, ChatSession, SmartSuggestion } from './types';
+import { useToast } from '@/hooks/use-toast';
 
 interface AIAssistantContextType {
   messages: AIMessage[];
   sessions: ChatSession[];
   activeSession: ChatSession | null;
   isLoading: boolean;
+  suggestions: SmartSuggestion[];
   sendMessage: (content: string) => Promise<void>;
   newSession: () => void;
   activateSession: (sessionId: string) => void;
   deleteSession: (sessionId: string) => void;
+  togglePinSession: (sessionId: string) => void;
+  handleFeedback: (messageId: string, feedback: 'positive' | 'negative') => void;
 }
 
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
@@ -33,6 +37,8 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSession, setActiveSession] = useState<ChatSession | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<SmartSuggestion[]>([]);
+  const { toast } = useToast();
   
   // Load sessions from localStorage on mount
   useEffect(() => {
@@ -93,6 +99,7 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
     setSessions(prev => [session, ...prev]);
     setActiveSession(session);
     setMessages([]);
+    setSuggestions([]);
   };
   
   const activateSession = (sessionId: string) => {
@@ -100,6 +107,7 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
     if (session) {
       setActiveSession(session);
       setMessages(session.messages);
+      setSuggestions([]);
     }
   };
   
@@ -120,6 +128,63 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
     }
   };
   
+  const togglePinSession = (sessionId: string) => {
+    setSessions(prev => prev.map(session => {
+      if (session.id === sessionId) {
+        return {
+          ...session,
+          isPinned: !session.isPinned,
+          updatedAt: new Date()
+        };
+      }
+      return session;
+    }));
+    
+    if (activeSession?.id === sessionId) {
+      setActiveSession(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          isPinned: !prev.isPinned,
+          updatedAt: new Date()
+        };
+      });
+    }
+  };
+
+  const handleFeedback = (messageId: string, feedback: 'positive' | 'negative') => {
+    // Update the message in the messages state
+    setMessages(prev => prev.map(msg => {
+      if (msg.id === messageId) {
+        return { ...msg, feedback };
+      }
+      return msg;
+    }));
+    
+    // Update the message in the sessions
+    if (activeSession) {
+      const updatedSession = {
+        ...activeSession,
+        messages: activeSession.messages.map(msg => {
+          if (msg.id === messageId) {
+            return { ...msg, feedback };
+          }
+          return msg;
+        }),
+        updatedAt: new Date()
+      };
+      
+      setSessions(prev => prev.map(session => 
+        session.id === updatedSession.id ? updatedSession : session
+      ));
+      
+      setActiveSession(updatedSession);
+    }
+    
+    // In a real app, you might want to send this feedback to your backend
+    console.log(`Feedback for message ${messageId}: ${feedback}`);
+  };
+  
   const generateTitle = (content: string): string => {
     // Extract first few words to create a title
     const words = content.split(' ');
@@ -134,8 +199,67 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
     
     return title;
   };
+
+  // Function to determine message category based on content
+  const determineCategory = (content: string): 'general' | 'dsa' | 'resume' | 'interview' | 'project' => {
+    content = content.toLowerCase();
+    
+    if (content.includes('algorithm') || content.includes('dsa') || content.includes('data structure') || content.includes('coding')) {
+      return 'dsa';
+    } else if (content.includes('resume') || content.includes('cv') || content.includes('ats')) {
+      return 'resume';
+    } else if (content.includes('interview') || content.includes('behavioral') || content.includes('technical question')) {
+      return 'interview';
+    } else if (content.includes('project') || content.includes('portfolio') || content.includes('build')) {
+      return 'project';
+    } else {
+      return 'general';
+    }
+  };
   
-  const mockResponse = async (query: string): Promise<string> => {
+  // Generate smart suggestions based on conversation context
+  const generateSuggestions = (userQuery: string, aiResponse: string): SmartSuggestion[] => {
+    const category = determineCategory(userQuery);
+    const suggestions: SmartSuggestion[] = [];
+    
+    userQuery = userQuery.toLowerCase();
+    aiResponse = aiResponse.toLowerCase();
+    
+    // DSA related suggestions
+    if (category === 'dsa') {
+      suggestions.push({ text: 'Explain with example', prompt: 'Can you explain this concept with a concrete example?' });
+      suggestions.push({ text: 'Give me practice problem', prompt: 'Can you give me a similar problem to practice this concept?' });
+      suggestions.push({ text: 'Show optimal solution', prompt: 'What would be the most optimal solution for this problem?' });
+    } 
+    // Resume related suggestions
+    else if (category === 'resume') {
+      suggestions.push({ text: 'Show me an example', prompt: 'Can you show me an example of a well-written bullet point for this?' });
+      suggestions.push({ text: 'ATS optimization tips', prompt: 'What specific keywords should I include for ATS optimization?' });
+      suggestions.push({ text: 'Tailor for specific role', prompt: 'How would I tailor this for a specific software engineering role?' });
+    }
+    // Interview related suggestions
+    else if (category === 'interview') {
+      suggestions.push({ text: 'Give me a harder question', prompt: 'Can you give me a more challenging interview question?' });
+      suggestions.push({ text: 'STAR method example', prompt: 'Can you show me how to answer this using the STAR method?' });
+      suggestions.push({ text: 'Common follow-up questions', prompt: 'What are common follow-up questions interviewers might ask?' });
+    }
+    // Project related suggestions
+    else if (category === 'project') {
+      suggestions.push({ text: 'More implementation details', prompt: 'Can you provide more technical implementation details for this project?' });
+      suggestions.push({ text: 'Tech stack recommendation', prompt: 'What tech stack would you recommend for this project?' });
+      suggestions.push({ text: 'Timeline estimation', prompt: 'How long would this project typically take to complete?' });
+    }
+    // General suggestions
+    else {
+      suggestions.push({ text: 'Tell me more', prompt: 'Can you elaborate more on this topic?' });
+      suggestions.push({ text: 'Practical applications', prompt: 'What are some practical applications of this knowledge?' });
+      suggestions.push({ text: 'Resources to learn more', prompt: 'Can you recommend resources where I can learn more about this?' });
+    }
+    
+    return suggestions.slice(0, 3);  // Return at most 3 suggestions
+  };
+  
+  const mockGeminiResponse = async (query: string): Promise<string> => {
     const API_KEY = 'AIzaSyClDjyj1k3isPIFr0kAKA9zFqU8EdK1hWo';
     
     // This is a safety measure - we're not actually using the API key in frontend
@@ -143,7 +267,7 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
     try {
       // In a real implementation, this would be a fetch to a backend API
       // that securely handles the API key
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Mock responses based on query content
       if (query.toLowerCase().includes('dsa') || query.toLowerCase().includes('algorithm')) {
@@ -170,7 +294,6 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
     }
   };
 
-  
   const sendMessage = async (content: string) => {
     if (!content.trim()) return;
     
@@ -198,6 +321,7 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
     // Update title for new sessions
     if (currentSession.messages.length === 0) {
       currentSession.title = generateTitle(content);
+      currentSession.category = determineCategory(content);
     }
     
     currentSession.messages = [...currentSession.messages, userMessage];
@@ -212,11 +336,26 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
     
     setSessions(updatedSessions);
     setActiveSession(currentSession);
+    setSuggestions([]);
+    
+    // Add a placeholder loading message
+    const loadingMessage: AIMessage = {
+      id: uuidv4(),
+      content: "...",
+      type: 'assistant',
+      timestamp: new Date(),
+      isLoading: true
+    };
+    
+    setMessages([...newMessages, loadingMessage]);
     
     // Generate AI response
     setIsLoading(true);
     try {
-      const response = await mockResponse(content);
+      const response = await mockGeminiResponse(content);
+      
+      // Remove loading message
+      setMessages(prev => prev.filter(msg => !msg.isLoading));
       
       // Create AI message
       const aiMessage: AIMessage = {
@@ -230,6 +369,10 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
       const updatedMessages = [...newMessages, aiMessage];
       setMessages(updatedMessages);
       
+      // Generate smart suggestions based on the conversation
+      const newSuggestions = generateSuggestions(content, response);
+      setSuggestions(newSuggestions);
+      
       // Update session with AI message
       currentSession.messages = [...currentSession.messages, aiMessage];
       currentSession.updatedAt = new Date();
@@ -240,6 +383,9 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
       setSessions(updatedSessions);
       setActiveSession(currentSession);
     } catch (error) {
+      // Remove loading message
+      setMessages(prev => prev.filter(msg => !msg.isLoading));
+      
       // Handle error
       const errorMessage: AIMessage = {
         id: uuidv4(),
@@ -259,6 +405,12 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
       
       setSessions(updatedSessions);
       setActiveSession(currentSession);
+      
+      toast({
+        title: "Error",
+        description: "Failed to generate AI response. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -269,10 +421,13 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
     sessions,
     activeSession,
     isLoading,
+    suggestions,
     sendMessage,
     newSession,
     activateSession,
-    deleteSession
+    deleteSession,
+    togglePinSession,
+    handleFeedback
   };
 
   return (
