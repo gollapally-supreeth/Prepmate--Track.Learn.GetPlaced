@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter } from '@/components/ui/sidebar';
@@ -11,7 +12,8 @@ import {
   MessageSquare, 
   Briefcase, 
   LogOut,
-  FileCheck
+  FileCheck,
+  Bot
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
@@ -33,7 +35,7 @@ export function AppSidebar({ isCollapsed }: { isCollapsed: boolean }) {
 
   return (
     <Sidebar className={cn(
-      "sidebar-purple-white dark:bg-black transition-all duration-300 fixed lg:sticky top-0 h-screen",
+      "sidebar-purple-white dark:bg-black transition-all duration-300 fixed lg:sticky top-0 h-screen z-40",
       isCollapsed ? "w-0 lg:w-[70px] -translate-x-full lg:translate-x-0" : "w-[250px]"
     )}>
       <SidebarHeader className="p-4 bg-gradient-to-r from-purple-100/80 to-purple-200/50 dark:from-purple-900/20 dark:to-purple-800/10 dark:bg-black">
@@ -84,6 +86,10 @@ export function AppSidebar({ isCollapsed }: { isCollapsed: boolean }) {
               <MessageSquare size={18} className="text-purple-600 dark:text-purple-400 flex-shrink-0" />
               {!isCollapsed && <span className="text-purple-900 dark:text-purple-100 whitespace-nowrap">Interview Chatbot</span>}
             </Link>
+            <Link to="/ai-assistant" className={`nav-link ${isActive('/ai-assistant')} ${isCollapsed ? 'justify-center' : ''}`}>
+              <Bot size={18} className="text-purple-600 dark:text-purple-400 flex-shrink-0" />
+              {!isCollapsed && <span className="text-purple-900 dark:text-purple-100 whitespace-nowrap">AI Assistant</span>}
+            </Link>
             <Link to="/resume" className={`nav-link ${isActive('/resume')} ${isCollapsed ? 'justify-center' : ''}`}>
               <FileCheck size={18} className="text-purple-600 dark:text-purple-400 flex-shrink-0" />
               {!isCollapsed && <span className="text-purple-900 dark:text-purple-100 whitespace-nowrap">Resume Builder</span>}
@@ -130,4 +136,3 @@ export function AppSidebar({ isCollapsed }: { isCollapsed: boolean }) {
     </Sidebar>
   );
 }
-                                                                                                

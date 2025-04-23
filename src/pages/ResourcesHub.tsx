@@ -119,7 +119,7 @@ const ResourcesHub = () => {
   };
   
   return (
-    <div className="space-y-6 animate-fade-in pb-12">
+    <div className="space-y-6 animate-fade-in pb-12 max-w-full overflow-x-hidden">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Resources Hub</h1>
@@ -180,7 +180,7 @@ const ResourcesHub = () => {
         </div>
         
         {/* Tabs content */}
-        <TabsContent value={activeTab} className="mt-4">
+        <TabsContent value={activeTab} className="mt-4 w-full">
           <div className="flex items-center gap-2 mb-6">
             <BookMarked size={20} className="text-primary" />
             <h2 className="text-xl font-semibold">
@@ -197,7 +197,7 @@ const ResourcesHub = () => {
           </div>
           
           {/* Resources grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full">
             <AnimatePresence mode="popLayout">
               {filteredResources.length > 0 ? (
                 filteredResources.map(resource => (
@@ -265,7 +265,7 @@ const ResourcesHub = () => {
       </Tabs>
       
       {/* Learning Paths Section */}
-      <div className="pt-8 border-t border-border/50">
+      <div className="pt-8 border-t border-border/50 w-full">
         <div className="flex items-center gap-2 mb-6">
           <Clock size={20} className="text-primary" />
           <h2 className="text-xl font-semibold">Learning Paths</h2>
