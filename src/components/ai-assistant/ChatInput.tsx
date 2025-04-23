@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Loader2, Mic, MicOff, ImagePlus } from 'lucide-react';
+import { Send, Loader2, Mic, MicOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface ChatInputProps {
@@ -75,16 +75,6 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
           />
           
           <div className="absolute right-2 bottom-1.5 flex items-center gap-2">
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              className="text-muted-foreground hover:text-foreground rounded-full"
-              disabled={isLoading}
-            >
-              <ImagePlus size={20} />
-            </Button>
-            
             <Button
               type="button"
               size="icon"
