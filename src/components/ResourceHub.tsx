@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,8 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { PorterStemmer } from "natural";
+import { Badge } from "@/components/ui/badge";
 
 interface Resource {
   title: string;
@@ -104,48 +106,70 @@ const ResourceHub: React.FC = () => {
   });
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium">Explore Resources</h3>
-        <Button size="sm">Add Resource</Button>
-      </div>
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <Input
-          type="search"
-          placeholder="Search resources..."
-          className="flex-1"
-          onChange={handleSearchChange}
-        />
-        <Select>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Subject" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Subjects</SelectItem>
-            <SelectItem value="cse">CSE</SelectItem>
-            <SelectItem value="webdev">Web Dev</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <ul>
-        {filteredResources.length > 0 ? (
-          filteredResources.map((resource, index) => <li key={index}>{resource.title}</li>)
-        ) : (
-          <p className="text-muted-foreground">No matching resources found.</p>
-        )}
-      </ul>
-      <div className="mt-6">
-        <h4 className="text-md font-medium mb-2">Recommended Resources</h4>
-        <ul>
-          {recommendations.length > 0 ? (
-            recommendations.map((resource, index) => (
-              <li key={index}>{resource.title}</li>
-            ))
-          ) : (
-            <p className="text-muted-foreground">No recommendations found.</p>
-          )}
-        </ul>
-      </div>
+    <Card className="shadow-sm border-border/40">
+      <CardHeader className="pb-0">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-medium">Explore Resources</CardTitle>
+          <Button size="sm" variant="outline" className="gap-1">
+            <span className="text-xs">Add Resource</span>
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col md:flex-row gap-4 mb-6 mt-4">
+          <Input
+            type="search"
+            placeholder="Search resources..."
+            className="flex-1"
+            onChange={handleSearchChange}
+          />
+          <Select>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Subject" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Subjects</SelectItem>
+              <SelectItem value="cse">CSE</SelectItem>
+              <SelectItem value="webdev">Web Dev</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-medium text-sm mb-2">Search Results</h3>
+            <ul className="space-y-2">
+              {filteredResources.length > 0 ? (
+                filteredResources.map((resource, index) => (
+                  <li key={index} className="p-2 rounded-md hover:bg-accent/50 cursor-pointer transition-colors">
+                    <div className="font-medium">{resource.title}</div>
+                    <div className="text-sm text-muted-foreground">{resource.description}</div>
+                  </li>
+                ))
+              ) : (
+                <p className="text-muted-foreground text-sm">No matching resources found.</p>
+              )}
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-medium text-sm mb-2 flex items-center gap-2">
+              <span>Recommended Resources</span>
+              <Badge variant="outline" className="bg-primary/10">Smart</Badge>
+            </h3>
+            <ul className="space-y-2">
+              {recommendations.length > 0 ? (
+                recommendations.map((resource, index) => (
+                  <li key={index} className="p-2 rounded-md hover:bg-accent/50 cursor-pointer transition-colors">
+                    <div className="font-medium">{resource.title}</div>
+                    <div className="text-sm text-muted-foreground">{resource.description}</div>
+                  </li>
+                ))
+              ) : (
+                <p className="text-muted-foreground text-sm">No recommendations found.</p>
+              )}
+            </ul>
+          </div>
+        </div>
+      </CardContent>
     </Card>
   );
 };

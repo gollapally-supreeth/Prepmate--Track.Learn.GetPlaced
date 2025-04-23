@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -49,25 +50,25 @@ const Dashboard = () => {
           title="Total Study Hours"
           value="147h"
           percentageIncrease="+12%"
-          icon={Clock}
+          icon={<Clock className="h-4 w-4" />}
         />
         <StatsCard
           title="Completed Tasks"
           value="23/30"
           percentageIncrease="+8%"
-          icon={ListChecks}
+          icon={<ListChecks className="h-4 w-4" />}
         />
         <StatsCard
           title="Resources Explored"
           value="85"
           percentageIncrease="+25%"
-          icon={BookOpen}
+          icon={<BookOpen className="h-4 w-4" />}
         />
         <StatsCard
           title="Quizzes Passed"
           value="18/20"
           percentageIncrease="+5%"
-          icon={Code}
+          icon={<Code className="h-4 w-4" />}
         />
       </motion.div>
       
@@ -98,7 +99,11 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.4 }}
         >
-          <ExamCountdown examDate="2024-05-15" examName="Data Structures Exam" />
+          <ExamCountdown 
+            examDate="2024-05-15" 
+            examName="Data Structures Exam" 
+            courseName="CS301"
+          />
         </motion.div>
       </div>
       
@@ -136,7 +141,14 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[300px] pr-2">
-                <TaskCard />
+                <TaskCard 
+                  title="Study Binary Trees"
+                  dueTime="3:00 PM"
+                  subject="Data Structures"
+                  priority="High"
+                  isCompleted={false}
+                  estimatedTime={60}
+                />
               </ScrollArea>
             </CardContent>
             <CardFooter className="justify-between">

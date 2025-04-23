@@ -1,4 +1,6 @@
 
+import React from 'react';
+
 export type AIMessageType = 'user' | 'assistant' | 'system' | 'error';
 
 export interface AIMessage {
@@ -33,6 +35,3 @@ export interface SmartSuggestion {
   text: string;
   prompt: string;
 }
-
-// Add Badge component import to AIAssistant page
-import { Badge } from "@/components/ui/badge";

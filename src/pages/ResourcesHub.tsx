@@ -1,18 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ResourceCard } from '@/components/ResourceCard';
 import { Search, Filter, BookMarked, Bookmark, BookmarkPlus, Clock } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { AnimatePresence, motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -41,6 +33,7 @@ export interface Resource {
   source?: string;
   rating?: number;
   popularity?: number;
+  category?: ResourceCategory;
 }
 
 const ResourcesHub = () => {
@@ -119,10 +112,10 @@ const ResourcesHub = () => {
   };
   
   return (
-    <div className="container animate-fade-in space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Resources Hub</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Resources Hub</h1>
           <p className="text-muted-foreground mt-1">Explore curated learning resources for computer science</p>
         </div>
         
@@ -142,7 +135,7 @@ const ResourcesHub = () => {
       </div>
       
       {/* Search and Filters */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
           <Input 
@@ -165,17 +158,15 @@ const ResourcesHub = () => {
       <ResourceRecommendations />
       
       {/* Resource Categories */}
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ResourceCategory)}>
-        <div className="relative pb-2">
-          <TabsList className="w-full inline-flex justify-start overflow-x-auto no-scrollbar p-1 bg-background/60">
-            <TabsTrigger value="all" className="flex-shrink-0">All Resources</TabsTrigger>
-            <TabsTrigger value="dsa" className="flex-shrink-0">DSA</TabsTrigger>
-            <TabsTrigger value="webDev" className="flex-shrink-0">Web Dev</TabsTrigger>
-            <TabsTrigger value="ai" className="flex-shrink-0">AI & ML</TabsTrigger>
-            <TabsTrigger value="dataScience" className="flex-shrink-0">Data Science</TabsTrigger>
-            <TabsTrigger value="computerFundamentals" className="flex-shrink-0">Computer Fundamentals</TabsTrigger>
-          </TabsList>
-        </div>
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ResourceCategory)} className="mt-8">
+        <TabsList className="w-full inline-flex justify-start overflow-x-auto no-scrollbar p-1 bg-background/60">
+          <TabsTrigger value="all" className="flex-shrink-0">All Resources</TabsTrigger>
+          <TabsTrigger value="dsa" className="flex-shrink-0">DSA</TabsTrigger>
+          <TabsTrigger value="webDev" className="flex-shrink-0">Web Dev</TabsTrigger>
+          <TabsTrigger value="ai" className="flex-shrink-0">AI & ML</TabsTrigger>
+          <TabsTrigger value="dataScience" className="flex-shrink-0">Data Science</TabsTrigger>
+          <TabsTrigger value="computerFundamentals" className="flex-shrink-0">Computer Fundamentals</TabsTrigger>
+        </TabsList>
         
         {/* Tabs content */}
         <TabsContent value={activeTab} className="mt-4">
@@ -195,7 +186,7 @@ const ResourcesHub = () => {
           </div>
           
           {/* Resources grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             <AnimatePresence mode="popLayout">
               {filteredResources.length > 0 ? (
                 filteredResources.map(resource => (
@@ -243,8 +234,8 @@ const ResourcesHub = () => {
                   </motion.div>
                 ))
               ) : (
-                <Card className="col-span-full p-8 text-center border border-dashed">
-                  <CardContent className="flex flex-col items-center gap-3 pt-6">
+                <div className="col-span-full p-8 text-center border border-dashed rounded-lg">
+                  <div className="flex flex-col items-center gap-3 pt-6">
                     <Search size={40} className="text-muted-foreground/50" />
                     <p className="text-muted-foreground">No resources found matching your criteria.</p>
                     <Button variant="outline" className="mt-2" onClick={() => {
@@ -254,8 +245,8 @@ const ResourcesHub = () => {
                     }}>
                       Clear Filters
                     </Button>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               )}
             </AnimatePresence>
           </div>
@@ -263,7 +254,7 @@ const ResourcesHub = () => {
       </Tabs>
       
       {/* Learning Paths Section */}
-      <div className="pt-8 border-t border-border/50 mb-16">
+      <div className="pt-4 border-t border-border/50">
         <div className="flex items-center gap-2 mb-6">
           <Clock size={20} className="text-primary" />
           <h2 className="text-xl font-semibold">Learning Paths</h2>
