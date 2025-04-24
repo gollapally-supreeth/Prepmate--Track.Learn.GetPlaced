@@ -170,18 +170,18 @@ export default function LoginPage() {
 
       {/* Theme Toggle */}
       {mounted && (
-        <motion.button
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="absolute top-4 right-4 p-2 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg hover:shadow-xl transition-all duration-200"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         >
           {theme === 'dark' ? (
-            <Sun className="h-5 w-5 text-yellow-500" />
+            <Sun className="h-5 w-5 text-yellow-500 cursor-pointer" />
           ) : (
-            <Moon className="h-5 w-5 text-purple-600" />
+            <Moon className="h-5 w-5 text-purple-600 cursor-pointer" />
           )}
-        </motion.button>
+        </motion.div>
       )}
       
       {/* Main Content */}
@@ -196,14 +196,11 @@ export default function LoginPage() {
           <div className="flex justify-center mb-4">
             <Logo />
           </div>
-          <motion.p 
-            className="text-lg font-semibold mt-2 bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400 bg-clip-text text-transparent"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
+          <p className="text-lg font-semibold mt-2 bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400 bg-clip-text text-transparent" >
+            
             {quote}
-          </motion.p>
+
+          </p>
         </motion.div>
 
         {/* Login Card */}
@@ -355,16 +352,13 @@ export default function LoginPage() {
         </motion.div>
 
         {/* Motivational Progress */}
-        <motion.div
+        <div
           className="mt-8 text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
         >
           <p className="text-sm text-gray-500 dark:text-gray-400 animate-pulse">
             You're one step away from unlocking your potential! 🚀
           </p>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
