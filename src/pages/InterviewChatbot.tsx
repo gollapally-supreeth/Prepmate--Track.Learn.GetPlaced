@@ -1,38 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Send, User, Bot, Cpu, Briefcase } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Send, User, Bot, Cpu, Briefcase, Loader2, RefreshCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
-// Sample interview questions by category
-const interviewQuestions = {
-  'hr': [
-    "Tell me about yourself.",
-    "Why do you want to work for our company?",
-    "What are your greatest strengths?", 
-    "What are your weaknesses?",
-    "Where do you see yourself in 5 years?"
-  ],
-  'technical': [
-    "Can you explain the difference between process and thread?",
-    "How does a hash table work?",
-    "What is the time complexity of quicksort?",
-    "Explain the concept of RESTful APIs.",
-    "What are the four pillars of OOP?"
-  ],
-  'os': [
-    "Explain the concept of virtual memory.",
-    "What is deadlock in operating systems?",
-    "How does the CPU scheduling algorithm work?",
-    "Explain paging and segmentation.",
-    "What is thrashing in operating systems?"
-  ]
-};
-
+// Define message interface
 interface Message {
   id: number;
   text: string;
@@ -40,24 +16,247 @@ interface Message {
   timestamp: Date;
 }
 
-const InterviewChatbot = () => {
+// Define interview topics
+type TopicType = 'hr' | 'technical' | 'os';
+
+interface Topic {
+  id: TopicType;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}
+
+const InterviewChatbot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm your interview prep assistant. Choose a topic and I'll ask you relevant questions to help you practice for your interviews.",
+      text: "👋 Hello! I'm your interview prep assistant powered by Google Gemini. Choose a topic from the left panel, and I'll help you practice for your interviews by asking relevant questions.",
       sender: 'bot',
       timestamp: new Date()
     }
   ]);
   const [inputValue, setInputValue] = useState('');
-  const [category, setCategory] = useState('hr');
-  const [currentQuestion, setCurrentQuestion] = useState(-1);
-  
-  const sendMessage = () => {
-    if (!inputValue.trim()) return;
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeTopic, setActiveTopic] = useState<TopicType | null>(null);
+  const [interviewStarted, setInterviewStarted] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  // Define topics
+  const topics: Topic[] = [
+    {
+      id: 'hr',
+      title: 'HR Questions',
+      description: 'Behavioral & general questions',
+      icon: <User size={18} />
+    },
+    {
+      id: 'technical',
+      title: 'Technical Interview',
+      description: 'DSA and coding concepts',
+      icon: <Cpu size={18} />
+    },
+    {
+      id: 'os',
+      title: 'Operating Systems',
+      description: 'OS concepts and internals',
+      icon: <Briefcase size={18} />
+    }
+  ];
+
+  // Scroll to bottom of chat when messages change
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  // Function to send message to Gemini API
+  const sendToGemini = async (userMessage: string) => {
+    if (!activeTopic) return;
     
+    setIsThinking(true);
+    
+    try {
+      // System prompt that sets the AI behavior
+      const systemPrompt = `You are an AI interview assistant that simulates real-world interviews for job preparation. Your role is to help users practice by asking one relevant question at a time based on the topic selected.
+
+Behavior:
+- Provide constructive feedback on the user's previous answer before asking the next question.
+- Ask questions that are commonly asked in real interviews.
+- Use an encouraging, professional tone.
+- Avoid answering your own questions unless the user asks.
+- If the user's answer is incorrect or incomplete, provide constructive feedback and guidance.
+
+Selected Topic: ${topics.find(t => t.id === activeTopic)?.title}
+
+For HR Questions: Focus on behavioral questions, situational judgment, and professional development.
+For Technical Interview: Focus on data structures, algorithms, coding concepts, and problem-solving approaches.
+For Operating Systems: Focus on OS concepts, memory management, process scheduling, and system design.`;
+
+      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': 'AIzaSyClDjyj1k3isPIFr0kAKA9zFqU8EdK1hWo'
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: systemPrompt }]
+            },
+            {
+              role: 'model',
+              parts: [{ text: 'I understand. I will act as a professional interview assistant for the selected topic.' }]
+            },
+            ...messages.map(msg => ({
+              role: msg.sender === 'user' ? 'user' : 'model',
+              parts: [{ text: msg.text }]
+            })),
+            {
+              role: 'user',
+              parts: [{ text: userMessage }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 1024,
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const aiResponse = data.candidates[0].content.parts[0].text;
+      
+      // Add the AI's response to messages
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        text: aiResponse,
+        sender: 'bot',
+        timestamp: new Date()
+      }]);
+      
+    } catch (error) {
+      console.error('Error calling Gemini API:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to get response from the interview assistant. Please try again.',
+        variant: 'destructive'
+      });
+      
+      // Add error message
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        text: "I'm having trouble connecting right now. Please try again.",
+        sender: 'bot',
+        timestamp: new Date()
+      }]);
+    } finally {
+      setIsThinking(false);
+    }
+  };
+
+  // Start interview with selected topic
+  const startInterview = async (topic: TopicType) => {
+    setActiveTopic(topic);
+    setInterviewStarted(true);
+    setIsLoading(true);
+
+    const welcomeMessage: Message = {
+      id: Date.now(),
+      text: `Great! Let's start your ${topics.find(t => t.id === topic)?.title} interview practice.`,
+      sender: 'bot',
+      timestamp: new Date()
+    };
+
+    // Reset messages and add welcome message
+    setMessages([welcomeMessage]);
+
+    try {
+      // System prompt that sets the AI behavior for initial question
+      const systemPrompt = `You are an AI interview assistant that simulates real-world interviews for job preparation. Your role is to help users practice by asking one relevant question at a time based on the topic selected.
+
+Behavior:
+- Ask ONE challenging but common interview question related to the selected topic.
+- Be concise and professional.
+- Phrase your question clearly as an interviewer would in a real interview.
+- Just ask the first question without additional explanation.
+
+Selected Topic: ${topics.find(t => t.id === topic)?.title}`;
+
+      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': 'AIzaSyClDjyj1k3isPIFr0kAKA9zFqU8EdK1hWo'
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: systemPrompt }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 512,
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const firstQuestion = data.candidates[0].content.parts[0].text;
+
+      // Add the first question to messages
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        text: firstQuestion,
+        sender: 'bot',
+        timestamp: new Date()
+      }]);
+
+    } catch (error) {
+      console.error('Error starting interview:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to start the interview. Please try again.',
+        variant: 'destructive'
+      });
+      
+      // Add error message
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        text: "I'm having trouble starting the interview. Please try selecting a topic again.",
+        sender: 'bot',
+        timestamp: new Date()
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle user message submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim() || isLoading || isThinking) return;
+    
+    // Add user message to chat
     const newMessage: Message = {
-      id: messages.length + 1,
+      id: Date.now(),
       text: inputValue,
       sender: 'user',
       timestamp: new Date()
@@ -66,67 +265,84 @@ const InterviewChatbot = () => {
     setMessages(prev => [...prev, newMessage]);
     setInputValue('');
     
-    // Simulate bot response after a short delay
-    setTimeout(() => {
-      const botResponse: Message = {
-        id: messages.length + 2,
-        text: "That's a good answer! Here's another question:",
+    // Process with Gemini
+    await sendToGemini(inputValue);
+  };
+
+  // Request next question
+  const handleNextQuestion = async () => {
+    if (isLoading || isThinking || !activeTopic) return;
+    
+    setIsThinking(true);
+    
+    try {
+      // System prompt for next question
+      const nextQuestionPrompt = `Based on our conversation so far, please ask a different relevant interview question for the ${topics.find(t => t.id === activeTopic)?.title} topic. Ask just ONE new question that's commonly asked in real interviews.`;
+      
+      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': 'AIzaSyClDjyj1k3isPIFr0kAKA9zFqU8EdK1hWo'
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: nextQuestionPrompt }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.8,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 512,
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const nextQuestion = data.candidates[0].content.parts[0].text;
+      
+      // Add system message
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        text: "Let's move on to the next question.",
         sender: 'bot',
         timestamp: new Date()
-      };
+      }]);
       
-      setMessages(prev => [...prev, botResponse]);
-      
-      // Ask next question
+      // Add the next question after a short delay
       setTimeout(() => {
-        const nextQuestionIndex = (currentQuestion + 1) % interviewQuestions[category as keyof typeof interviewQuestions].length;
-        const questionText = interviewQuestions[category as keyof typeof interviewQuestions][nextQuestionIndex];
-        
-        const questionMessage: Message = {
-          id: messages.length + 3,
-          text: questionText,
+        setMessages(prev => [...prev, {
+          id: Date.now(),
+          text: nextQuestion,
           sender: 'bot',
           timestamp: new Date()
-        };
-        
-        setMessages(prev => [...prev, questionMessage]);
-        setCurrentQuestion(nextQuestionIndex);
-      }, 500);
-    }, 1000);
-  };
-  
-  const startInterview = (category: string) => {
-    setCategory(category);
-    
-    const welcomeMessage: Message = {
-      id: messages.length + 1,
-      text: `Great! Let's start with some ${category.toUpperCase()} interview questions.`,
-      sender: 'bot',
-      timestamp: new Date()
-    };
-    
-    setMessages([welcomeMessage]);
-    
-    // Ask first question after a short delay
-    setTimeout(() => {
-      const firstQuestion = interviewQuestions[category as keyof typeof interviewQuestions][0];
-      const questionMessage: Message = {
-        id: messages.length + 2,
-        text: firstQuestion,
-        sender: 'bot',
-        timestamp: new Date()
-      };
+        }]);
+        setIsThinking(false);
+      }, 1000);
       
-      setMessages(prev => [...prev, questionMessage]);
-      setCurrentQuestion(0);
-    }, 500);
+    } catch (error) {
+      console.error('Error getting next question:', error);
+      setIsThinking(false);
+      toast({
+        title: 'Error',
+        description: 'Failed to get the next question. Please try again.',
+        variant: 'destructive'
+      });
+    }
   };
-  
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-3xl font-bold">Interview Chatbot</h1>
-        <p className="text-muted-foreground mt-1">Practice your interview skills with AI assistance</p>
+        <p className="text-muted-foreground mt-1">Practice your interview skills with AI assistance powered by Google Gemini</p>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -136,60 +352,58 @@ const InterviewChatbot = () => {
             <h2 className="text-xl font-semibold mb-4">Interview Topics</h2>
             
             <div className="space-y-3">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start gap-2 text-left"
-                onClick={() => startInterview('hr')}
-              >
-                <User size={18} />
-                <div>
-                  <p className="font-medium">HR Questions</p>
-                  <p className="text-xs text-muted-foreground">Behavioral & general questions</p>
-                </div>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full justify-start gap-2 text-left"
-                onClick={() => startInterview('technical')}
-              >
-                <Cpu size={18} />
-                <div>
-                  <p className="font-medium">Technical Interview</p>
-                  <p className="text-xs text-muted-foreground">DSA and coding concepts</p>
-                </div>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full justify-start gap-2 text-left"
-                onClick={() => startInterview('os')}
-              >
-                <Briefcase size={18} />
-                <div>
-                  <p className="font-medium">Operating Systems</p>
-                  <p className="text-xs text-muted-foreground">OS concepts and internals</p>
-                </div>
-              </Button>
+              {topics.map(topic => (
+                <Button 
+                  key={topic.id}
+                  variant={activeTopic === topic.id ? "default" : "outline"}
+                  className="w-full justify-start gap-2 text-left"
+                  onClick={() => startInterview(topic.id)}
+                  disabled={isLoading}
+                >
+                  {topic.icon}
+                  <div>
+                    <p className="font-medium">{topic.title}</p>
+                    <p className="text-xs text-muted-foreground">{topic.description}</p>
+                  </div>
+                </Button>
+              ))}
             </div>
+            
+            {activeTopic && (
+              <div className="mt-4">
+                <Button 
+                  variant="outline" 
+                  className="w-full gap-2"
+                  onClick={handleNextQuestion}
+                  disabled={isThinking || isLoading || messages.length < 2}
+                >
+                  {isThinking ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCcw className="h-4 w-4" />
+                  )}
+                  Next Question
+                </Button>
+              </div>
+            )}
             
             <div className="mt-6 space-y-4">
               <h3 className="font-medium">Interview Tips</h3>
               <ul className="space-y-2 text-sm">
                 <li className="flex gap-2">
-                  <span className="text-focus-green">✓</span>
+                  <span className="text-green-500">✓</span>
                   <span>Speak clearly and confidently</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-focus-green">✓</span>
+                  <span className="text-green-500">✓</span>
                   <span>Use the STAR method for behavioral questions</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-focus-green">✓</span>
+                  <span className="text-green-500">✓</span>
                   <span>Explain your thought process for technical questions</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-focus-green">✓</span>
+                  <span className="text-green-500">✓</span>
                   <span>Ask clarifying questions when needed</span>
                 </li>
               </ul>
@@ -201,7 +415,10 @@ const InterviewChatbot = () => {
         <Card className="lg:col-span-2">
           <CardContent className="p-0 h-[calc(100vh-240px)] flex flex-col">
             {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div 
+              ref={chatContainerRef}
+              className="flex-1 overflow-y-auto p-4 space-y-4"
+            >
               {messages.map(message => (
                 <div 
                   key={message.id} 
@@ -226,7 +443,7 @@ const InterviewChatbot = () => {
                         : "bg-muted"
                     )}
                   >
-                    <p>{message.text}</p>
+                    <p className="whitespace-pre-wrap">{message.text}</p>
                     <p className="text-xs mt-1 opacity-70">
                       {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
@@ -234,26 +451,51 @@ const InterviewChatbot = () => {
                   
                   {message.sender === 'user' && (
                     <Avatar>
-                      <AvatarFallback className="bg-focus-blue text-white">P</AvatarFallback>
+                      <AvatarFallback className="bg-blue-500 text-white">P</AvatarFallback>
                     </Avatar>
                   )}
                 </div>
               ))}
+              
+              {isThinking && (
+                <div className="flex gap-3">
+                  <Avatar>
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      <Bot size={18} />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="bg-muted rounded-lg p-3 flex items-center space-x-2">
+                    <div className="flex space-x-1">
+                      <div className="h-2 w-2 bg-muted-foreground/40 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                      <div className="h-2 w-2 bg-muted-foreground/40 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                      <div className="h-2 w-2 bg-muted-foreground/40 rounded-full animate-bounce"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Input Area */}
             <div className="p-4 border-t">
-              <div className="flex gap-2">
+              <form onSubmit={handleSubmit} className="flex gap-2">
                 <Input 
-                  placeholder="Type your answer..." 
+                  placeholder={interviewStarted ? "Type your answer..." : "Select a topic to start the interview..."}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                  disabled={!interviewStarted || isLoading || isThinking}
+                  className="flex-1"
                 />
-                <Button onClick={sendMessage}>
-                  <Send size={18} />
+                <Button 
+                  type="submit" 
+                  disabled={!inputValue.trim() || !interviewStarted || isLoading || isThinking}
+                >
+                  {isThinking ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </Button>
-              </div>
+              </form>
             </div>
           </CardContent>
         </Card>

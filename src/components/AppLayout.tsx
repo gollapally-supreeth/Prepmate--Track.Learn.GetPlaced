@@ -62,7 +62,7 @@ export function AppLayout() {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-background to-background/90 transition-colors duration-300">
         <AppSidebar isCollapsed={isCollapsed} />
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${isCollapsed ? 'lg:ml-[70px]' : 'lg:ml-0'}`}>
           <header className="h-16 border-b bg-card/80 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10 shadow-sm">
             <div className="flex items-center gap-4">
               <SidebarTrigger className="lg:hidden">

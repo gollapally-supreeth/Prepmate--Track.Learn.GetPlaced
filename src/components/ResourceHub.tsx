@@ -30,12 +30,12 @@ const calculateKeywordOverlap = (resource1: Resource, resource2: Resource): numb
     .map((word) => PorterStemmer.stem(word))
     .filter(word => word.trim() !== "");
   
-    const stemTitle2 = resource2.title
+  const stemTitle2 = resource2.title
     .toLowerCase()
     .split(/\s+/)
     .map((word) => PorterStemmer.stem(word))
     .filter(word => word.trim() !== "");
-    const stemDescription2 = resource2.description
+  const stemDescription2 = resource2.description
     .toLowerCase()
     .split(/\s+/)
     .map((word) => PorterStemmer.stem(word))
@@ -49,8 +49,10 @@ const calculateKeywordOverlap = (resource1: Resource, resource2: Resource): numb
 
 const ResourceHub: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [recommendations, setRecommendations] = useState<Resource[]>([]);
-    const resources: Resource[] = [
+  
+  const resources: Resource[] = [
     {
       title: "Introduction to Data Structures",
       description: "A beginner's guide to understanding data structures.",
@@ -92,21 +94,30 @@ const ResourceHub: React.FC = () => {
   useEffect(() => {
     const generatedRecommendations = generateRecommendations(resources);
     setRecommendations(generatedRecommendations);
-    console.log("Recommendations:", generatedRecommendations);
   }, []);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
   };
 
-    const filteredResources = resources.filter((resource) => {
-    const stemmedSearchTerm = PorterStemmer.stem(searchTerm.toLowerCase());
-    const stemmedTitle = PorterStemmer.stem(resource.title.toLowerCase());
-    const stemmedDescription = PorterStemmer.stem(resource.description.toLowerCase());
-    return (
+  const handleCategoryChange = (value: string) => {
+    setCategoryFilter(value);
+  };
+
+  const filteredResources = resources.filter((resource) => {
+    // Apply text search filter
+    const stemmedSearchTerm = searchTerm ? PorterStemmer.stem(searchTerm.toLowerCase()) : '';
+    const stemmedTitle = resource.title ? PorterStemmer.stem(resource.title.toLowerCase()) : '';
+    const stemmedDescription = resource.description ? PorterStemmer.stem(resource.description.toLowerCase()) : '';
+    
+    const matchesSearch = !searchTerm || 
       stemmedTitle.includes(stemmedSearchTerm) ||
-      stemmedDescription.includes(stemmedSearchTerm)
-    );
+      stemmedDescription.includes(stemmedSearchTerm);
+    
+    // Apply category filter
+    const matchesCategory = categoryFilter === 'all' || resource.category === categoryFilter;
+    
+    return matchesSearch && matchesCategory;
   });
 
   return (
@@ -121,36 +132,60 @@ const ResourceHub: React.FC = () => {
           placeholder="Search resources..."
           className="flex-1"
           onChange={handleSearchChange}
+          value={searchTerm}
         />
-        <Select>
+        <Select value={categoryFilter} onValueChange={handleCategoryChange}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Subject" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Subjects</SelectItem>
-            <SelectItem value="cse">CSE</SelectItem>
-            <SelectItem value="webdev">Web Dev</SelectItem>
+            <SelectItem value="dsa">DSA</SelectItem>
+            <SelectItem value="webDev">Web Dev</SelectItem>
+            <SelectItem value="computerFundamentals">Computer Fundamentals</SelectItem>
           </SelectContent>
         </Select>
       </div>
-      <ul>
+      
+      {/* Resource List */}
+      <div className="mb-6">
+        <h4 className="text-md font-medium mb-3">Resources</h4>
         {filteredResources.length > 0 ? (
-          filteredResources.map((resource, index) => <li key={index}>{resource.title}</li>)
+          <ul className="space-y-2">
+            {filteredResources.map((resource, index) => (
+              <li key={index} className="p-3 border rounded-md hover:bg-muted/50">
+                <h5 className="font-medium">{resource.title}</h5>
+                <p className="text-sm text-muted-foreground">{resource.description}</p>
+                <div className="mt-1">
+                  <Badge variant="outline" className="text-xs">
+                    {resource.category === 'dsa' ? 'DSA' : 
+                     resource.category === 'webDev' ? 'Web Dev' : 
+                     resource.category === 'computerFundamentals' ? 'Computer Fundamentals' : 
+                     'Other'}
+                  </Badge>
+                </div>
+              </li>
+            ))}
+          </ul>
         ) : (
           <p className="text-muted-foreground">No matching resources found.</p>
         )}
-      </ul>
+      </div>
+      
+      {/* Recommendations Section */}
       <div className="mt-6">
         <h4 className="text-md font-medium mb-2">Recommended Resources</h4>
-        <ul>
-          {recommendations.length > 0 ? (
-            recommendations.map((resource, index) => (
-              <li key={index}>{resource.title}</li>
-            ))
-          ) : (
-            <p className="text-muted-foreground">No recommendations found.</p>
-          )}
-        </ul>
+        {recommendations.length > 0 ? (
+          <ul className="space-y-2">
+            {recommendations.map((resource, index) => (
+              <li key={index} className="p-2 border rounded-md hover:bg-muted/50">
+                <p className="font-medium">{resource.title}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-muted-foreground">No recommendations found.</p>
+        )}
       </div>
     </Card>
   );
