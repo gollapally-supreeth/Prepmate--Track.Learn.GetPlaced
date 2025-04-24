@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { PorterStemmer } from "natural";
 interface Resource {
   title: string;
   description: string;
+  category?: string;
 }
 
 const calculateKeywordOverlap = (resource1: Resource, resource2: Resource): number => {
@@ -52,18 +54,22 @@ const ResourceHub: React.FC = () => {
     {
       title: "Introduction to Data Structures",
       description: "A beginner's guide to understanding data structures.",
+      category: "dsa"
     },
     {
       title: "Advanced Web Development Techniques",
       description: "Explore modern web development concepts and practices.",
+      category: "webDev"
     },
     {
       title: "Running with Algorithms",
       description: "Learn about various algorithms and their applications.",
+      category: "dsa"
     },
     {
       title: "Studying Database Systems",
       description: "A comprehensive study on database systems and management.",
+      category: "computerFundamentals"
     },
   ];
 
@@ -104,7 +110,7 @@ const ResourceHub: React.FC = () => {
   });
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 overflow-auto">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-medium">Explore Resources</h3>
         <Button size="sm">Add Resource</Button>

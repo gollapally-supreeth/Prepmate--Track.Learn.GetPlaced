@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from 'lucide-react';
@@ -28,17 +29,11 @@ export function ExamCountdown({
             {daysLeft === 0 ? (             
                <span>0 days left</span>
             ) : (           
-               
               <span className=''>{daysLeft} days left</span>
-              
             )}
           </div>
         </div>
-         <p className="text-gray-800 mt-2 text-xs">{examName}</p>
-
-
-
-
+        <p className="text-gray-800 mt-2 text-xs">{examName}</p>
       </CardContent>
     </Card>
   );

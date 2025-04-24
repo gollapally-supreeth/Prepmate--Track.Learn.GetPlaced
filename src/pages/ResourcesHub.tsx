@@ -119,7 +119,7 @@ const ResourcesHub = () => {
   };
   
   return (
-    <div className="container animate-fade-in space-y-6">
+    <div className="container max-w-full animate-fade-in space-y-6 overflow-y-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Resources Hub</h1>

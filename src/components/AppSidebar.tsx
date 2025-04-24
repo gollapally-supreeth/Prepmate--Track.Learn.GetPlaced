@@ -35,7 +35,7 @@ export function AppSidebar({ isCollapsed }: { isCollapsed: boolean }) {
 
   return (
     <Sidebar className={cn(
-      "sidebar-purple-white dark:bg-black transition-all duration-300 fixed lg:sticky top-0 h-screen z-40",
+      "sidebar-purple-white dark:bg-black transition-all duration-300 h-screen lg:sticky top-0 z-40",
       isCollapsed ? "w-0 lg:w-[70px] -translate-x-full lg:translate-x-0" : "w-[250px]"
     )}>
       <SidebarHeader className="p-4 bg-gradient-to-r from-purple-100/80 to-purple-200/50 dark:from-purple-900/20 dark:to-purple-800/10 dark:bg-black">

@@ -72,7 +72,7 @@ const AIAssistant = () => {
   };
 
   return (
-    <div className="flex h-[calc(100vh-80px)] bg-background dark:bg-background">
+    <div className="flex h-[calc(100vh-80px)] w-full overflow-hidden">
       {/* Mobile menu button */}
       <Button 
         variant="ghost" 
@@ -105,7 +105,7 @@ const AIAssistant = () => {
 
       {/* Main chat area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <div className="flex justify-between items-center border-b bg-background/95 backdrop-blur-sm sticky top-0 z-10 p-4">
+        <div className="flex justify-between items-center border-b sticky top-0 z-10 p-4 bg-background">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600">
               <AvatarFallback className="text-white bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg">
@@ -144,7 +144,7 @@ const AIAssistant = () => {
         </div>
         
         {messages.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 overflow-hidden">
+          <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 overflow-y-auto">
             <div className="w-full max-w-3xl mx-auto space-y-8">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -258,7 +258,7 @@ const AIAssistant = () => {
             </div>
           </div>
         ) : (
-          <ScrollArea className="flex-1 p-0 md:p-0">
+          <ScrollArea className="flex-1 p-0">
             <AnimatePresence initial={false}>
               {messages.map((message) => (
                 <motion.div
@@ -277,7 +277,7 @@ const AIAssistant = () => {
               ))}
             </AnimatePresence>
             {suggestions.length > 0 && (
-              <div className="px-12 mb-4">
+              <div className="px-4 md:px-12 mb-4">
                 <SmartSuggestions 
                   suggestions={suggestions} 
                   onSelectSuggestion={handleSendMessage} 
@@ -288,7 +288,7 @@ const AIAssistant = () => {
           </ScrollArea>
         )}
         
-        <div className="p-4 mt-auto border-t bg-background/95 backdrop-blur-sm">
+        <div className="p-4 mt-auto border-t bg-background">
           <ChatInput 
             onSendMessage={handleSendMessage} 
             isLoading={isLoading} 
