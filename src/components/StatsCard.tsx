@@ -13,6 +13,7 @@ export interface StatsCardProps {
   percentageIncrease?: string;
   className?: string;
   onClick?: () => void;
+  trendDescription?: string; // Added for backward compatibility
 }
 
 export function StatsCard({ 
@@ -24,8 +25,12 @@ export function StatsCard({
   color, 
   percentageIncrease,
   className,
-  onClick
+  onClick,
+  trendDescription // Added for backward compatibility
 }: StatsCardProps) {
+  // For backward compatibility, use trendDescription if description is not provided
+  const displayDescription = description || trendDescription;
+  
   return (
     <Card 
       className={cn("shadow-sm border border-primary/20", className)}
@@ -38,13 +43,13 @@ export function StatsCard({
         </div>
         <div className="space-y-1">
           <p className="text-2xl font-bold">{value}</p>
-          {description && (
+          {displayDescription && (
             <p className="text-xs text-muted-foreground">
               <span className={trend && trend > 0 ? "text-green-500" : "text-red-500"}>
                 {trend && trend > 0 ? "+" : ""}
                 {trend}%
               </span>{" "}
-              {description}
+              {displayDescription}
             </p>
           )}
           {percentageIncrease && (
