@@ -9,7 +9,6 @@ import { RecentActivity } from '@/components/RecentActivity';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Calendar } from 'lucide-react';
 import { 
   LineChart, 
   Book, 
@@ -17,9 +16,10 @@ import {
   CheckCircle, 
   BookOpen, 
   CalendarClock, 
-  Graduate, 
   BarChart3, 
-  Target
+  Target,
+  FileCheck,
+  FileText
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -146,29 +146,29 @@ const Dashboard = () => {
           value={`${currentStreak} days`}
           icon={<CheckCircle className="text-green-500" />}
           trend={2}
-          trendDescription="vs last week"
+          description="vs last week"
         />
         <StatsCard
           title="Resources Viewed"
           value="24"
           icon={<BookOpen className="text-blue-500" />}
           trend={5}
-          trendDescription="vs last week"
+          description="vs last week"
         />
         <StatsCard
-          onClick={() => window.location.href = '/interview'}
-          className="cursor-pointer hover:shadow-md transition-shadow"
           title="Practice Interviews"
           value="7"
           icon={<User className="text-purple-500" />}
           trend={1}
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => window.location.href = '/interview'}
         />
         <StatsCard
           title="Mock Tests"
           value="12"
           icon={<Target className="text-amber-500" />}
           trend={-2}
-          trendDescription="vs last week"
+          description="vs last week"
         />
       </div>
       
@@ -179,18 +179,18 @@ const Dashboard = () => {
           {/* Progress cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <ProgressCard 
-              title="DSA Progress" 
-              value={65} 
+              percent={65}
+              label="DSA Progress" 
               icon={<Book className="h-5 w-5 text-blue-600" />} 
             />
             <ProgressCard 
-              title="Interview Readiness" 
-              value={42} 
+              percent={42}
+              label="Interview Readiness" 
               icon={<User className="h-5 w-5 text-purple-600" />} 
             />
             <ProgressCard 
-              title="Resume Score" 
-              value={78} 
+              percent={78}
+              label="Resume Score" 
               icon={<FileCheck className="h-5 w-5 text-green-600" />} 
             />
           </div>
@@ -254,9 +254,14 @@ const Dashboard = () => {
             <div className="space-y-3">
               {tasks.map(task => (
                 <TaskCard 
-                  key={task.id} 
-                  task={task}
-                  onComplete={() => handleTaskComplete(task.id)} 
+                  key={task.id}
+                  title={task.title}
+                  dueTime={task.dueDate.toLocaleDateString()}
+                  subject={task.priority === "high" ? "High" : task.priority === "medium" ? "Medium" : "Low"}
+                  priority={task.priority === "high" ? "High" : task.priority === "medium" ? "Medium" : "Low"}
+                  completed={task.completed}
+                  id={parseInt(task.id.replace("task", ""))}
+                  onComplete={() => handleTaskComplete(task.id)}
                 />
               ))}
             </div>

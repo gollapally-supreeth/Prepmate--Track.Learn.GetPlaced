@@ -11,11 +11,26 @@ export interface StatsCardProps {
   icon: React.ReactNode;
   color?: string;
   percentageIncrease?: string;
+  className?: string;
+  onClick?: () => void;
 }
 
-export function StatsCard({ title, value, description, trend, icon, color, percentageIncrease }: StatsCardProps) {
+export function StatsCard({ 
+  title, 
+  value, 
+  description, 
+  trend, 
+  icon, 
+  color, 
+  percentageIncrease,
+  className,
+  onClick
+}: StatsCardProps) {
   return (
-    <Card className="shadow-sm border border-primary/20">
+    <Card 
+      className={cn("shadow-sm border border-primary/20", className)}
+      onClick={onClick}
+    >
       <Card className="flex flex-col gap-2 p-4">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-sm text-muted-foreground">{title}</h3>

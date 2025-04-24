@@ -14,6 +14,13 @@ interface TaskCardProps {
   id?: number;
   onComplete?: (id: number) => void;
   estimatedTime?: number;
+  task?: {
+    id: string;
+    title: string;
+    priority: string;
+    dueDate: Date;
+    completed: boolean;
+  };
 }
 
 export function TaskCard({ 
@@ -25,10 +32,11 @@ export function TaskCard({
   isCompleted, 
   id = 0, 
   onComplete = () => {}, 
-  estimatedTime 
+  estimatedTime,
+  task
 }: TaskCardProps) {
-  // Use either completed or isCompleted for backward compatibility
-  const isTaskCompleted = completed || isCompleted || false;
+  // Use either completed or isCompleted or task.completed for backward compatibility
+  const isTaskCompleted = completed || isCompleted || (task?.completed) || false;
   
   const priorityColors = {
     High: 'text-focus-red border-focus-red',
