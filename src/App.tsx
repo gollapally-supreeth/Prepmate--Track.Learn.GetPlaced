@@ -1,4 +1,3 @@
-
 import { ToastProvider } from "@/hooks/toast/toast-context";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -24,6 +23,7 @@ import { AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import useAuthStore from "./lib/auth";
 import { AIAssistantProvider } from "./components/ai-assistant/AIAssistantContext";
+import Profile from './pages/Profile';
 
 const queryClient = new QueryClient();
 
@@ -99,6 +99,7 @@ const App = () => {
                     <Route path="/resume" element={<ResumeBuilder />} />
                     <Route path="/placements" element={<PlacementTracker />} />
                     <Route path="/focus-timer" element={<FocusTimer />} />
+                    <Route path="/profile" element={<Profile />} />
                   </Route>
 
                   {/* 404 Route */}

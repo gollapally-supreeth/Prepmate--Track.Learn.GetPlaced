@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -43,6 +42,27 @@ export interface Resource {
   popularity?: number;
 }
 
+// Add stemming function
+const stemWord = (word: string): string => {
+  // Simple stemming algorithm
+  word = word.toLowerCase();
+  if (word.length <= 3) return word;
+  
+  // Remove common suffixes
+  const suffixes = ['ing', 'ed', 'ly', 'es', 's'];
+  for (const suffix of suffixes) {
+    if (word.endsWith(suffix)) {
+      return word.slice(0, -suffix.length);
+    }
+  }
+  return word;
+};
+
+// Add search tokenization
+const tokenizeSearch = (query: string): string[] => {
+  return query.toLowerCase().split(/\s+/).map(word => stemWord(word));
+};
+
 const ResourcesHub = () => {
   const [activeTab, setActiveTab] = useState<ResourceCategory>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,12 +83,32 @@ const ResourcesHub = () => {
     }
   }, []);
   
+  // Enhanced search function
+  const searchMatches = (resource: Resource, tokens: string[]): boolean => {
+    const searchableText = [
+      resource.title,
+      resource.description,
+      ...resource.tags
+    ].join(' ').toLowerCase();
+
+    const searchableTokens = tokenizeSearch(searchableText);
+    
+    // Check if all search tokens are present in the resource
+    return tokens.every(token => 
+      searchableTokens.some(resourceToken => resourceToken.includes(token))
+    );
+  };
+
   // Filter resources based on current filters
   const filteredResources = resources.filter(resource => {
     if (activeTab !== "all" && resource.category !== activeTab) return false;
-    if (searchQuery && !resource.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
-        !resource.description?.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !resource.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))) return false;
+    
+    // Apply search if query exists
+    if (searchQuery) {
+      const searchTokens = tokenizeSearch(searchQuery);
+      if (!searchMatches(resource, searchTokens)) return false;
+    }
+    
     if (resourceType !== "all" && resource.type !== resourceType) return false;
     if (difficulty !== "all" && resource.difficulty !== difficulty) return false;
     return true;

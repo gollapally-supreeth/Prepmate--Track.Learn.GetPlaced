@@ -1,24 +1,73 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { TestTube, Clock, Star, Award, Search, CheckCircle, XCircle, LineChart } from 'lucide-react';
+import { TestTube, Clock, Star, Award, Search, CheckCircle, XCircle, LineChart, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import MockTestInterface from './MockTestInterface';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import TestGenerator, { generateTestWithAI } from './TestGenerator';
+import { Bookmark, Flag } from 'lucide-react';
+
+interface Question {
+  id: string;
+  text: string;
+  options: string[];
+  correctAnswer: number;
+  explanation?: string;
+}
 
 interface MockTest {
   id: string;
   title: string;
   category: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
-  duration: number; // in minutes
+  duration: number;
   questionCount: number;
   attempted?: boolean;
   score?: number;
   completedDate?: string;
+  questions?: Question[];
 }
+
+interface TestConfig {
+  subject: string;
+  topic: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  questionCount: number;
+}
+
+// Sample questions for DSA Array Fundamentals test
+const dsaArrayQuestions: Question[] = [
+  {
+    id: '1',
+    text: 'What is the time complexity of accessing an element in an array?',
+    options: [
+      'O(1)',
+      'O(n)',
+      'O(log n)',
+      'O(n²)'
+    ],
+    correctAnswer: 0,
+    explanation: 'Array elements are stored in contiguous memory locations, allowing direct access using index in constant time.'
+  },
+  {
+    id: '2',
+    text: 'Which of the following is not a valid array operation?',
+    options: [
+      'Insertion at the beginning',
+      'Deletion from the end',
+      'Accessing by index',
+      'Sorting'
+    ],
+    correctAnswer: 0,
+    explanation: 'Insertion at the beginning requires shifting all elements, making it an O(n) operation.'
+  },
+  // Add more questions...
+];
 
 const mockTests: MockTest[] = [
   {
@@ -30,7 +79,8 @@ const mockTests: MockTest[] = [
     questionCount: 15,
     attempted: true,
     score: 85,
-    completedDate: '2025-04-15'
+    completedDate: '2025-04-15',
+    questions: dsaArrayQuestions
   },
   {
     id: '2',
@@ -107,9 +157,29 @@ const MockTestsSection: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [filter, setFilter] = useState<'all' | 'attempted' | 'not-attempted'>('all');
+  const [selectedTest, setSelectedTest] = useState<MockTest | null>(null);
+  const [showTestInterface, setShowTestInterface] = useState(false);
+  const [showTestGenerator, setShowTestGenerator] = useState(false);
+  const [generatedTest, setGeneratedTest] = useState<MockTest | null>(null);
+  const [markedQuestions, setMarkedQuestions] = useState<Set<string>>(new Set());
+  const [config, setConfig] = useState<TestConfig>({
+    subject: '',
+    topic: '',
+    difficulty: 'Medium',
+    questionCount: 10
+  });
+  const { toast } = useToast();
+  const [loadingTest, setLoadingTest] = useState(false);
+  const [completedTestsList, setCompletedTestsList] = useState<MockTest[]>([]);
+
+  // Merge completedTests with mockTests for display (avoid duplicates by id)
+  const allTests = [
+    ...completedTestsList,
+    ...mockTests.filter(t => !completedTestsList.some(ct => ct.id === t.id))
+  ];
 
   // Filter tests based on search term, category and attempted status
-  const filteredTests = mockTests.filter(test => {
+  const filteredTests = allTests.filter(test => {
     const matchesSearch = test.title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || test.category === selectedCategory;
     const matchesFilter = 
@@ -121,14 +191,99 @@ const MockTestsSection: React.FC = () => {
   });
 
   // Stats for the user
-  const completedTests = mockTests.filter(test => test.attempted).length;
+  const completedTestsCount = completedTestsList.length;
   const totalTests = mockTests.length;
   const averageScore = mockTests
     .filter(test => test.score !== undefined)
-    .reduce((sum, test) => sum + (test.score || 0), 0) / completedTests || 0;
+    .reduce((sum, test) => sum + (test.score || 0), 0) / completedTestsCount || 0;
+
+  const handleStartTest = async (test: MockTest) => {
+    if (test.questions && test.questions.length > 0) {
+      setSelectedTest(test);
+      setShowTestInterface(true);
+      return;
+    }
+    setLoadingTest(true);
+    // Try AI generation
+    const config = {
+      subject: test.category,
+      topic: test.title.replace(`${test.category} - `, ''),
+      difficulty: test.difficulty,
+      questionCount: test.questionCount || 10
+    };
+    let questions = await generateTestWithAI(config, toast);
+    // Fallback to local sample questions
+    if (!questions || questions.length === 0) {
+      // Try to use local sampleQuestions from TestGenerator
+      // (imported or duplicated as needed)
+      // For now, fallback to a single dummy question
+      questions = [{
+        id: '1',
+        text: 'No questions available for this test.',
+        options: ['N/A'],
+        correctAnswer: 0,
+        explanation: ''
+      }];
+    }
+    setSelectedTest({ ...test, questions });
+    setShowTestInterface(true);
+    setLoadingTest(false);
+  };
+
+  const handleTestComplete = (score: number) => {
+    if (selectedTest) {
+      // Add completed test to local state
+      const completedTest: MockTest = {
+        ...selectedTest,
+        attempted: true,
+        score,
+        completedDate: new Date().toISOString(),
+      };
+      setCompletedTestsList(prev => [completedTest, ...prev]);
+      toast({
+        title: "Test Completed!",
+        description: `Your score: ${score.toFixed(1)}%`,
+      });
+    }
+    setShowTestInterface(false);
+    setSelectedTest(null);
+  };
+
+  const handleTestGenerated = (questions: Question[]) => {
+    const newTest: MockTest = {
+      id: `generated-${Date.now()}`,
+      title: `${config.subject} - ${config.topic}`,
+      category: config.subject,
+      difficulty: config.difficulty,
+      duration: Math.ceil(questions.length * 1.5), // 1.5 minutes per question
+      questionCount: questions.length,
+      questions: questions
+    };
+    setGeneratedTest(newTest);
+    setShowTestGenerator(false);
+    setSelectedTest(newTest);
+    setShowTestInterface(true);
+  };
+
+  const handleMarkQuestion = (questionId: string) => {
+    setMarkedQuestions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(questionId)) {
+        newSet.delete(questionId);
+      } else {
+        newSet.add(questionId);
+      }
+      return newSet;
+    });
+  };
 
   return (
     <div className="mock-tests-section space-y-6">
+      {/* Test Generator */}
+      {showTestGenerator && (
+        <TestGenerator onTestGenerated={handleTestGenerated} />
+      )}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="card-enhanced hover-card">
@@ -138,7 +293,7 @@ const MockTestsSection: React.FC = () => {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Tests Completed</p>
-              <p className="text-2xl font-bold">{completedTests}/{totalTests}</p>
+              <p className="text-2xl font-bold">{completedTestsCount}/{totalTests}</p>
             </div>
           </CardContent>
         </Card>
@@ -176,7 +331,12 @@ const MockTestsSection: React.FC = () => {
               <TestTube className="h-5 w-5 text-primary" />
               Mock Tests
             </CardTitle>
-            <Button className="button-animated">Create Custom Test</Button>
+            <Button 
+              className="button-animated"
+              onClick={() => setShowTestGenerator(true)}
+            >
+              Generate New Test
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -197,6 +357,7 @@ const MockTestsSection: React.FC = () => {
                 onClick={() => setFilter('all')}
                 className="flex-1 button-animated"
               >
+                <CheckCircle className="h-4 w-4 mr-1" />
                 All
               </Button>
               <Button 
@@ -227,67 +388,80 @@ const MockTestsSection: React.FC = () => {
               ))}
             </TabsList>
           </Tabs>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-            {filteredTests.length > 0 ? (
-              filteredTests.map(test => (
-                <Card key={test.id} className="overflow-hidden hover-card">
-                  <div className={`h-1 w-full ${difficultyColors[test.difficulty]}`}></div>
-                  <CardContent className="p-5">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-medium">{test.title}</h3>
-                      {test.attempted && <Badge className="bg-emerald-500 dark:bg-emerald-600">Completed</Badge>}
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      <Badge variant="outline">{test.category}</Badge>
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {test.duration} min
-                      </Badge>
-                      <Badge 
-                        variant="secondary"
-                        className={`
-                          ${test.difficulty === 'Easy' && 'bg-emerald-500/20 text-emerald-700 dark:bg-emerald-500/30 dark:text-emerald-300'} 
-                          ${test.difficulty === 'Medium' && 'bg-amber-500/20 text-amber-700 dark:bg-amber-500/30 dark:text-amber-300'} 
-                          ${test.difficulty === 'Hard' && 'bg-rose-500/20 text-rose-700 dark:bg-rose-500/30 dark:text-rose-300'}
-                        `}
-                      >
-                        {test.difficulty}
-                      </Badge>
-                    </div>
-                    
-                    <div className="flex items-center text-sm mb-3">
-                      <span>{test.questionCount} Questions</span>
-                    </div>
-                    
-                    {test.attempted && (
-                      <>
-                        <div className="mb-1 flex justify-between items-center">
-                          <span className="text-sm">Your Score</span>
-                          <span className="text-sm font-medium">{test.score}%</span>
-                        </div>
-                        <Progress value={test.score} className="h-1.5 progress-bar" />
-                      </>
-                    )}
-                    
-                    <div className="mt-4 grid grid-cols-2 gap-2">
-                      <Button variant={test.attempted ? "outline" : "default"} className="button-animated">
-                        {test.attempted ? 'Retake' : 'Start'} Test
-                      </Button>
-                      <Button variant="outline" className="button-animated">View Details</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <div className="col-span-full py-12 text-center">
-                <p className="text-muted-foreground">No tests found matching your criteria</p>
-              </div>
-            )}
-          </div>
         </CardContent>
       </Card>
+
+      {/* Test Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {loadingTest && (
+          <div className="col-span-full py-12 text-center">
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary mb-2" />
+            <p className="text-muted-foreground">Generating test questions...</p>
+          </div>
+        )}
+        {!loadingTest && (filteredTests.length > 0 ? (
+          filteredTests.map(test => (
+            <Card key={test.id} className="overflow-hidden hover-card">
+              <div className={`h-1 w-full ${difficultyColors[test.difficulty]}`}></div>
+              <CardContent className="p-5">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-medium">{test.title}</h3>
+                  {test.attempted && <Badge className="bg-emerald-500 dark:bg-emerald-600">Completed</Badge>}
+                </div>
+                
+                <div className="flex flex-wrap gap-2 mb-3">
+                  <Badge variant="outline">{test.category}</Badge>
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {test.duration} min
+                  </Badge>
+                  <Badge 
+                    variant="secondary"
+                    className={`
+                      ${test.difficulty === 'Easy' && 'bg-emerald-500/20 text-emerald-700 dark:bg-emerald-500/30 dark:text-emerald-300'} 
+                      ${test.difficulty === 'Medium' && 'bg-amber-500/20 text-amber-700 dark:bg-amber-500/30 dark:text-amber-300'} 
+                      ${test.difficulty === 'Hard' && 'bg-rose-500/20 text-rose-700 dark:bg-rose-500/30 dark:text-rose-300'}
+                    `}
+                  >
+                    {test.difficulty}
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center text-sm mb-3">
+                  <span>{test.questionCount} Questions</span>
+                </div>
+                
+                {test.attempted && (
+                  <>
+                    <div className="mb-1 flex justify-between items-center">
+                      <span className="text-sm">Your Score</span>
+                      <span className="text-sm font-medium">{test.score}%</span>
+                    </div>
+                    <Progress value={test.score} className="h-1.5 progress-bar" />
+                  </>
+                )}
+                
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <Button 
+                    variant={test.attempted ? "outline" : "default"} 
+                    className="button-animated"
+                    onClick={() => handleStartTest(test)}
+                  >
+                    {test.attempted ? 'Retake' : 'Start'} Test
+                  </Button>
+                  <Button variant="outline" className="button-animated">
+                    View Details
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <div className="col-span-full py-12 text-center">
+            <p className="text-muted-foreground">No tests found matching your criteria</p>
+          </div>
+        ))}
+      </div>
 
       {/* Performance Analytics */}
       <Card className="card-enhanced">
@@ -301,6 +475,32 @@ const MockTestsSection: React.FC = () => {
           <p className="text-muted-foreground">Performance charts will be displayed here</p>
         </CardContent>
       </Card>
+
+      {/* Test Interface Dialog */}
+      <Dialog open={showTestInterface} onOpenChange={setShowTestInterface}>
+        <DialogContent className="max-w-4xl h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Mock Test</DialogTitle>
+            <DialogDescription>
+              Answer all questions and submit to see your score. You can mark questions for review.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedTest && (
+            <MockTestInterface
+              test={{
+                id: selectedTest.id,
+                title: selectedTest.title,
+                questions: selectedTest.questions || [],
+                duration: selectedTest.duration
+              }}
+              onComplete={handleTestComplete}
+              onExit={() => setShowTestInterface(false)}
+              markedQuestions={markedQuestions}
+              onMarkQuestion={handleMarkQuestion}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

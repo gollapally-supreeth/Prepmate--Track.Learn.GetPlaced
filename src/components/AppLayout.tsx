@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Bell, Sun, Moon, Menu, PanelLeftClose, PanelLeft } from 'lucide-react';
@@ -62,8 +61,8 @@ export function AppLayout() {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-background to-background/90 transition-colors duration-300">
         <AppSidebar isCollapsed={isCollapsed} />
-        <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${isCollapsed ? 'lg:ml-[70px]' : 'lg:ml-0'}`}>
-          <header className="h-16 border-b bg-card/80 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10 shadow-sm">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <header className="h-14 border-b bg-card/80 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10">
             <div className="flex items-center gap-4">
               <SidebarTrigger className="lg:hidden">
                 <Menu className="h-5 w-5" />
@@ -72,17 +71,17 @@ export function AppLayout() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="hidden lg:flex hover:bg-purple-100 dark:hover:bg-purple-900/20 transition-transform hover:scale-110"
+                className="hidden lg:flex hover:bg-muted transition-transform hover:scale-105"
               >
                 {isCollapsed ? (
-                  <PanelLeft className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  <PanelLeft className="h-5 w-5 text-muted-foreground" />
                 ) : (
-                  <PanelLeftClose className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  <PanelLeftClose className="h-5 w-5 text-muted-foreground" />
                 )}
               </Button>
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <Button
                 variant="ghost" 
                 size="icon"
@@ -123,24 +122,15 @@ export function AppLayout() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Avatar className="cursor-pointer h-9 w-9 transition-transform hover:scale-110">
-                    <AvatarImage src="" alt="Pardhu" />
-                    <AvatarFallback className="bg-primary text-primary-foreground">P</AvatarFallback>
-                  </Avatar>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="mt-1 animate-scale-in">
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
-                  <DropdownMenuItem>Support</DropdownMenuItem>
-                  <DropdownMenuItem>Log out</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Link to="/profile">
+                <Avatar className="cursor-pointer h-9 w-9 transition-transform hover:scale-110">
+                  <AvatarImage src="" alt="Profile" />
+                  <AvatarFallback className="bg-primary text-primary-foreground">P</AvatarFallback>
+                </Avatar>
+              </Link>
             </div>
           </header>
-          <main className="flex-1 overflow-auto p-4 sm:p-6 md:p-8 animate-fade-in transition-all duration-300">
+          <main className="flex-1 overflow-auto p-4 sm:p-6">
             <Outlet />
           </main>
         </div>
