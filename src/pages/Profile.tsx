@@ -59,9 +59,9 @@ export default function Profile() {
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-[#F4F8FB] to-[#EAF0F7] dark:bg-[#10141A] flex flex-col items-center py-8 px-2 sm:px-8">
-      <div className="w-full max-w-4xl {prepmateColors.card} rounded-2xl shadow-2xl p-6 flex flex-col gap-10">
-        {/* Profile Picture & Basic Info */}
-        <section className={`flex flex-col items-center gap-4 ${prepmateColors.card} rounded-xl shadow p-6 border ${prepmateColors.border}`}>
+      <div className="w-full max-w-4xl {prepmateColors.card} rounded-2xl shadow-2xl p-4 flex flex-col gap-6">
+        {/* Profile Picture & Basic Info (spans both columns) */}
+        <section className={`flex flex-col items-center gap-4 ${prepmateColors.card} rounded-xl shadow p-4 border ${prepmateColors.border} col-span-2`}> 
           <SectionHeader icon={User} title="Basic Information" />
           <div className="relative group mb-2">
             <Avatar className="h-28 w-28 border-4 border-[#F9A826] shadow-lg">
@@ -96,223 +96,231 @@ export default function Profile() {
             onStatusCancel={() => profile.setEdit((prev) => ({ ...prev, status: false }))}
           />
         </section>
-        {/* Social Links */}
-        <section className={`${prepmateColors.card} rounded-xl shadow p-6 border ${prepmateColors.border}`}>
-          <SectionHeader icon={Link2} title="Social Links" />
-          <ProfileSocialLinks
-            user={user}
-            edit={edit}
-            social={social}
-            setSocial={setSocial}
-            onSave={handleSocialSave}
-            onEdit={() => profile.setEdit((prev) => ({ ...prev, social: true }))}
-            onCancel={() => profile.setEdit((prev) => ({ ...prev, social: false }))}
-          />
-        </section>
-        {/* Quick Bio */}
-        <section className={`${prepmateColors.card} rounded-xl shadow p-6 border ${prepmateColors.border}`}>
-          <SectionHeader icon={ActivityIcon} title="Bio" />
-          <ProfileBio
-            user={user}
-            edit={edit}
-            bio={bio}
-            setBio={setBio}
-            onSave={handleBioSave}
-            onEdit={() => profile.setEdit((prev) => ({ ...prev, bio: true }))}
-            onCancel={() => profile.setEdit((prev) => ({ ...prev, bio: false }))}
-          />
-        </section>
-        {/* Academic Info */}
-        <section className={`${prepmateColors.card} rounded-xl shadow p-6 border ${prepmateColors.border}`}>
-          <SectionHeader icon={Layers} title="Academic Information" />
-          <ProfileAcademics
-            user={user}
-            edit={edit}
-            academics={academics}
-            setAcademics={setAcademics}
-            onSave={handleAcademicsSave}
-            onEdit={() => profile.setEdit((prev) => ({ ...prev, academics: true }))}
-            onCancel={() => profile.setEdit((prev) => ({ ...prev, academics: false }))}
-          />
-        </section>
-        {/* Skills Section */}
-        <section className={`${prepmateColors.card} rounded-xl shadow p-6 border ${prepmateColors.border}`}>
-          <SectionHeader icon={Star} title="Skills" />
-          <ProfileSkills
-            user={user}
-            skills={user.skills}
-            setSkills={skills => profile.setUser(prev => ({ ...prev, skills }))}
-            editingSkill={editingSkill}
-            setEditingSkill={profile.setEditingSkill}
-            newSkill={newSkill}
-            setNewSkill={setNewSkill}
-            addingSkill={addingSkill}
-            setAddingSkill={setAddingSkill}
-            onCancelEdit={() => profile.setEditingSkill(null)}
-            onCancelAdd={() => profile.setAddingSkill(false)}
-          />
-        </section>
-        {/* Project Showcase */}
-        <section className={`${prepmateColors.card} rounded-xl shadow p-6 border ${prepmateColors.border}`}>
-          <SectionHeader icon={Zap} title="Projects" />
-          <ProfileProjects
-            user={user}
-            editingProject={editingProject}
-            newProject={newProject}
-            setNewProject={setNewProject}
-            addingProject={addingProject}
-            setAddingProject={setAddingProject}
-            newTech={newTech}
-            setNewTech={setNewTech}
-            onEdit={handleProjectEdit}
-            onSave={handleProjectSave}
-            onDelete={handleProjectDelete}
-            onAdd={handleProjectAdd}
-            onEditClick={handleProjectEdit}
-            onCancelEdit={() => profile.setEditingProject(null)}
-            onCancelAdd={() => profile.setAddingProject(false)}
-            onAddTech={handleAddTech}
-            onRemoveTech={handleRemoveTech}
-          />
-        </section>
-        {/* Internship/Work Experience */}
-        <section className={`${prepmateColors.card} rounded-xl shadow p-6 border ${prepmateColors.border}`}>
-          <SectionHeader icon={Briefcase} title="Experience" />
-          <ProfileExperience
-            user={user}
-            editingExperience={editingExperience}
-            newExperience={newExperience}
-            setNewExperience={setNewExperience}
-            addingExperience={addingExperience}
-            setAddingExperience={setAddingExperience}
-            responsibilityText={responsibilityText}
-            setResponsibilityText={setResponsibilityText}
-            onEdit={handleExperienceEdit}
-            onSave={handleExperienceSave}
-            onDelete={handleExperienceDelete}
-            onAdd={handleExperienceAdd}
-            onEditClick={handleExperienceEdit}
-            onCancelEdit={() => profile.setEditingExperience(null)}
-            onCancelAdd={() => profile.setAddingExperience(false)}
-            onAddResponsibility={handleAddResponsibility}
-            onRemoveResponsibility={handleRemoveResponsibility}
-          />
-        </section>
-        {/* Progress Tracker */}
-        <section className={`${prepmateColors.card} rounded-xl shadow p-6 border ${prepmateColors.border}`}>
-          <SectionHeader icon={ListChecks} title="Progress Tracker" />
-          <ProfileProgress
-            user={user}
-            progress={user.progress}
-            setProgress={setNewProgress}
-            onEdit={handleProgressEdit}
-            onSave={handleProgressSave}
-            onCancel={() => profile.setEditingProgress(null)}
-            editingProgress={editingProgress}
-          />
-        </section>
-        {/* Activity Feed */}
-        <section className={`${prepmateColors.card} rounded-xl shadow p-6 border ${prepmateColors.border}`}>
-          <SectionHeader icon={ActivityIcon} title="Activity Feed" />
-          <ProfileActivityFeed
-            user={user}
-            activity={user.activity}
-            setActivity={(activity) => profile.setUser((prev) => ({ ...prev, activity }))}
-            onEdit={() => setEditingActivity(true)}
-            onSave={() => setEditingActivity(false)}
-            onCancel={() => setEditingActivity(false)}
-            editingActivity={editingActivity}
-          />
-        </section>
-        {/* Achievements/Badges */}
-        <section className={`${prepmateColors.card} rounded-xl shadow p-6 border ${prepmateColors.border}`}>
-          <SectionHeader icon={Award} title="Badges & Achievements" />
-          <ProfileBadges
-            user={user}
-            badges={user.badges}
-            setBadges={(badges) => profile.setUser((prev) => ({ ...prev, badges }))}
-            editingBadge={null}
-            newBadge={newBadge}
-            setNewBadge={setNewBadge}
-            addingBadge={addingBadge}
-            setAddingBadge={setAddingBadge}
-            onEdit={() => {}}
-            onSave={() => {}}
-            onDelete={handleBadgeDelete}
-            onAdd={handleBadgeAdd}
-            onEditClick={() => {}}
-            onCancelEdit={() => {}}
-            onCancelAdd={() => setAddingBadge(false)}
-          />
-        </section>
-        {/* Upcoming Events/Reminders */}
-        <section className={`${prepmateColors.card} rounded-xl shadow p-6 border ${prepmateColors.border}`}>
-          <SectionHeader icon={Calendar} title="Events & Reminders" />
-          <ProfileEvents
-            user={user}
-            events={user.events}
-            setEvents={(events) => profile.setUser((prev) => ({ ...prev, events }))}
-            editingEvent={editingEvent}
-            newEvent={newEvent}
-            setNewEvent={setNewEvent}
-            addingEvent={addingEvent}
-            setAddingEvent={setAddingEvent}
-            onEdit={handleEventEdit}
-            onSave={handleEventSave}
-            onDelete={handleEventDelete}
-            onAdd={handleEventAdd}
-            onEditClick={handleEventEdit}
-            onCancelEdit={() => profile.setEditingEvent(null)}
-            onCancelAdd={() => profile.setAddingEvent(false)}
-          />
-        </section>
-        {/* Learning Path/Courses in Progress */}
-        <section className={`${prepmateColors.card} rounded-xl shadow p-6 border ${prepmateColors.border}`}>
-          <SectionHeader icon={BookOpen} title="Learning Path" />
-          <ProfileLearningPath
-            user={user}
-            learningPaths={user.learningPath}
-            setLearningPaths={(learningPath) => profile.setUser((prev) => ({ ...prev, learningPath }))}
-            editingPath={editingLearning}
-            newPath={newLearningPath}
-            setNewPath={setNewLearningPath}
-            addingPath={addingLearning}
-            setAddingPath={setAddingLearning}
-            onEdit={handleLearningEdit}
-            onSave={handleLearningSave}
-            onDelete={handleLearningDelete}
-            onAdd={handleLearningAdd}
-            onEditClick={handleLearningEdit}
-            onCancelEdit={() => profile.setEditingLearning(null)}
-            onCancelAdd={() => profile.setAddingLearning(false)}
-          />
-        </section>
-        {/* Settings Shortcuts */}
-        <section className={`${prepmateColors.card} rounded-xl shadow p-6 border ${prepmateColors.border}`}>
-          <SectionHeader icon={SettingsIcon} title="Settings" />
-          <ProfileSettings
-            user={user}
-            settings={settings}
-            setSettings={setSettings}
-            onEdit={() => setEditingSettings(true)}
-            onSave={handleSettingsSave}
-            onCancel={() => setEditingSettings(false)}
-            editingSettings={editingSettings}
-          />
-        </section>
-        {/* Quick Actions */}
-        <section className={`${prepmateColors.card} rounded-xl shadow p-6 border ${prepmateColors.border}`}>
-          <SectionHeader icon={Zap} title="Quick Actions" />
-          <ProfileQuickActions
-            user={user}
-            quickActions={user.quickActions || []}
-            setQuickActions={(quickActions) => profile.setUser((prev) => ({ ...prev, quickActions }))}
-            onEdit={() => {}}
-            onSave={() => {}}
-            onCancel={() => {}}
-            editingQuickActions={false}
-          />
-        </section>
+        {/* Responsive grid for the rest */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Social Links */}
+          <section className={`${prepmateColors.card} rounded-xl shadow p-4 border ${prepmateColors.border}`}>
+            <SectionHeader icon={Link2} title="Social Links" />
+            <ProfileSocialLinks
+              user={user}
+              edit={edit}
+              social={social}
+              setSocial={setSocial}
+              onSave={handleSocialSave}
+              onEdit={() => profile.setEdit((prev) => ({ ...prev, social: true }))}
+              onCancel={() => profile.setEdit((prev) => ({ ...prev, social: false }))}
+            />
+          </section>
+          {/* Quick Bio */}
+          <section className={`${prepmateColors.card} rounded-xl shadow p-4 border ${prepmateColors.border}`}>
+            <SectionHeader icon={ActivityIcon} title="Bio" />
+            <ProfileBio
+              user={user}
+              edit={edit}
+              bio={bio}
+              setBio={setBio}
+              onSave={handleBioSave}
+              onEdit={() => profile.setEdit((prev) => ({ ...prev, bio: true }))}
+              onCancel={() => profile.setEdit((prev) => ({ ...prev, bio: false }))}
+            />
+          </section>
+          {/* Academic Info */}
+          <section className={`${prepmateColors.card} rounded-xl shadow p-4 border ${prepmateColors.border}`}>
+            <SectionHeader icon={Layers} title="Academic Information" />
+            <ProfileAcademics
+              user={user}
+              edit={edit}
+              academics={academics}
+              setAcademics={setAcademics}
+              onSave={handleAcademicsSave}
+              onEdit={() => profile.setEdit((prev) => ({ ...prev, academics: true }))}
+              onCancel={() => profile.setEdit((prev) => ({ ...prev, academics: false }))}
+            />
+          </section>
+          {/* Skills Section */}
+          <section className={`${prepmateColors.card} rounded-xl shadow p-4 border ${prepmateColors.border}`}>
+            <SectionHeader icon={Star} title="Skills" />
+            <ProfileSkills
+              user={user}
+              skills={user.skills}
+              setSkills={skills => profile.setUser(prev => ({ ...prev, skills }))}
+              editingSkill={editingSkill}
+              setEditingSkill={profile.setEditingSkill}
+              newSkill={newSkill}
+              setNewSkill={setNewSkill}
+              addingSkill={addingSkill}
+              setAddingSkill={setAddingSkill}
+              onEdit={handleSkillEdit}
+              onSave={handleSkillSave}
+              onDelete={handleSkillDelete}
+              onAdd={handleSkillAdd}
+              onEditClick={handleSkillEdit}
+              onCancelEdit={() => profile.setEditingSkill(null)}
+              onCancelAdd={() => profile.setAddingSkill(false)}
+            />
+          </section>
+          {/* Project Showcase */}
+          <section className={`${prepmateColors.card} rounded-xl shadow p-4 border ${prepmateColors.border}`}>
+            <SectionHeader icon={Zap} title="Projects" />
+            <ProfileProjects
+              user={user}
+              editingProject={editingProject}
+              newProject={newProject}
+              setNewProject={setNewProject}
+              addingProject={addingProject}
+              setAddingProject={setAddingProject}
+              newTech={newTech}
+              setNewTech={setNewTech}
+              onEdit={handleProjectEdit}
+              onSave={handleProjectSave}
+              onDelete={handleProjectDelete}
+              onAdd={handleProjectAdd}
+              onEditClick={handleProjectEdit}
+              onCancelEdit={() => profile.setEditingProject(null)}
+              onCancelAdd={() => profile.setAddingProject(false)}
+              onAddTech={handleAddTech}
+              onRemoveTech={handleRemoveTech}
+            />
+          </section>
+          {/* Internship/Work Experience */}
+          <section className={`${prepmateColors.card} rounded-xl shadow p-4 border ${prepmateColors.border}`}>
+            <SectionHeader icon={Briefcase} title="Experience" />
+            <ProfileExperience
+              user={user}
+              editingExperience={editingExperience}
+              newExperience={newExperience}
+              setNewExperience={setNewExperience}
+              addingExperience={addingExperience}
+              setAddingExperience={setAddingExperience}
+              responsibilityText={responsibilityText}
+              setResponsibilityText={setResponsibilityText}
+              onEdit={handleExperienceEdit}
+              onSave={handleExperienceSave}
+              onDelete={handleExperienceDelete}
+              onAdd={handleExperienceAdd}
+              onEditClick={handleExperienceEdit}
+              onCancelEdit={() => profile.setEditingExperience(null)}
+              onCancelAdd={() => profile.setAddingExperience(false)}
+              onAddResponsibility={handleAddResponsibility}
+              onRemoveResponsibility={handleRemoveResponsibility}
+            />
+          </section>
+          {/* Progress Tracker */}
+          <section className={`${prepmateColors.card} rounded-xl shadow p-4 border ${prepmateColors.border}`}>
+            <SectionHeader icon={ListChecks} title="Progress Tracker" />
+            <ProfileProgress
+              user={user}
+              progress={user.progress}
+              setProgress={setNewProgress}
+              onEdit={handleProgressEdit}
+              onSave={handleProgressSave}
+              onCancel={() => profile.setEditingProgress(null)}
+              editingProgress={editingProgress}
+            />
+          </section>
+          {/* Activity Feed */}
+          <section className={`${prepmateColors.card} rounded-xl shadow p-4 border ${prepmateColors.border}`}>
+            <SectionHeader icon={ActivityIcon} title="Activity Feed" />
+            <ProfileActivityFeed
+              user={user}
+              activity={user.activity}
+              setActivity={(activity) => profile.setUser((prev) => ({ ...prev, activity }))}
+              onEdit={() => setEditingActivity(true)}
+              onSave={() => setEditingActivity(false)}
+              onCancel={() => setEditingActivity(false)}
+              editingActivity={editingActivity}
+            />
+          </section>
+          {/* Achievements/Badges */}
+          <section className={`${prepmateColors.card} rounded-xl shadow p-4 border ${prepmateColors.border}`}>
+            <SectionHeader icon={Award} title="Badges & Achievements" />
+            <ProfileBadges
+              user={user}
+              badges={user.badges}
+              setBadges={(badges) => profile.setUser((prev) => ({ ...prev, badges }))}
+              editingBadge={null}
+              newBadge={newBadge}
+              setNewBadge={setNewBadge}
+              addingBadge={addingBadge}
+              setAddingBadge={setAddingBadge}
+              onEdit={() => {}}
+              onSave={() => {}}
+              onDelete={handleBadgeDelete}
+              onAdd={handleBadgeAdd}
+              onEditClick={() => {}}
+              onCancelEdit={() => {}}
+              onCancelAdd={() => setAddingBadge(false)}
+            />
+          </section>
+          {/* Upcoming Events/Reminders */}
+          <section className={`${prepmateColors.card} rounded-xl shadow p-4 border ${prepmateColors.border}`}>
+            <SectionHeader icon={Calendar} title="Events & Reminders" />
+            <ProfileEvents
+              user={user}
+              events={user.events}
+              setEvents={(events) => profile.setUser((prev) => ({ ...prev, events }))}
+              editingEvent={editingEvent}
+              newEvent={newEvent}
+              setNewEvent={setNewEvent}
+              addingEvent={addingEvent}
+              setAddingEvent={setAddingEvent}
+              onEdit={handleEventEdit}
+              onSave={handleEventSave}
+              onDelete={handleEventDelete}
+              onAdd={handleEventAdd}
+              onEditClick={handleEventEdit}
+              onCancelEdit={() => profile.setEditingEvent(null)}
+              onCancelAdd={() => profile.setAddingEvent(false)}
+            />
+          </section>
+          {/* Learning Path/Courses in Progress */}
+          <section className={`${prepmateColors.card} rounded-xl shadow p-4 border ${prepmateColors.border}`}>
+            <SectionHeader icon={BookOpen} title="Learning Path" />
+            <ProfileLearningPath
+              user={user}
+              learningPaths={user.learningPath}
+              setLearningPaths={(learningPath) => profile.setUser((prev) => ({ ...prev, learningPath }))}
+              editingPath={editingLearning}
+              newPath={newLearningPath}
+              setNewPath={setNewLearningPath}
+              addingPath={addingLearning}
+              setAddingPath={setAddingLearning}
+              onEdit={handleLearningEdit}
+              onSave={handleLearningSave}
+              onDelete={handleLearningDelete}
+              onAdd={handleLearningAdd}
+              onEditClick={handleLearningEdit}
+              onCancelEdit={() => profile.setEditingLearning(null)}
+              onCancelAdd={() => profile.setAddingLearning(false)}
+            />
+          </section>
+          {/* Settings Shortcuts */}
+          <section className={`${prepmateColors.card} rounded-xl shadow p-4 border ${prepmateColors.border}`}>
+            <SectionHeader icon={SettingsIcon} title="Settings" />
+            <ProfileSettings
+              user={user}
+              settings={settings}
+              setSettings={setSettings}
+              onEdit={() => setEditingSettings(true)}
+              onSave={handleSettingsSave}
+              onCancel={() => setEditingSettings(false)}
+              editingSettings={editingSettings}
+            />
+          </section>
+          {/* Quick Actions */}
+          <section className={`${prepmateColors.card} rounded-xl shadow p-4 border ${prepmateColors.border}`}>
+            <SectionHeader icon={Zap} title="Quick Actions" />
+            <ProfileQuickActions
+              user={user}
+              quickActions={user.quickActions || []}
+              setQuickActions={(quickActions) => profile.setUser((prev) => ({ ...prev, quickActions }))}
+              onEdit={() => {}}
+              onSave={() => {}}
+              onCancel={() => {}}
+              editingQuickActions={false}
+            />
+          </section>
+        </div>
       </div>
     </div>
   );
