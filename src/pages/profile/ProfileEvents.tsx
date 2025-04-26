@@ -14,12 +14,19 @@ export default function ProfileEvents({ user, events, setEvents, editingEvent, n
         }}><Plus className="h-4 w-4" /></Button>
       </div>
       <div className="flex flex-col gap-2">
+        {events.length === 0 && (
+          <div className="w-full flex flex-col items-center justify-center p-4 bg-muted/30 rounded-lg border border-dashed border-gray-300 mb-2">
+            <Calendar className="h-8 w-8 text-muted-foreground mb-2" />
+            <span className="text-gray-500 italic">No events or reminders yet.</span>
+            <Button size="sm" variant="outline" className="mt-2" onClick={() => { setAddingEvent(true); setNewEvent({ name: '', date: '', description: '' }); }}>Add Event</Button>
+          </div>
+        )}
         {events.map((event, idx) => (
           editingEvent === idx ? (
             <div key={event.name} className="flex items-center gap-2 bg-muted rounded-lg px-3 py-2">
-              <Input value={newEvent.name} onChange={e => setNewEvent({ ...newEvent, name: e.target.value })} className="w-24 text-xs" placeholder="Event Name" />
-              <Input value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} className="w-24 text-xs" placeholder="Date" type="date" />
-              <Input value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} className="w-40 text-xs" placeholder="Description" />
+              <Input value={newEvent.name} onChange={e => setNewEvent({ ...newEvent, name: e.target.value })} className="w-24 text-xs overflow-x-auto whitespace-nowrap" placeholder="Event Name (e.g. Hackathon)" />
+              <Input value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} className="w-24 text-xs overflow-x-auto whitespace-nowrap" placeholder="Date (e.g. 2024-12-31)" type="date" />
+              <Input value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} className="w-40 text-xs overflow-x-auto whitespace-nowrap" placeholder="Description (e.g. Coding event)" />
               <Button size="icon" variant="ghost" className="ml-1" onClick={() => onSave(idx)}><Save className="h-3 w-3" /></Button>
               <Button size="icon" variant="ghost" className="ml-1" onClick={onCancelEdit}><X className="h-3 w-3" /></Button>
             </div>
@@ -36,9 +43,9 @@ export default function ProfileEvents({ user, events, setEvents, editingEvent, n
         ))}
         {addingEvent && (
           <div className="flex items-center gap-2 bg-muted rounded-lg px-3 py-2">
-            <Input value={newEvent.name} onChange={e => setNewEvent({ ...newEvent, name: e.target.value })} className="w-24 text-xs" placeholder="Event Name" />
-            <Input value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} className="w-24 text-xs" placeholder="Date" type="date" />
-            <Input value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} className="w-40 text-xs" placeholder="Description" />
+            <Input value={newEvent.name} onChange={e => setNewEvent({ ...newEvent, name: e.target.value })} className="w-24 text-xs overflow-x-auto whitespace-nowrap" placeholder="Event Name (e.g. Hackathon)" />
+            <Input value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} className="w-24 text-xs overflow-x-auto whitespace-nowrap" placeholder="Date (e.g. 2024-12-31)" type="date" />
+            <Input value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} className="w-40 text-xs overflow-x-auto whitespace-nowrap" placeholder="Description (e.g. Coding event)" />
             <Button size="icon" variant="ghost" className="ml-1" onClick={onAdd}><Save className="h-3 w-3" /></Button>
             <Button size="icon" variant="ghost" className="ml-1" onClick={onCancelAdd}><X className="h-3 w-3" /></Button>
           </div>

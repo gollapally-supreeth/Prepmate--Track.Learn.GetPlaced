@@ -43,6 +43,13 @@ export default function ProfileQuickActions({ user, quickActions, setQuickAction
           <Plus className="h-4 w-4 text-[#2B4C7E]" />
         </Button>
       </div>
+      {quickActions.length === 0 && (
+        <div className="w-full flex flex-col items-center justify-center p-4 bg-muted/30 rounded-lg border border-dashed border-gray-300 mb-2">
+          <Zap className="h-8 w-8 text-[#F9A826] mb-2" />
+          <span className="text-gray-500 italic">No quick actions added yet.</span>
+          <Button size="sm" variant="outline" className="mt-2" onClick={() => setAdding(true)}>Add Quick Action</Button>
+        </div>
+      )}
       <div className="flex flex-wrap gap-2">
         {quickActions.map((action, idx) => (
           editingIdx === idx ? (
@@ -61,7 +68,7 @@ export default function ProfileQuickActions({ user, quickActions, setQuickAction
         ))}
         {adding && (
           <div className="flex items-center gap-1 bg-[#F4F8FB] dark:bg-[#232B43] rounded px-2 py-1 border border-[#2B4C7E]/10">
-            <Input value={newAction} onChange={e => setNewAction(e.target.value)} className="w-32 text-xs" placeholder="Action" />
+            <Input value={newAction} onChange={e => setNewAction(e.target.value)} className="w-32 text-xs overflow-x-auto whitespace-nowrap" placeholder="Action (e.g. Go to Dashboard)" />
             <Button size="icon" variant="ghost" onClick={handleAdd} title="Add"><Save className="h-4 w-4" /></Button>
             <Button size="icon" variant="ghost" onClick={() => { setAdding(false); setNewAction(''); }} title="Cancel"><X className="h-4 w-4" /></Button>
           </div>

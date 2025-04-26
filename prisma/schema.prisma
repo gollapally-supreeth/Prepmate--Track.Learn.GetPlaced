@@ -22,4 +22,51 @@ model User {
   password   String?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  profile    Profile?
+}
+model Profile {
+  id            String   @id @default(uuid())
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String   @unique
+
+  // Basic Info
+  fullName      String?
+  username      String?
+  contact       String?
+  dob           DateTime?
+  status        String?
+  avatarUrl     String?
+
+  // Bio
+  bio           String?
+
+  // Social Links
+  linkedin      String?
+  github        String?
+  twitter       String?
+  website       String?
+
+  // Academics (array of objects)
+  educations    Json?
+
+  // Skills (array of objects)
+  skills        Json?
+
+  // Projects (array of objects)
+  projects      Json?
+
+  // Experience (array of objects)
+  experience    Json?
+
+  // Add more fields as needed for badges, events, etc.
+  badges        Json?
+  events        Json?
+  learningPath  Json?
+  progress      Json?
+  settings      Json?
+  activityFeed  Json?
+  quickActions  Json?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }

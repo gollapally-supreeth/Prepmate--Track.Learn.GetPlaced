@@ -14,13 +14,20 @@ export default function ProfileLearningPath({ user, learningPaths, setLearningPa
           <Plus className="h-4 w-4 text-[#F9A826]" />
         </Button>
       </div>
+      {learningPaths.length === 0 && (
+        <div className="w-full flex flex-col items-center justify-center p-4 bg-muted/30 rounded-lg border border-dashed border-gray-300 mb-2">
+          <BookOpen className="h-8 w-8 text-[#2B4C7E] mb-2" />
+          <span className="text-gray-500 italic">No learning paths added yet.</span>
+          <Button size="sm" variant="outline" className="mt-2" onClick={() => { setAddingPath(true); setNewPath({ course: '', percent: 0, deadline: '' }); }}>Add Course</Button>
+        </div>
+      )}
       <div className="flex flex-col gap-3">
         {learningPaths.map((path, idx) => (
           editingPath === idx ? (
             <div key={idx} className="flex flex-row flex-wrap gap-2 items-center bg-[#F4F8FB] dark:bg-[#232B43] rounded-lg p-4 border border-[#2B4C7E]/10">
-              <Input value={newPath.course} onChange={e => setNewPath({ ...newPath, course: e.target.value })} className="w-32 text-xs" placeholder="Course Name" />
-              <Input value={newPath.deadline} onChange={e => setNewPath({ ...newPath, deadline: e.target.value })} className="w-32 text-xs" placeholder="Deadline" />
-              <Input value={newPath.percent} onChange={e => setNewPath({ ...newPath, percent: Number(e.target.value) })} className="w-20 text-xs" placeholder="Progress %" type="number" min={0} max={100} />
+              <Input value={newPath.course} onChange={e => setNewPath({ ...newPath, course: e.target.value })} className="w-32 text-xs overflow-x-auto whitespace-nowrap" placeholder="Course Name (e.g. React Bootcamp)" />
+              <Input value={newPath.deadline} onChange={e => setNewPath({ ...newPath, deadline: e.target.value })} className="w-32 text-xs overflow-x-auto whitespace-nowrap" placeholder="Deadline (e.g. 2024-12-31)" />
+              <Input value={newPath.percent} onChange={e => setNewPath({ ...newPath, percent: Number(e.target.value) })} className="w-20 text-xs overflow-x-auto whitespace-nowrap" placeholder="Progress % (e.g. 50)" type="number" min={0} max={100} />
               <Button size="icon" variant="ghost" onClick={() => onSave(idx)} title="Save"><Save className="h-4 w-4" /></Button>
               <Button size="icon" variant="ghost" onClick={onCancelEdit} title="Cancel"><X className="h-4 w-4" /></Button>
             </div>
@@ -47,9 +54,9 @@ export default function ProfileLearningPath({ user, learningPaths, setLearningPa
         ))}
         {addingPath && (
           <div className="flex flex-row flex-wrap gap-2 items-center bg-[#F4F8FB] dark:bg-[#232B43] rounded-lg p-4 border border-[#2B4C7E]/10">
-            <Input value={newPath.course} onChange={e => setNewPath({ ...newPath, course: e.target.value })} className="w-32 text-xs" placeholder="Course Name" />
-            <Input value={newPath.deadline} onChange={e => setNewPath({ ...newPath, deadline: e.target.value })} className="w-32 text-xs" placeholder="Deadline" />
-            <Input value={newPath.percent} onChange={e => setNewPath({ ...newPath, percent: Number(e.target.value) })} className="w-20 text-xs" placeholder="Progress %" type="number" min={0} max={100} />
+            <Input value={newPath.course} onChange={e => setNewPath({ ...newPath, course: e.target.value })} className="w-32 text-xs overflow-x-auto whitespace-nowrap" placeholder="Course Name (e.g. React Bootcamp)" />
+            <Input value={newPath.deadline} onChange={e => setNewPath({ ...newPath, deadline: e.target.value })} className="w-32 text-xs overflow-x-auto whitespace-nowrap" placeholder="Deadline (e.g. 2024-12-31)" />
+            <Input value={newPath.percent} onChange={e => setNewPath({ ...newPath, percent: Number(e.target.value) })} className="w-20 text-xs overflow-x-auto whitespace-nowrap" placeholder="Progress % (e.g. 50)" type="number" min={0} max={100} />
             <Button size="icon" variant="ghost" onClick={onAdd} title="Add"><Save className="h-4 w-4" /></Button>
             <Button size="icon" variant="ghost" onClick={onCancelAdd} title="Cancel"><X className="h-4 w-4" /></Button>
           </div>

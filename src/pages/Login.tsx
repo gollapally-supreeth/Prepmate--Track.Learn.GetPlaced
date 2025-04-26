@@ -14,6 +14,7 @@ import { Eye, EyeOff, GraduationCap, Moon, Sun } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
+import useAuthStore from '@/lib/auth';
 
 declare global {
   interface Window {
@@ -59,7 +60,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, loginWithToken } = useAuthStore();
   const [quote] = useState(() => 
     motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]
   );
@@ -82,15 +83,14 @@ export default function LoginPage() {
       localStorage.setItem('authToken', token);
 
       // Decode the token to get user info (optional, but recommended)
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      // Example: { id, email, name, ... }
+      // const payload = JSON.parse(atob(token.split('.')[1]));
 
       // Update your auth store
-      login(payload.email, token, true); // You may want to adjust this to match your store's API
+      loginWithToken(token);
 
       navigate('/dashboard');
     }
-  }, [location, navigate, login]);
+  }, [location, navigate, loginWithToken]);
 
   const onSubmit = async (data: LoginForm) => {
     try {

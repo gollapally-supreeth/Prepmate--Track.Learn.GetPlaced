@@ -23,6 +23,13 @@ export default function ProfileProjects({ user, editingProject, newProject, setN
         }}><Plus className="h-4 w-4" /></Button>
       </div>
       <div className="flex flex-col gap-2">
+        {user.projects.length === 0 && (
+          <div className="w-full flex flex-col items-center justify-center p-4 bg-muted/30 rounded-lg border border-dashed border-gray-300 mb-2">
+            <Plus className="h-8 w-8 text-[#F9A826] mb-2" />
+            <span className="text-gray-500 italic">No projects added yet.</span>
+            <Button size="sm" variant="outline" className="mt-2" onClick={() => { setAddingProject(true); setNewProject({ title: '', description: '', github: '', demo: '', tech: [], thumbnail: '' }); }}>Add Project</Button>
+          </div>
+        )}
         {user.projects.map((project, idx) => (
           editingProject === idx ? (
             <div key={project.title} className="bg-muted p-3 rounded-lg">
@@ -30,28 +37,28 @@ export default function ProfileProjects({ user, editingProject, newProject, setN
                 <Input
                   value={newProject.title}
                   onChange={e => setNewProject({ ...newProject, title: e.target.value })}
-                  placeholder="Project Title"
-                  className="font-semibold"
+                  placeholder="Project Title (e.g. Portfolio Website)"
+                  className="font-semibold overflow-x-auto whitespace-nowrap"
                 />
                 <Textarea
                   value={newProject.description}
                   onChange={e => setNewProject({ ...newProject, description: e.target.value })}
-                  placeholder="Project Description"
-                  className="text-xs"
+                  placeholder="Project Description (What did you build? What tech did you use?)"
+                  className="text-xs overflow-x-auto"
                   rows={2}
                 />
                 <div className="flex gap-2 text-xs">
                   <Input
                     value={newProject.github}
                     onChange={e => setNewProject({ ...newProject, github: e.target.value })}
-                    placeholder="GitHub URL"
-                    className="flex-1"
+                    placeholder="GitHub URL (e.g. https://github.com/yourname/project)"
+                    className="flex-1 overflow-x-auto whitespace-nowrap"
                   />
                   <Input
                     value={newProject.demo}
                     onChange={e => setNewProject({ ...newProject, demo: e.target.value })}
-                    placeholder="Demo URL"
-                    className="flex-1"
+                    placeholder="Demo URL (e.g. https://yourproject.com)"
+                    className="flex-1 overflow-x-auto whitespace-nowrap"
                   />
                 </div>
                 <div className="flex flex-col gap-1">

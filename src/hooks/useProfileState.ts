@@ -168,7 +168,7 @@ export function useProfileState() {
     role: '',
     company: '',
     duration: '',
-    responsibilities: [''],
+    responsibilities: [],
     linkedin: '',
   });
   const [addingExperience, setAddingExperience] = useState(false);
@@ -413,7 +413,12 @@ export function useProfileState() {
   };
   const handleExperienceSave = (idx) => {
     const updatedExperience = [...user.experience];
-    updatedExperience[idx] = { ...newExperience };
+    updatedExperience[idx] = {
+      ...newExperience,
+      responsibilities: Array.isArray(newExperience.responsibilities)
+        ? newExperience.responsibilities.filter(r => r && r.trim() !== '')
+        : [],
+    };
     setUser((prev) => ({ ...prev, experience: updatedExperience }));
     setEditingExperience(null);
   };
@@ -423,12 +428,23 @@ export function useProfileState() {
   };
   const handleExperienceAdd = () => {
     if (newExperience.role.trim() && newExperience.company.trim()) {
-      setUser((prev) => ({ ...prev, experience: [...prev.experience, { ...newExperience }] }));
+      setUser((prev) => ({
+        ...prev,
+        experience: [
+          ...prev.experience,
+          {
+            ...newExperience,
+            responsibilities: Array.isArray(newExperience.responsibilities)
+              ? newExperience.responsibilities.filter(r => r && r.trim() !== '')
+              : [],
+          },
+        ],
+      }));
       setNewExperience({
         role: '',
         company: '',
         duration: '',
-        responsibilities: [''],
+        responsibilities: [],
         linkedin: '',
       });
       setAddingExperience(false);

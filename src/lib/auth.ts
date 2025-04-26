@@ -18,19 +18,25 @@ const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       user: null,
       login: async (email: string, password: string, rememberMe?: boolean) => {
-        // Here you would typically make an API call to your backend
-        // For now, we'll simulate a successful login
-        if (email && password) {
-          set({
-            isAuthenticated: true,
-            user: {
-              email,
-              name: email.split('@')[0], // Simple name extraction from email
-            },
-          });
-        } else {
-          throw new Error('Invalid credentials');
+        const res = await fetch('http://localhost:5000/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+          credentials: 'include',
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Invalid email or password');
         }
+        // Optionally store the token in localStorage
+        localStorage.setItem('authToken', data.token);
+        set({
+          isAuthenticated: true,
+          user: {
+            email,
+            name: data.name || email.split('@')[0],
+          },
+        });
       },
       logout: () => {
         set({

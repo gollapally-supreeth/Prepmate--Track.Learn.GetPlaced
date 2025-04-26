@@ -44,10 +44,17 @@ export default function ProfileSkills({ user, skills = [], setSkills, editingSki
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">
+          {skills.length === 0 && (
+            <div className="w-full flex flex-col items-center justify-center p-4 bg-muted/30 rounded-lg border border-dashed border-gray-300 mb-2">
+              <Star className="h-8 w-8 text-yellow-400 mb-2" />
+              <span className="text-gray-500 italic">No skills added yet.</span>
+              <Button size="sm" variant="outline" className="mt-2" onClick={() => { setAddingSkill(true); setNewSkill({ name: '', level: 'Beginner', rating: 1 }); }}>Add Skill</Button>
+            </div>
+          )}
           {skills.map((skill, idx) => (
             editingSkill === idx ? (
               <div key={skill.name || idx} className="flex flex-col md:flex-row items-center gap-2 bg-[#F4F8FB] dark:bg-[#232B43] rounded-lg p-2 border border-[#2B4C7E]/10">
-                <Input value={safeNewSkill.name} onChange={e => setNewSkill({ ...safeNewSkill, name: e.target.value })} className="w-full md:w-32 text-xs" placeholder="Skill Name" />
+                <Input value={safeNewSkill.name} onChange={e => setNewSkill({ ...safeNewSkill, name: e.target.value })} className="w-full md:w-32 text-xs overflow-x-auto whitespace-nowrap" placeholder="Skill Name (e.g. JavaScript)" />
                 <select value={safeNewSkill.level} onChange={e => setNewSkill({ ...safeNewSkill, level: e.target.value })} className="text-xs rounded px-1 py-0.5">
                   <option>Beginner</option>
                   <option>Intermediate</option>
@@ -75,7 +82,7 @@ export default function ProfileSkills({ user, skills = [], setSkills, editingSki
           ))}
           {addingSkill && (
             <div className="flex flex-col md:flex-row items-center gap-2 bg-[#F4F8FB] dark:bg-[#232B43] rounded-lg p-2 border border-[#2B4C7E]/10">
-              <Input value={safeNewSkill.name} onChange={e => setNewSkill({ ...safeNewSkill, name: e.target.value })} className="w-full md:w-32 text-xs" placeholder="Skill Name" />
+              <Input value={safeNewSkill.name} onChange={e => setNewSkill({ ...safeNewSkill, name: e.target.value })} className="w-full md:w-32 text-xs overflow-x-auto whitespace-nowrap" placeholder="Skill Name (e.g. JavaScript)" />
               <select value={safeNewSkill.level} onChange={e => setNewSkill({ ...safeNewSkill, level: e.target.value })} className="text-xs rounded px-1 py-0.5">
                 <option>Beginner</option>
                 <option>Intermediate</option>

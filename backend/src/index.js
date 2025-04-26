@@ -58,34 +58,65 @@ app.get('/auth/google',
 
 // Google OAuth callback
 app.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/' }),
+  passport.authenticate('google', { failureRedirect: '/login' }),
   async (req, res) => {
-    console.log('Callback hit!');
-    console.log('Google profile:', req.user);
-    const googleProfile = req.user;
+    // Extract info from Google profile
+    const google_id = req.user.id;
+    const name = req.user.displayName;
+    const email = req.user.emails && req.user.emails[0]?.value;
+    const avatar_url = req.user.photos && req.user.photos[0]?.value;
 
-    console.log('Google profile:', googleProfile);
+    if (!email) {
+      return res.redirect('http://localhost:8080/login?error=NoEmail');
+    }
 
-    // Extract user info from Google profile
-    const email = googleProfile.emails[0].value;
-    const name = googleProfile.displayName;
-    const google_id = googleProfile.id;
-    const avatar_url = googleProfile.photos && googleProfile.photos[0] ? googleProfile.photos[0].value : null;
+    // Upsert user (create if not exists, update if exists)
+    let user = await prisma.user.upsert({
+      where: { email },
+      update: { name, google_id, avatar_url },
+      create: { email, name, google_id, avatar_url },
+    });
 
-    console.log('Upserting user:', { email, name, google_id, avatar_url });
+    // Ensure profile exists for this user
+    const existingProfile = await prisma.profile.findUnique({ where: { userId: user.id } });
+    if (!existingProfile) {
+      await prisma.profile.create({
+        data: {
+          userId: user.id,
+          fullName: '',
+          username: '',
+          contact: '',
+          dob: null,
+          status: '',
+          avatarUrl: '',
+          bio: '',
+          linkedin: '',
+          github: '',
+          twitter: '',
+          website: '',
+          educations: [],
+          skills: [],
+          projects: [],
+          experience: [],
+          badges: [],
+          events: [],
+          learningPath: [],
+          progress: [],
+          settings: {},
+          activityFeed: [],
+          quickActions: []
+        }
+      });
+    }
 
-    // Save or update user in Supabase (PostgreSQL)
-    const dbUser = await findOrCreateUser({ email, name, google_id, avatar_url });
-
-    console.log('User in DB:', dbUser);
-
-    // Generate JWT with your own user id
+    // Generate JWT
     const token = jwt.sign(
-      { id: dbUser.id, email: dbUser.email, name: dbUser.name },
-      'your_jwt_secret', // Use a strong secret in production!
+      { id: user.id, email: user.email, name: user.name },
+      'your_jwt_secret',
       { expiresIn: '1h' }
     );
 
+    // Redirect to frontend with token
     res.redirect(`http://localhost:8080/login?token=${token}`);
   }
 );
@@ -115,6 +146,34 @@ app.post('/auth/register', async (req, res) => {
     const user = await prisma.user.create({
       data: { email, name, password: hashedPassword }
     });
+    // Automatically create a blank profile for the new user
+    await prisma.profile.create({
+      data: {
+        userId: user.id,
+        fullName: '',
+        username: '',
+        contact: '',
+        dob: null,
+        status: '',
+        avatarUrl: '',
+        bio: '',
+        linkedin: '',
+        github: '',
+        twitter: '',
+        website: '',
+        educations: [],
+        skills: [],
+        projects: [],
+        experience: [],
+        badges: [],
+        events: [],
+        learningPath: [],
+        progress: [],
+        settings: {},
+        activityFeed: [],
+        quickActions: []
+      }
+    });
     // Optionally, generate JWT and return it
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name },
@@ -124,6 +183,151 @@ app.post('/auth/register', async (req, res) => {
     res.status(201).json({ message: 'User created', token });
   } catch (err) {
     console.error('Registration error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password required' });
+  }
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || !user.password) {
+      // User does not exist or has no password (e.g., Google user)
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    // Generate JWT or session here
+    const token = jwt.sign(
+      { id: user.id, email: user.email, name: user.name },
+      'your_jwt_secret',
+      { expiresIn: '1h' }
+    );
+    res.json({ message: 'Login successful', token });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.sendStatus(401);
+
+  jwt.verify(token, 'your_jwt_secret', (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
+
+app.get('/profile', authenticateToken, async (req, res) => {
+  try {
+    const profile = await prisma.profile.findUnique({
+      where: { userId: req.user.id }
+    });
+    if (!profile) return res.status(404).json({ error: 'Profile not found' });
+    res.json(profile);
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/profile', authenticateToken, async (req, res) => {
+  try {
+    const allowedFields = [
+      'fullName', 'username', 'contact', 'dob', 'status', 'avatarUrl', 'bio',
+      'linkedin', 'github', 'twitter', 'website',
+      'educations', 'skills', 'projects', 'experience', 'badges', 'events',
+      'learningPath', 'progress', 'settings', 'activityFeed', 'quickActions'
+    ];
+    const data = {};
+    for (const key of allowedFields) {
+      if (key === 'dob') {
+        if (
+          req.body.dob &&
+          typeof req.body.dob === 'string' &&
+          req.body.dob.trim() !== '' &&
+          !isNaN(Date.parse(req.body.dob))
+        ) {
+          data.dob = new Date(req.body.dob).toISOString();
+        }
+      } else if (req.body[key] !== undefined && req.body[key] !== null) {
+        data[key] = req.body[key];
+      }
+    }
+    // Ensure all JSON fields are arrays/objects, never null/undefined
+    const jsonFields = [
+      'educations', 'skills', 'projects', 'experience', 'badges', 'events',
+      'learningPath', 'progress', 'activityFeed', 'quickActions'
+    ];
+    for (const key of jsonFields) {
+      if (data[key] === undefined || data[key] === null) {
+        data[key] = [];
+      }
+    }
+    if (data['settings'] === undefined || data['settings'] === null) {
+      data['settings'] = {};
+    }
+    const updated = await prisma.profile.update({
+      where: { userId: req.user.id },
+      data
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('Profile update error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/profile', authenticateToken, async (req, res) => {
+  try {
+    const allowedFields = [
+      'fullName', 'username', 'contact', 'dob', 'status', 'avatarUrl', 'bio',
+      'linkedin', 'github', 'twitter', 'website',
+      'educations', 'skills', 'projects', 'experience', 'badges', 'events',
+      'learningPath', 'progress', 'settings', 'activityFeed', 'quickActions'
+    ];
+    const data = { userId: req.user.id };
+    for (const key of allowedFields) {
+      if (key === 'dob') {
+        if (
+          req.body.dob &&
+          typeof req.body.dob === 'string' &&
+          req.body.dob.trim() !== '' &&
+          !isNaN(Date.parse(req.body.dob))
+        ) {
+          data.dob = new Date(req.body.dob).toISOString();
+        }
+      } else if (req.body[key] !== undefined && req.body[key] !== null) {
+        data[key] = req.body[key];
+      }
+    }
+    // Ensure all JSON fields are arrays/objects, never null/undefined
+    const jsonFields = [
+      'educations', 'skills', 'projects', 'experience', 'badges', 'events',
+      'learningPath', 'progress', 'activityFeed', 'quickActions'
+    ];
+    for (const key of jsonFields) {
+      if (data[key] === undefined || data[key] === null) {
+        data[key] = [];
+      }
+    }
+    if (data['settings'] === undefined || data['settings'] === null) {
+      data['settings'] = {};
+    }
+    const profile = await prisma.profile.create({
+      data
+    });
+    res.status(201).json(profile);
+  } catch (err) {
+    console.error('Profile create error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

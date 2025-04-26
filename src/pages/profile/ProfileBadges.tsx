@@ -25,12 +25,19 @@ export default function ProfileBadges({ user, badges, setBadges, editingBadge, n
           </Button>
         </div>
         <div className="flex flex-wrap gap-4">
+          {badges.length === 0 && (
+            <div className="w-full flex flex-col items-center justify-center p-4 bg-muted/30 rounded-lg border border-dashed border-gray-300 mb-2">
+              <Award className="h-8 w-8 text-[#F9A826] mb-2" />
+              <span className="text-gray-500 italic">No badges added yet.</span>
+              <Button size="sm" variant="outline" className="mt-2" onClick={() => { setAddingBadge(true); setNewBadge({ name: '', description: '', icon: '' }); }}>Add Badge</Button>
+            </div>
+          )}
           {badges.map((badge, idx) => (
             editingBadge === idx ? (
               <div key={badge.name} className="flex flex-col md:flex-row items-center gap-2 bg-[#F4F8FB] dark:bg-[#232B43] rounded-lg p-4 border border-[#2B4C7E]/10 w-full max-w-xs">
-                <Input value={newBadge.name} onChange={e => setNewBadge({ ...newBadge, name: e.target.value })} className="w-full md:w-24 text-xs" placeholder="Badge Name" />
-                <Input value={newBadge.description} onChange={e => setNewBadge({ ...newBadge, description: e.target.value })} className="w-full md:w-32 text-xs" placeholder="Description" />
-                <Input value={newBadge.icon} onChange={e => setNewBadge({ ...newBadge, icon: e.target.value })} className="w-full md:w-20 text-xs" placeholder="Icon (Award/BookOpen)" />
+                <Input value={newBadge.name} onChange={e => setNewBadge({ ...newBadge, name: e.target.value })} className="w-full md:w-24 text-xs overflow-x-auto whitespace-nowrap" placeholder="Badge Name (e.g. Top Performer)" />
+                <Input value={newBadge.description} onChange={e => setNewBadge({ ...newBadge, description: e.target.value })} className="w-full md:w-32 text-xs overflow-x-auto whitespace-nowrap" placeholder="Description (e.g. For outstanding results)" />
+                <Input value={newBadge.icon} onChange={e => setNewBadge({ ...newBadge, icon: e.target.value })} className="w-full md:w-20 text-xs overflow-x-auto whitespace-nowrap" placeholder="Icon (Award/BookOpen)" />
                 <Button size="icon" variant="ghost" className="ml-1" onClick={() => onSave(idx)} title="Save"><Save className="h-4 w-4" /></Button>
                 <Button size="icon" variant="ghost" className="ml-1" onClick={onCancelEdit} title="Cancel"><X className="h-4 w-4" /></Button>
               </div>
@@ -52,9 +59,9 @@ export default function ProfileBadges({ user, badges, setBadges, editingBadge, n
           ))}
           {addingBadge && (
             <div className="flex flex-col md:flex-row items-center gap-2 bg-[#F4F8FB] dark:bg-[#232B43] rounded-lg p-4 border border-[#2B4C7E]/10 w-full max-w-xs">
-              <Input value={newBadge.name} onChange={e => setNewBadge({ ...newBadge, name: e.target.value })} className="w-full md:w-24 text-xs" placeholder="Badge Name" />
-              <Input value={newBadge.description} onChange={e => setNewBadge({ ...newBadge, description: e.target.value })} className="w-full md:w-32 text-xs" placeholder="Description" />
-              <Input value={newBadge.icon} onChange={e => setNewBadge({ ...newBadge, icon: e.target.value })} className="w-full md:w-20 text-xs" placeholder="Icon (Award/BookOpen)" />
+              <Input value={newBadge.name} onChange={e => setNewBadge({ ...newBadge, name: e.target.value })} className="w-full md:w-24 text-xs overflow-x-auto whitespace-nowrap" placeholder="Badge Name (e.g. Top Performer)" />
+              <Input value={newBadge.description} onChange={e => setNewBadge({ ...newBadge, description: e.target.value })} className="w-full md:w-32 text-xs overflow-x-auto whitespace-nowrap" placeholder="Description (e.g. For outstanding results)" />
+              <Input value={newBadge.icon} onChange={e => setNewBadge({ ...newBadge, icon: e.target.value })} className="w-full md:w-20 text-xs overflow-x-auto whitespace-nowrap" placeholder="Icon (Award/BookOpen)" />
               <Button size="icon" variant="ghost" className="ml-1" onClick={onAdd} title="Add"><Save className="h-4 w-4" /></Button>
               <Button size="icon" variant="ghost" className="ml-1" onClick={onCancelAdd} title="Cancel"><X className="h-4 w-4" /></Button>
             </div>
