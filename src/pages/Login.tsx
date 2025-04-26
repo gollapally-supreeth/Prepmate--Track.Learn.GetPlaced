@@ -361,7 +361,7 @@ export default function LoginPage() {
               <div className="text-center text-sm text-gray-600 dark:text-gray-400">
                 New to PrepMate?{" "}
                 <Link
-                  to="/register"
+                  to="/signup"
                   className="font-semibold text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
                 >
                   Create an account

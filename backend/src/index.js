@@ -6,6 +6,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcrypt');
 
 const app = express();
 const prisma = new PrismaClient();
@@ -98,6 +99,34 @@ async function findOrCreateUser({ email, name, google_id, avatar_url }) {
   });
   return user;
 }
+
+// Registration route for manual signup
+app.post('/auth/register', async (req, res) => {
+  const { email, password, name } = req.body;
+  if (!email || !password || !name) {
+    return res.status(400).json({ error: 'All fields required' });
+  }
+  try {
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return res.status(409).json({ error: 'Email already in use' });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await prisma.user.create({
+      data: { email, name, password: hashedPassword }
+    });
+    // Optionally, generate JWT and return it
+    const token = jwt.sign(
+      { id: user.id, email: user.email, name: user.name },
+      'your_jwt_secret',
+      { expiresIn: '1h' }
+    );
+    res.status(201).json({ message: 'User created', token });
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

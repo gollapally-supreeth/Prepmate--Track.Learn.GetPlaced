@@ -24,6 +24,7 @@ import { useEffect, useState } from "react";
 import useAuthStore from "./lib/auth";
 import { AIAssistantProvider } from "./components/ai-assistant/AIAssistantContext";
 import Profile from './pages/Profile';
+import SignupPage from "./pages/Signup";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +76,17 @@ const App = () => {
                     }
                   />
                   
+                  <Route
+                    path="/signup"
+                    element={
+                      isAuthenticated ? (
+                        <Navigate to="/dashboard" replace />
+                      ) : (
+                        <SignupPage />
+                      )
+                    }
+                  />
+
                   <Route
                     path="/"
                     element={
