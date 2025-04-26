@@ -9,6 +9,7 @@ interface AuthState {
   } | null;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   logout: () => void;
+  loginWithToken: (token: string) => void;
 }
 
 const useAuthStore = create<AuthState>()(
@@ -36,6 +37,19 @@ const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
           user: null,
         });
+        localStorage.removeItem('authToken');
+      },
+      loginWithToken: (token: string) => {
+        // Decode token, set isAuthenticated and user
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        set({
+          isAuthenticated: true,
+          user: {
+            email: payload.email,
+            name: payload.name,
+          },
+        });
+        // Optionally, store the token in state as well
       },
     }),
     {

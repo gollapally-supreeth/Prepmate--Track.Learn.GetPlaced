@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -58,6 +58,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [quote] = useState(() => 
     motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]
@@ -73,6 +74,23 @@ export default function LoginPage() {
       rememberMe: false,
     },
   });
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const token = params.get('token');
+    if (token) {
+      localStorage.setItem('authToken', token);
+
+      // Decode the token to get user info (optional, but recommended)
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      // Example: { id, email, name, ... }
+
+      // Update your auth store
+      login(payload.email, token, true); // You may want to adjust this to match your store's API
+
+      navigate('/dashboard');
+    }
+  }, [location, navigate, login]);
 
   const onSubmit = async (data: LoginForm) => {
     try {
@@ -326,7 +344,9 @@ export default function LoginPage() {
                 type="button"
                 variant="outline"
                 className="w-full h-11 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-gray-200 dark:border-gray-700"
-                onClick={handleGoogleLogin}
+                onClick={() => {
+                  window.location.href = 'http://localhost:5000/auth/google?prompt=select_account';
+                }}
                 disabled={isLoading}
               >
                 <img

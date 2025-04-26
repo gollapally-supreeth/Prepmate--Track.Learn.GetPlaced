@@ -91,6 +91,18 @@ const initialUser = {
     'Update Resume',
     'Change Password',
   ],
+  educations: [
+    // Example entry
+    // {
+    //   school: 'ABC University',
+    //   degree: 'B.Tech',
+    //   fieldOfStudy: 'Computer Science',
+    //   startYear: 2020,
+    //   endYear: 2024,
+    //   grade: '8.7 CGPA',
+    //   description: 'Relevant coursework, achievements, etc.'
+    // }
+  ],
 };
 
 export function useProfileState() {
@@ -222,6 +234,44 @@ export function useProfileState() {
   };
   const handleQuickActionAdd = (action) => {
     setQuickActions((prev) => [...prev, action]);
+  };
+
+  const [educations, setEducations] = useState(user.educations);
+  const [editingEducation, setEditingEducation] = useState(null); // index of education being edited
+  const [newEducation, setNewEducation] = useState({
+    school: '',
+    degree: '',
+    fieldOfStudy: '',
+    startYear: '',
+    endYear: '',
+    grade: '',
+    description: '',
+  });
+  const [addingEducation, setAddingEducation] = useState(false);
+
+  // Education handlers
+  const handleEducationEdit = (idx) => {
+    setEditingEducation(idx);
+    setNewEducation({ ...educations[idx] });
+  };
+  const handleEducationSave = (idx) => {
+    const updated = [...educations];
+    updated[idx] = { ...newEducation };
+    setEducations(updated);
+    setUser((prev) => ({ ...prev, educations: updated }));
+    setEditingEducation(null);
+    setNewEducation({ school: '', degree: '', fieldOfStudy: '', startYear: '', endYear: '', grade: '', description: '' });
+  };
+  const handleEducationDelete = (idx) => {
+    const updated = educations.filter((_, i) => i !== idx);
+    setEducations(updated);
+    setUser((prev) => ({ ...prev, educations: updated }));
+  };
+  const handleEducationAdd = () => {
+    setEducations((prev) => [...prev, { ...newEducation }]);
+    setUser((prev) => ({ ...prev, educations: [...prev.educations, { ...newEducation }] }));
+    setNewEducation({ school: '', degree: '', fieldOfStudy: '', startYear: '', endYear: '', grade: '', description: '' });
+    setAddingEducation(false);
   };
 
   useEffect(() => {
@@ -533,5 +583,7 @@ export function useProfileState() {
     handleEditFullProfile, handleAddProject, handleUpdateResume, handleChangePassword,
     activity, setActivity, editingActivity, setEditingActivity, handleActivityEdit, handleActivitySave, handleActivityDelete, handleActivityAdd,
     quickActions, setQuickActions, editingQuickActions, setEditingQuickActions, handleQuickActionEdit, handleQuickActionSave, handleQuickActionDelete, handleQuickActionAdd,
+    educations, setEducations, editingEducation, setEditingEducation, newEducation, setNewEducation, addingEducation, setAddingEducation,
+    handleEducationEdit, handleEducationSave, handleEducationDelete, handleEducationAdd,
   };
 } 

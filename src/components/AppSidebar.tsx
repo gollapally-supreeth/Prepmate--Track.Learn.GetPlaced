@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter } from '@/components/ui/sidebar';
 import { 
   LayoutDashboard, 
@@ -23,6 +22,7 @@ import { cn } from '@/lib/utils';
 
 export function AppSidebar({ isCollapsed }: { isCollapsed: boolean }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { logout } = useAuth();
   
   const isActive = (path: string) => {
@@ -31,6 +31,7 @@ export function AppSidebar({ isCollapsed }: { isCollapsed: boolean }) {
 
   const handleLogout = () => {
     logout();
+    navigate('/login');
   };
 
   return (

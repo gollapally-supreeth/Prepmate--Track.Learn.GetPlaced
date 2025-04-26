@@ -135,6 +135,17 @@ export default function Profile() {
               onSave={handleAcademicsSave}
               onEdit={() => profile.setEdit((prev) => ({ ...prev, academics: true }))}
               onCancel={() => profile.setEdit((prev) => ({ ...prev, academics: false }))}
+              educations={profile.educations}
+              editingEducation={profile.editingEducation}
+              setEditingEducation={profile.setEditingEducation}
+              newEducation={profile.newEducation}
+              setNewEducation={profile.setNewEducation}
+              addingEducation={profile.addingEducation}
+              setAddingEducation={profile.setAddingEducation}
+              handleEducationEdit={profile.handleEducationEdit}
+              handleEducationSave={profile.handleEducationSave}
+              handleEducationDelete={profile.handleEducationDelete}
+              handleEducationAdd={profile.handleEducationAdd}
             />
           </section>
           {/* Skills Section */}
