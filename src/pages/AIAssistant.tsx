@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,14 @@ import {
   Menu,
   Code,
   FileCheck,
-  Calendar
+  Calendar,
+  Sun,
+  Moon,
+  Text,
+  Loader2,
+  Download,
+  HelpCircle,
+  Info
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -28,6 +34,11 @@ import SmartSuggestions from '@/components/ai-assistant/SmartSuggestions';
 import { useAIAssistant } from '@/components/ai-assistant/AIAssistantContext';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTheme } from '@/hooks/use-theme';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose, DialogFooter } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import jsPDF from 'jspdf';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 
 const AIAssistant = () => {
   const { 
@@ -44,6 +55,9 @@ const AIAssistant = () => {
   const [activeTab, setActiveTab] = useState<string>('explore');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg'>('base');
+  const { theme, toggleTheme } = useTheme();
+  const [showHelp, setShowHelp] = useState(false);
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -69,6 +83,42 @@ const AIAssistant = () => {
   
   const handleCopyMessage = (content: string) => {
     navigator.clipboard.writeText(content);
+  };
+
+  // Export chat as text
+  const handleExportText = () => {
+    let txt = '';
+    messages.forEach(msg => {
+      if (msg.type === 'user') {
+        txt += `You: ${msg.content}\n\n`;
+      } else if (msg.type === 'assistant' || (typeof msg.type === 'string' && msg.type.toLowerCase() === 'ai')) {
+        txt += `PrepMate AI: ${msg.content}\n\n`;
+      }
+    });
+    const blob = new Blob([txt], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'prepmate-chat.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Export chat as PDF
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    let y = 10;
+    messages.forEach(msg => {
+      let label = msg.type === 'user' ? 'You: ' : 'PrepMate AI: ';
+      let lines = doc.splitTextToSize(label + msg.content, 180);
+      doc.text(lines, 10, y);
+      y += lines.length * 8 + 4;
+      if (y > 270) {
+        doc.addPage();
+        y = 10;
+      }
+    });
+    doc.save('prepmate-chat.pdf');
   };
 
   return (
@@ -104,7 +154,7 @@ const AIAssistant = () => {
       </Drawer>
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-hidden w-full" style={{ fontSize: fontSize === 'sm' ? '0.9rem' : fontSize === 'lg' ? '1.15rem' : '1rem' }}>
         <div className="flex justify-between items-center border-b sticky top-0 z-10 p-4 bg-background">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600">
@@ -112,39 +162,113 @@ const AIAssistant = () => {
                 <Bot size={20} />
               </AvatarFallback>
             </Avatar>
-            <div>
+            <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold">PrepMate Assistant</h2>
                 <Badge variant="outline" className="bg-primary/10 text-xs px-2 py-0">Beta</Badge>
+                {/* About/Info button with tooltip */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={() => setShowHelp(true)} aria-label="About & Features">
+                        <Info size={18} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>About & Features</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
-              <p className="text-sm text-muted-foreground">Powered by Google Gemini</p>
+              <p className="text-xs text-muted-foreground ml-0.5">Powered by Google Gemini</p>
             </div>
           </div>
-          
-          <div className="flex gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setShowSidebar(!showSidebar)}
-              className="hidden lg:flex"
-              title="Toggle sidebar"
-            >
-              <MessageSquare size={18} />
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={newSession}
-              title="New conversation"
-            >
-              <PencilRuler size={18} />
-            </Button>
+          <div className="flex gap-2 items-center">
+            {/* Export dropdown with tooltip */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" aria-label="Download chat">
+                        <Download size={18} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={handleExportText}>
+                        <Text size={16} className="mr-2" />
+                        Download as Text
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleExportPDF}>
+                        <Download size={16} className="mr-2" />
+                        Download as PDF
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TooltipTrigger>
+                <TooltipContent>Download chat</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            {/* Font size selector with icon, label, and tooltip */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1 px-2">
+                    <Text size={18} className="text-muted-foreground" />
+                    <label htmlFor="font-size-select" className="text-xs text-muted-foreground mr-1">Text Size</label>
+                    <select
+                      id="font-size-select"
+                      className="border rounded px-2 py-1 text-xs bg-background focus:outline-none"
+                      value={fontSize}
+                      onChange={e => setFontSize(e.target.value as any)}
+                      title="Font size"
+                      aria-label="Font size"
+                    >
+                      <option value="sm">A-</option>
+                      <option value="base">A</option>
+                      <option value="lg">A+</option>
+                    </select>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>Adjust text size</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            {/* Sidebar toggle with tooltip */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => setShowSidebar(!showSidebar)}
+                    className="hidden lg:flex"
+                    aria-label="Toggle sidebar"
+                  >
+                    <MessageSquare size={18} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Toggle sidebar</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            {/* New chat with tooltip */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={newSession}
+                    aria-label="New conversation"
+                  >
+                    <PencilRuler size={18} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Start new chat</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
         
         {messages.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 overflow-y-auto">
+          <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 overflow-y-hidden">
             <div className="w-full max-w-3xl mx-auto space-y-8">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -288,7 +412,7 @@ const AIAssistant = () => {
           </ScrollArea>
         )}
         
-        <div className="p-4 mt-auto border-t bg-background">
+        <div className="p-4 mt-auto border-t bg-background shadow-lg sticky bottom-0 z-20">
           <ChatInput 
             onSendMessage={handleSendMessage} 
             isLoading={isLoading} 
@@ -298,6 +422,30 @@ const AIAssistant = () => {
           </div>
         </div>
       </div>
+      {/* Help dialog/modal */}
+      <Dialog open={showHelp} onOpenChange={setShowHelp}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>About PrepMate AI</DialogTitle>
+            <DialogDescription>
+              <ul className="list-disc pl-5 space-y-2 mt-2 text-sm">
+                <li>Start a new chat or select an existing session from the sidebar.</li>
+                <li>Rename, pin, tag, or delete chats with the three-dot menu.</li>
+                <li>Send messages, use smart suggestions, and interact with AI responses.</li>
+                <li>Hover over messages for actions: copy, like/dislike, mark as important, add notes.</li>
+                <li>Download your chat as PDF or text from the header.</li>
+                <li>Adjust text size for readability.</li>
+                <li>All your chats are private to your account.</li>
+              </ul>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Close</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -417,43 +416,47 @@ Selected Topic: ${topics.find(t => t.id === topic)?.title}`;
             {/* Chat Messages */}
             <div 
               ref={chatContainerRef}
-              className="flex-1 overflow-y-auto p-4 space-y-4"
+              className="flex-1 overflow-y-auto p-4 space-y-2"
             >
               {messages.map(message => (
                 <div 
                   key={message.id} 
                   className={cn(
-                    "flex gap-3 max-w-[80%]",
-                    message.sender === 'user' ? "ml-auto" : ""
+                    "flex flex-col max-w-[80%]",
+                    message.sender === 'user' ? "ml-auto items-end" : "items-start"
                   )}
                 >
-                  {message.sender === 'bot' && (
-                    <Avatar>
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        <Bot size={18} />
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  
-                  <div 
-                    className={cn(
-                      "rounded-lg p-3",
-                      message.sender === 'user' 
-                        ? "bg-primary text-primary-foreground" 
-                        : "bg-muted"
+                  {/* Sender label */}
+                  <span className="text-xs font-semibold mb-1 text-muted-foreground">
+                    {message.sender === 'user' ? "You" : "PrepMate AI"}
+                  </span>
+                  <div className="flex gap-3">
+                    {message.sender === 'bot' && (
+                      <Avatar>
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          <Bot size={18} />
+                        </AvatarFallback>
+                      </Avatar>
                     )}
-                  >
-                    <p className="whitespace-pre-wrap">{message.text}</p>
-                    <p className="text-xs mt-1 opacity-70">
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
+                    <div 
+                      className={cn(
+                        "rounded-lg p-3",
+                        message.sender === 'user' 
+                          ? "bg-primary text-primary-foreground" 
+                          : "bg-muted"
+                      )}
+                    >
+                      <p className="whitespace-pre-wrap">{message.text}</p>
+                      <p className="text-xs mt-1 opacity-70">
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                    {message.sender === 'user' && (
+                      <Avatar>
+                        <AvatarFallback className="bg-blue-500 text-white">P</AvatarFallback>
+                      </Avatar>
+                    )}
                   </div>
-                  
-                  {message.sender === 'user' && (
-                    <Avatar>
-                      <AvatarFallback className="bg-blue-500 text-white">P</AvatarFallback>
-                    </Avatar>
-                  )}
                 </div>
               ))}
               

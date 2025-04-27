@@ -7,6 +7,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 const prisma = new PrismaClient();
@@ -112,7 +113,7 @@ app.get('/auth/google/callback',
     // Generate JWT
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name },
-      'your_jwt_secret',
+      process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
 
@@ -177,7 +178,7 @@ app.post('/auth/register', async (req, res) => {
     // Optionally, generate JWT and return it
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name },
-      'your_jwt_secret',
+      process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
     res.status(201).json({ message: 'User created', token });
@@ -205,7 +206,7 @@ app.post('/auth/login', async (req, res) => {
     // Generate JWT or session here
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name },
-      'your_jwt_secret',
+      process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
     res.json({ message: 'Login successful', token });
@@ -220,7 +221,7 @@ function authenticateToken(req, res, next) {
   const token = authHeader && authHeader.split(' ')[1];
   if (!token) return res.sendStatus(401);
 
-  jwt.verify(token, 'your_jwt_secret', (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) return res.sendStatus(403);
     req.user = user;
     next();
@@ -331,6 +332,175 @@ app.post('/profile', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// Gemini AI integration
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const geminiModel = genAI.getGenerativeModel({ model: 'gemini-1.5-pro-latest' });
+
+async function generateGeminiResponse(history, prompt) {
+  try {
+    const chat = geminiModel.startChat({ history });
+    const result = await chat.sendMessage(prompt);
+    const response = await result.response;
+    return response.text();
+  } catch (error) {
+    console.error('Gemini error:', error);
+    throw new Error('Failed to generate AI response');
+  }
+}
+
+// AI Assistant API routes
+const aiRouter = express.Router();
+
+// All routes require authentication
+aiRouter.use(authenticateToken);
+
+// Get chat sessions for a user
+aiRouter.get('/sessions', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const sessions = await prisma.chatSession.findMany({
+      where: { userId },
+      include: {
+        messages: { orderBy: { timestamp: 'asc' } }
+      },
+      orderBy: { updatedAt: 'desc' }
+    });
+    res.json(sessions);
+  } catch (error) {
+    console.error('Error in getSessions:', error);
+    res.status(500).json({ error: 'Failed to fetch sessions' });
+  }
+});
+
+// Send a message and get AI response
+aiRouter.post('/message', async (req, res) => {
+  try {
+    const { content, sessionId } = req.body;
+    const userId = req.user.id;
+    let chatSession = sessionId
+      ? await prisma.chatSession.findUnique({
+          where: { id: sessionId },
+          include: { messages: true }
+        })
+      : await prisma.chatSession.create({
+          data: {
+            userId,
+            title: content.slice(0, 50) + '...'
+          }
+        });
+    if (!sessionId && chatSession) {
+      chatSession = await prisma.chatSession.findUnique({
+        where: { id: chatSession.id },
+        include: { messages: true }
+      });
+    }
+    if (!chatSession) {
+      return res.status(404).json({ error: 'Chat session not found' });
+    }
+    // Save user message
+    const userMessage = await prisma.message.create({
+      data: {
+        chatSessionId: chatSession.id,
+        content,
+        sender: 'user'
+      }
+    });
+    // Get chat history for context
+    const messages = chatSession.messages || [];
+    const history = messages.map(msg => ({
+      role: msg.sender === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }]
+    }));
+    // Generate AI response
+    const aiResponse = await generateGeminiResponse(history, content);
+    // Save AI response
+    const assistantMessage = await prisma.message.create({
+      data: {
+        chatSessionId: chatSession.id,
+        content: aiResponse,
+        sender: 'assistant'
+      }
+    });
+    // Update session
+    await prisma.chatSession.update({
+      where: { id: chatSession.id },
+      data: { updatedAt: new Date() }
+    });
+    res.json({ userMessage, assistantMessage, sessionId: chatSession.id });
+  } catch (error) {
+    console.error('Error in sendMessage:', error);
+    res.status(500).json({ error: 'Failed to process message' });
+  }
+});
+
+// Delete a chat session
+aiRouter.delete('/sessions/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const userId = req.user.id;
+    const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId } });
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    await prisma.chatSession.delete({ where: { id: sessionId } });
+    res.json({ message: 'Session deleted successfully' });
+  } catch (error) {
+    console.error('Error in deleteSession:', error);
+    res.status(500).json({ error: 'Failed to delete session' });
+  }
+});
+
+// Update message feedback
+aiRouter.patch('/messages/:messageId/feedback', async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { feedback } = req.body;
+    const userId = req.user.id;
+    const message = await prisma.message.findUnique({
+      where: { id: messageId },
+      include: { chatSession: true }
+    });
+    if (!message || message.chatSession.userId !== userId) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+    const updatedMessage = await prisma.message.update({
+      where: { id: messageId },
+      data: { feedback }
+    });
+    res.json(updatedMessage);
+  } catch (error) {
+    console.error('Error in updateFeedback:', error);
+    res.status(500).json({ error: 'Failed to update feedback' });
+  }
+});
+
+// Rename a chat session
+aiRouter.patch('/sessions/:sessionId/title', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { title } = req.body;
+    const userId = req.user.id;
+    if (!title || typeof title !== 'string' || !title.trim()) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+    const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId } });
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    const updated = await prisma.chatSession.update({
+      where: { id: sessionId },
+      data: { title: title.trim() }
+    });
+    res.json(updated);
+  } catch (error) {
+    console.error('Error in renameSession:', error);
+    res.status(500).json({ error: 'Failed to rename session' });
+  }
+});
+
+app.use('/api/ai', aiRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
