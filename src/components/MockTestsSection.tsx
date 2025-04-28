@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { TestTube, Clock, Star, Award, Search, CheckCircle, XCircle, LineChart, Loader2 } from 'lucide-react';
+import { TestTube, Clock, Star, Award, Search, CheckCircle, XCircle, LineChart, Loader2, Trash2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import MockTestInterface from './MockTestInterface';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import TestGenerator, { generateTestWithAI } from './TestGenerator';
 import { Bookmark, Flag } from 'lucide-react';
+import TestDialog from '@/components/TestDialog';
 
 interface Question {
   id: string;
@@ -171,6 +172,10 @@ const MockTestsSection: React.FC = () => {
   const { toast } = useToast();
   const [loadingTest, setLoadingTest] = useState(false);
   const [completedTestsList, setCompletedTestsList] = useState<MockTest[]>([]);
+  const [tests, setTests] = useState([]);
+  const [activeTest, setActiveTest] = useState(null);
+  const [testDialogOpen, setTestDialogOpen] = useState(false);
+  const [deletingTestId, setDeletingTestId] = useState<string | null>(null);
 
   // Merge completedTests with mockTests for display (avoid duplicates by id)
   const allTests = [
@@ -180,7 +185,7 @@ const MockTestsSection: React.FC = () => {
 
   // Filter tests based on search term, category and attempted status
   const filteredTests = allTests.filter(test => {
-    const matchesSearch = test.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (test.title || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || test.category === selectedCategory;
     const matchesFilter = 
       filter === 'all' || 
@@ -197,6 +202,26 @@ const MockTestsSection: React.FC = () => {
     .filter(test => test.score !== undefined)
     .reduce((sum, test) => sum + (test.score || 0), 0) / completedTestsCount || 0;
 
+  // Fetch all tests on mount
+  useEffect(() => {
+    fetch('/api/tests')
+      .then(res => res.json())
+      .then(setTests);
+  }, []);
+
+  // Helper to fetch a test by id (with questions)
+  const fetchTestById = async (id: string) => {
+    try {
+      const res = await fetch(`/api/tests/${id}`);
+      if (!res.ok) throw new Error('Failed to fetch test');
+      return await res.json();
+    } catch (e) {
+      // fallback to local state if fetch fails
+      const found = tests.find((t: any) => t.id === id);
+      return found;
+    }
+  };
+
   const handleStartTest = async (test: MockTest) => {
     if (test.questions && test.questions.length > 0) {
       setSelectedTest(test);
@@ -204,19 +229,20 @@ const MockTestsSection: React.FC = () => {
       return;
     }
     setLoadingTest(true);
-    // Try AI generation
+    // Provide all required TestConfig properties for generateTestWithAI
     const config = {
       subject: test.category,
       topic: test.title.replace(`${test.category} - `, ''),
       difficulty: test.difficulty,
-      questionCount: test.questionCount || 10
+      questionCount: test.questionCount || 10,
+      questionTypes: ['mcq'], // default to MCQ
+      timePerQuestion: 90, // default 90 seconds
+      totalTime: (test.questionCount || 10) * 90, // total time in seconds
+      difficultyMix: false // default
     };
     let questions = await generateTestWithAI(config, toast);
     // Fallback to local sample questions
     if (!questions || questions.length === 0) {
-      // Try to use local sampleQuestions from TestGenerator
-      // (imported or duplicated as needed)
-      // For now, fallback to a single dummy question
       questions = [{
         id: '1',
         text: 'No questions available for this test.',
@@ -249,19 +275,29 @@ const MockTestsSection: React.FC = () => {
     setSelectedTest(null);
   };
 
-  const handleTestGenerated = (questions: Question[]) => {
-    const newTest: MockTest = {
-      id: `generated-${Date.now()}`,
-      title: `${config.subject} - ${config.topic}`,
-      category: config.subject,
-      difficulty: config.difficulty,
-      duration: Math.ceil(questions.length * 1.5), // 1.5 minutes per question
-      questionCount: questions.length,
-      questions: questions
-    };
-    setGeneratedTest(newTest);
+  const handleTestGenerated = async (test: any) => {
+    let testId = test.id;
+    // If backend does not return id, fallback to last inserted
+    if (!testId && test && test.length > 0) testId = test[test.length - 1].id;
+    if (!testId) {
+      toast({ title: 'Error', description: 'Could not get test ID after creation', variant: 'destructive' });
+      return;
+    }
+    // Fetch the full test from backend
+    const fullTest = await fetchTestById(testId);
+    if (!fullTest || !fullTest.title) {
+      toast({ title: 'Error', description: 'Could not fetch test after creation. Please try again.', variant: 'destructive' });
+      // Optionally, refetch all tests to update UI
+      fetch('/api/tests')
+        .then(res => res.json())
+        .then(setTests);
+      return;
+    }
+    // Remove all empty/incomplete cards (no title) before adding the new one
+    setTests((prev: any) => [fullTest, ...prev.filter((t: any) => t && t.title)]);
+    setGeneratedTest(fullTest);
     setShowTestGenerator(false);
-    setSelectedTest(newTest);
+    setSelectedTest(fullTest);
     setShowTestInterface(true);
   };
 
@@ -275,6 +311,37 @@ const MockTestsSection: React.FC = () => {
       }
       return newSet;
     });
+  };
+
+  // Delete test handler (removes from backend and UI)
+  const handleDeleteTest = async (testId: string) => {
+    if (!window.confirm('Are you sure you want to delete this test? This action cannot be undone.')) return;
+    setDeletingTestId(testId);
+    try {
+      const res = await fetch(`/api/tests/${testId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete test');
+      setTests((prev: any) => prev.filter((t: any) => t.id !== testId));
+      setCompletedTestsList((prev) => prev.filter((t) => t.id !== testId));
+      toast({ title: 'Test deleted', description: 'The test was deleted successfully.' });
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message || 'Failed to delete test', variant: 'destructive' });
+    } finally {
+      setDeletingTestId(null);
+    }
+  };
+
+  // Retake always fetches latest test data and opens test interface
+  const handleTestGeneratedOrRetake = async (test: MockTest) => {
+    const testWithQuestions = await fetchTestById(test.id);
+    setActiveTest(testWithQuestions);
+    setTestDialogOpen(true);
+  };
+
+  // View Details always fetches latest test data and opens dialog
+  const handleViewDetails = async (test: MockTest) => {
+    const testWithQuestions = await fetchTestById(test.id);
+    setActiveTest(testWithQuestions);
+    setTestDialogOpen(true);
   };
 
   return (
@@ -406,7 +473,19 @@ const MockTestsSection: React.FC = () => {
               <CardContent className="p-5">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-medium">{test.title}</h3>
-                  {test.attempted && <Badge className="bg-emerald-500 dark:bg-emerald-600">Completed</Badge>}
+                  <div className="flex gap-2 items-center">
+                    {test.attempted && <Badge className="bg-emerald-500 dark:bg-emerald-600">Completed</Badge>}
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      aria-label="Delete test"
+                      onClick={() => handleDeleteTest(test.id)}
+                      disabled={deletingTestId === test.id}
+                      className="text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900"
+                    >
+                      {deletingTestId === test.id ? <Loader2 className="animate-spin h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="flex flex-wrap gap-2 mb-3">
@@ -445,11 +524,11 @@ const MockTestsSection: React.FC = () => {
                   <Button 
                     variant={test.attempted ? "outline" : "default"} 
                     className="button-animated"
-                    onClick={() => handleStartTest(test)}
+                    onClick={() => handleTestGeneratedOrRetake(test)}
                   >
                     {test.attempted ? 'Retake' : 'Start'} Test
                   </Button>
-                  <Button variant="outline" className="button-animated">
+                  <Button variant="outline" className="button-animated" onClick={() => handleViewDetails(test)}>
                     View Details
                   </Button>
                 </div>
@@ -501,6 +580,12 @@ const MockTestsSection: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <TestDialog
+        open={testDialogOpen}
+        test={activeTest}
+        onClose={() => setTestDialogOpen(false)}
+      />
     </div>
   );
 };

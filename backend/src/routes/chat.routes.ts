@@ -19,12 +19,26 @@ const aiLimiter = rateLimit({
 // Apply authentication middleware to all routes
 router.use(authenticateToken as RequestHandler);
 
+// Helper to get type from request (default to 'interview')
+function getSessionType(req: Request) {
+  return req.body.type || req.query.type || 'interview';
+}
+
 // Apply rate limiting to message endpoint
-router.post('/message', aiLimiter, asyncHandler(chatController.sendMessage));
+router.post('/message', aiLimiter, (req, res, next) => {
+  req.body.type = getSessionType(req);
+  next();
+}, asyncHandler(chatController.sendMessage));
 
 // Chat session management
-router.get('/sessions', asyncHandler(chatController.getSessions));
-router.delete('/sessions/:sessionId', asyncHandler(chatController.deleteSession));
+router.get('/sessions', (req, res, next) => {
+  req.query.type = getSessionType(req);
+  next();
+}, asyncHandler(chatController.getSessions));
+router.delete('/sessions/:sessionId', (req, res, next) => {
+  req.query.type = getSessionType(req);
+  next();
+}, asyncHandler(chatController.deleteSession));
 
 // Feedback
 router.patch('/messages/:messageId/feedback', asyncHandler(chatController.updateFeedback));

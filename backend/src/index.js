@@ -8,6 +8,8 @@ const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const sequelize = require('../db');
+const testRoutes = require('./routes/test.routes');
 
 const app = express();
 const prisma = new PrismaClient();
@@ -502,7 +504,12 @@ aiRouter.patch('/sessions/:sessionId/title', async (req, res) => {
 
 app.use('/api/ai', aiRouter);
 
+app.use('/api/tests', testRoutes);
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+
+sequelize.sync().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 });

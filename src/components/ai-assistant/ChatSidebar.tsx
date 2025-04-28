@@ -148,15 +148,15 @@ const ChatSidebar: React.FC = () => {
     <div className="flex flex-col h-full">
       <div className="p-3 border-b">
         <div className="flex justify-center mb-4">
-          <Button
-            variant="outline"
+        <Button 
+          variant="outline" 
             className="w-full max-w-[180px] justify-center gap-2 rounded-lg border bg-background hover:bg-muted shadow-sm transition-colors"
-            onClick={newSession}
+          onClick={newSession}
             aria-label="Start New Chat"
-          >
-            <Plus size={16} />
+        >
+          <Plus size={16} />
             <span>Start New Chat</span>
-          </Button>
+        </Button>
         </div>
         
         <div className="relative">

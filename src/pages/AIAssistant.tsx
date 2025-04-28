@@ -165,7 +165,7 @@ const AIAssistant = () => {
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold">PrepMate Assistant</h2>
-                <Badge variant="outline" className="bg-primary/10 text-xs px-2 py-0">Beta</Badge>
+                <Badge variant="outline" className="bg-primary/10 text-xs px-2 py-0">AI</Badge>
                 {/* About/Info button with tooltip */}
                 <TooltipProvider>
                   <Tooltip>
@@ -178,7 +178,7 @@ const AIAssistant = () => {
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <p className="text-xs text-muted-foreground ml-0.5">Powered by Google Gemini</p>
+              <p className="text-xs text-muted-foreground ml-0.5">YOUR AI COMPANION</p>
             </div>
           </div>
           <div className="flex gap-2 items-center">

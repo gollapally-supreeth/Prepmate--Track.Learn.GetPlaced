@@ -1,4 +1,3 @@
-
 export type AIMessageType = 'user' | 'assistant' | 'system' | 'error';
 
 export interface AIMessage {
@@ -8,6 +7,8 @@ export interface AIMessage {
   timestamp: Date;
   isLoading?: boolean;
   feedback?: 'positive' | 'negative' | null;
+  isImportant?: boolean;
+  note?: string;
 }
 
 export interface ChatSession {

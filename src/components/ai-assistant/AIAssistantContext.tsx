@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { AIMessage, ChatSession, SmartSuggestion } from './types';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { AIMessage, ChatSession, SmartSuggestion, AIMessageType } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -21,6 +21,8 @@ interface AIAssistantContextType {
   addNoteToMessage: (messageId: string, note: string) => void;
   setMessageFeedback: (messageId: string, feedback: 'positive' | 'negative') => void;
   toggleImportantMessage: (messageId: string) => void;
+  isQuotaExceeded: boolean;
+  chatEndRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
@@ -44,6 +46,8 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<SmartSuggestion[]>([]);
   const { toast } = useToast();
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const [isQuotaExceeded, setIsQuotaExceeded] = useState(false);
   
   // Helper to get JWT token
   const getToken = () => localStorage.getItem('authToken');
@@ -70,6 +74,12 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
     fetchSessions();
     // eslint-disable-next-line
   }, []);
+  
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
   
   const newSession = () => {
     setActiveSession(null);
@@ -205,16 +215,16 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
 
   // Send message to backend
   const sendMessage = async (content: string) => {
-    if (!content.trim()) return;
+    if (!content.trim() || isQuotaExceeded) return;
     setIsLoading(true);
     setSuggestions([]);
-    const userMsg = {
+    const userMsg: AIMessage = {
       id: uuidv4(),
       type: 'user',
       content,
       timestamp: new Date(),
     };
-    const aiPlaceholder = {
+    const aiPlaceholder: AIMessage = {
       id: uuidv4(),
       type: 'assistant',
       content: '',
@@ -231,16 +241,30 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
         },
         body: JSON.stringify({ content, sessionId: activeSession?.id })
       });
+      if (res.status === 429) {
+        setIsQuotaExceeded(true);
+        toast({ title: 'Quota Exceeded', description: 'You have reached the daily Gemini API quota. Please try again after the quota resets.', variant: 'destructive' });
+        // Show error message in chat
+        setMessages(prevMsgs => [
+          ...prevMsgs.filter(m => m.id !== aiPlaceholder.id),
+          {
+            id: uuidv4(),
+            type: 'error',
+            content: 'You have reached the daily Gemini API quota. Please try again after the quota resets.',
+            timestamp: new Date(),
+            isLoading: false,
+            feedback: null,
+          } as AIMessage
+        ]);
+        return;
+      }
       if (!res.ok) throw new Error('Failed to send message');
       const data = await res.json();
-      // Ensure correct type for user and assistant messages
       if (data.userMessage) data.userMessage.type = 'user';
       if (data.assistantMessage) data.assistantMessage.type = 'assistant';
-      // Update state with new/updated session and messages
       let updatedSessions = [...sessions];
       let sessionIdx = updatedSessions.findIndex(s => s.id === data.sessionId);
       if (sessionIdx === -1) {
-        // New session
         const newSession = {
           id: data.sessionId,
           title: content.slice(0, 50) + '...',
@@ -252,7 +276,6 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
         setActiveSession(newSession);
         setMessages([data.userMessage, data.assistantMessage]);
       } else {
-        // Existing session
         updatedSessions[sessionIdx] = {
           ...updatedSessions[sessionIdx],
           updatedAt: new Date(),
@@ -260,14 +283,12 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
         };
         setActiveSession(updatedSessions[sessionIdx]);
         setMessages(prevMsgs => {
-          // Replace the placeholder AI message with the real one
           const idx = prevMsgs.findIndex(m => m.id === aiPlaceholder.id);
           if (idx !== -1) {
             const newMsgs = [...prevMsgs];
             newMsgs[idx] = data.assistantMessage;
             return newMsgs;
           }
-          // fallback: just append
           return [...prevMsgs, data.assistantMessage];
         });
       }
@@ -275,8 +296,19 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
       setSuggestions(generateSuggestions(content, data.assistantMessage.content));
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to send message', variant: 'destructive' });
-      // Remove the placeholder AI message on error
-      setMessages(prevMsgs => prevMsgs.filter(m => m.id !== aiPlaceholder.id));
+      setMessages(prevMsgs => [
+        ...prevMsgs.filter(m => m.id !== aiPlaceholder.id),
+        {
+          id: uuidv4(),
+          type: 'error',
+          content: error instanceof Error && error.message.includes('quota')
+            ? 'You have reached the daily Gemini API quota. Please try again after the quota resets.'
+            : 'Failed to send message. Please try again.',
+          timestamp: new Date(),
+          isLoading: false,
+          feedback: null,
+        } as AIMessage
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -313,24 +345,90 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
     }
   };
 
-  const pinSession = (sessionId: string) => {
-    // Implementation of pinSession method
+  const pinSession = async (sessionId: string) => {
+    try {
+      // Try to update on backend if endpoint exists
+      await fetch(`${apiBase}/session/${sessionId}/pin`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (e) {
+      // Ignore backend error, update local state anyway
+    }
+    setSessions(prev => prev.map(session =>
+      session.id === sessionId
+        ? { ...session, isPinned: !session.isPinned, updatedAt: new Date() }
+        : session
+    ));
+    if (activeSession?.id === sessionId) {
+      setActiveSession(prev => prev ? { ...prev, isPinned: !prev.isPinned, updatedAt: new Date() } : null);
+    }
   };
 
-  const tagSession = (sessionId: string, tag: string) => {
-    // Implementation of tagSession method
+  const tagSession = async (sessionId: string, tag: string) => {
+    try {
+      await fetch(`${apiBase}/session/${sessionId}/tag`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ tag }),
+      });
+    } catch (e) {}
+    setSessions(prev => prev.map(session =>
+      session.id === sessionId
+        ? { ...session, tags: [tag] }
+        : session
+    ));
+    if (activeSession?.id === sessionId) {
+      setActiveSession(prev => prev ? { ...prev, tags: [tag] } : null);
+    }
   };
 
   const addNoteToMessage = (messageId: string, note: string) => {
-    // Implementation of addNoteToMessage method
+    setMessages(prev => prev.map(msg =>
+      msg.id === messageId ? { ...msg, note } : msg
+    ));
+    if (activeSession) {
+      setActiveSession({
+        ...activeSession,
+        messages: activeSession.messages.map(msg =>
+          msg.id === messageId ? { ...msg, note } : msg
+        ),
+      });
+    }
   };
 
   const setMessageFeedback = (messageId: string, feedback: 'positive' | 'negative') => {
-    // Implementation of setMessageFeedback method
+    setMessages(prev => prev.map(msg =>
+      msg.id === messageId ? { ...msg, feedback } : msg
+    ));
+    if (activeSession) {
+      setActiveSession({
+        ...activeSession,
+        messages: activeSession.messages.map(msg =>
+          msg.id === messageId ? { ...msg, feedback } : msg
+        ),
+      });
+    }
   };
 
   const toggleImportantMessage = (messageId: string) => {
-    // Implementation of toggleImportantMessage method
+    setMessages(prev => prev.map(msg =>
+      msg.id === messageId ? { ...msg, isImportant: !msg.isImportant } : msg
+    ));
+    if (activeSession) {
+      setActiveSession({
+        ...activeSession,
+        messages: activeSession.messages.map(msg =>
+          msg.id === messageId ? { ...msg, isImportant: !msg.isImportant } : msg
+        ),
+      });
+    }
   };
 
   const value = {
@@ -350,7 +448,9 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({ childr
     tagSession,
     addNoteToMessage,
     setMessageFeedback,
-    toggleImportantMessage
+    toggleImportantMessage,
+    isQuotaExceeded,
+    chatEndRef,
   };
 
   return (
