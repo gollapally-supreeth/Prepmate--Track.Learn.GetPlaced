@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useTaskStore } from '@/contexts/TaskStoreContext';
+import { nanoid } from 'nanoid';
 
 interface Task {
   id: string;
@@ -20,6 +22,8 @@ interface Task {
   priority: 'High' | 'Medium' | 'Low';
   status: 'todo' | 'in-progress' | 'completed';
   completed?: boolean;
+  inPlanner: boolean;
+  inFocus: boolean;
 }
 
 interface NewTask extends Partial<Task> {
@@ -31,84 +35,84 @@ interface NewTask extends Partial<Task> {
 // Sample task data
 const sampleTasks = [
   {
-    id: "1",
+    id: nanoid(),
     title: "Revise Graphs in DSA",
     dueTime: "Today, 8:00 PM",
     subject: "CSE",
     priority: "High" as const,
     status: "todo",
     description: "Prepare for DSA assignment",
+    inPlanner: true,
+    inFocus: false,
   },
   {
-    id: "2",
+    id: nanoid(),
     title: "Complete Web Dev Assignment",
     dueTime: "Today, 5:00 PM",
     subject: "Web Dev",
     priority: "Medium" as const,
     status: "todo",
     description: "Complete web dev assignment",
+    inPlanner: true,
+    inFocus: false,
   },
   {
-    id: "3",
+    id: nanoid(),
     title: "Study SQL Joins",
     dueTime: "Tomorrow, 12:00 PM",
     subject: "DBMS",
     priority: "Medium" as const,
     status: "in-progress",
     description: "Study for sql joins",
+    inPlanner: true,
+    inFocus: false,
   },
   {
-    id: "4",
+    id: nanoid(),
     title: "Research for OS Project",
     dueTime: "Today, 3:00 PM",
     subject: "Operating Systems",
     priority: "Low" as const,
     status: "in-progress",
     description: "Do some research for OS project",
+    inPlanner: true,
+    inFocus: false,
   },
   {
-    id: "5",
+    id: nanoid(),
     title: "Practice Python Problems",
     dueTime: "Yesterday, 6:00 PM",
     subject: "Programming",
     priority: "Medium" as const,
     status: "completed",
     description: "Complete some python problems",
-    completed: true
+    completed: true,
+    inPlanner: true,
+    inFocus: false,
   },
   {
-    id: "6",
+    id: nanoid(),
     title: "Read Chapter 3 of Computer Networks",
     dueTime: "Yesterday, 7:00 PM",
     subject: "Networks",
     priority: "High" as const,
     status: "completed",
     description: "complete reading of CN chapter 3",
-    completed: true
+    completed: true,
+    inPlanner: true,
+    inFocus: false,
   },
 ];
 
 const Planner = () => {
   const { toast } = useToast();
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    if (typeof window !== 'undefined') {
-      const storedTasks = localStorage.getItem('plannerTasks');
-      return storedTasks ? JSON.parse(storedTasks) : sampleTasks;
-    }
-    return sampleTasks;
-  });
+  const { tasks, addTask, editTask, deleteTask, completeTask } = useTaskStore();
   const [showTutorial, setShowTutorial] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('plannerTutorialSeen') !== 'true';
     }
     return true;
   });
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('plannerTasks', JSON.stringify(tasks));
-    }
-  }, [tasks]);
 
   useEffect(() => {
     if (showTutorial) {
@@ -120,74 +124,71 @@ const Planner = () => {
   
   const handleAddTask = () => {
     if (newTask.title && newTask.description && newTask.dueTime && newTask.subject && newTask.priority) {
-      const nextId = (tasks.length > 0 ? Math.max(...tasks.map(t => parseInt(t.id))) + 1 : 1).toString();
-      const fullNewTask: Task = { id: nextId, status: "todo", completed: false, ...newTask } as Task;
-      setTasks([...tasks, fullNewTask]);
+      const fullNewTask = {
+        id: nanoid(),
+        title: newTask.title,
+        description: newTask.description,
+        dueTime: newTask.dueTime,
+        subject: newTask.subject,
+        priority: newTask.priority,
+        status: 'todo',
+        completed: false,
+        inPlanner: true,
+        inFocus: false,
+      };
+      addTask(fullNewTask);
       setNewTask({ title: '', description: '', dueTime: '' });
       toast({ description: "Task created successfully!" });
     }
   };
 
   const handleCompleteTask = (id: string) => {
-    setTasks(tasks.map(task => {
-      if (task.id === id) {
-        return { ...task, status: 'completed', completed: true };
-      }
-      return task;
-    }));
+    completeTask(id);
     toast({ description: "Task completed!" });
   };
 
   const handleMoveToInProgress = (id: string) => {
-    setTasks(tasks.map(task => {
-      if (task.id === id) {
-        return { ...task, status: 'in-progress' };
-      }
-      return task;
-    }));
+    editTask(id, { status: 'in-progress' });
   };
 
   const handleRemoveTask = (id: string) => {
-    setTasks(tasks.filter(task => task.id !== id));
+    deleteTask(id);
   };
 
   const handleEditTask = (id: string, updatedTask: Partial<Task>) => {
-    setTasks(tasks.map(task => task.id === id ? { ...task, ...updatedTask } : task));
+    editTask(id, updatedTask);
   };
 
   const handleStatusChange = (id: string, newStatus: Task['status']) => {
-    setTasks(tasks.map(task => task.id === id ? { ...task, status: newStatus } : task));
+    editTask(id, { status: newStatus });
   };
 
-
-   const [filter, setFilter] = useState("all");
-    const [subject, setSubject] = useState("all");
-    const [searchTerm, setSearchTerm] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [subject, setSubject] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const filteredTasks = tasks.filter((task) => {
-    
-     if (filter !== "all" && task.status !== filter) return false;
+    if (!task.inPlanner) return false;
+    if (filter !== "all" && task.status !== filter) return false;
     if (subject !== "all" && task.subject !== subject) return false;
     return true;
   });
-  
 
-  
   const todoTasks = filteredTasks.filter(task => task.status === "todo");
   const inProgressTasks = filteredTasks.filter(task => task.status === "in-progress");
   const completedTasks = filteredTasks.filter(task => task.status === "completed");
   const taskTitleRef = useRef<HTMLInputElement>(null);
-  
+
   const handleDragEnd = (status: Task['status'], items: Task[]) => {
-    const updatedTasks = tasks.map(task => {
-      const draggedTask = items.find(item => item.id === task.id);
-      if (draggedTask) {
-        return { ...draggedTask, status };
-      }
-      return task;
+    items.forEach((item, idx) => {
+      editTask(item.id, { status, order: idx });
     });
-    setTasks(updatedTasks);
   };
+
+  // Local UI state for targeting tasks
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -363,18 +364,25 @@ const Planner = () => {
               <Reorder.Group
                 axis="y"
                 values={todoTasks}
-                onReorder={(items) => handleDragEnd('todo', items)}
+                onReorder={(items: Task[]) => handleDragEnd('todo', items)}
                 className="space-y-3"
+                as={undefined}
               >
                 <AnimatePresence>
                   {todoTasks.map((task) => (
-                    <Reorder.Item key={task.id} value={task}>
+                    <Reorder.Item key={task.id} value={task} as={undefined}>
                       <PlannerTaskCard
                         {...task}
                         completed={task.status === 'completed'}
                         onComplete={handleCompleteTask}
                         onMoveToInProgress={handleMoveToInProgress}
                         onRemove={handleRemoveTask}
+                        expanded={expandedTaskId === task.id}
+                        onExpand={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}
+                        editing={editingTaskId === task.id}
+                        onEdit={() => setEditingTaskId(task.id)}
+                        current={currentTaskId === task.id}
+                        onSetCurrent={() => setCurrentTaskId(currentTaskId === task.id ? null : task.id)}
                       />
                     </Reorder.Item>
                   ))}
@@ -397,18 +405,25 @@ const Planner = () => {
               <Reorder.Group
                 axis="y"
                 values={inProgressTasks}
-                onReorder={(items) => handleDragEnd('in-progress', items)}
+                onReorder={(items: Task[]) => handleDragEnd('in-progress', items)}
                 className="space-y-3"
+                as={undefined}
               >
                 <AnimatePresence>
                   {inProgressTasks.map((task) => (
-                    <Reorder.Item key={task.id} value={task}>
+                    <Reorder.Item key={task.id} value={task} as={undefined}>
                       <PlannerTaskCard
                         {...task}
                         completed={task.status === 'completed'}
                         onComplete={handleCompleteTask}
                         onMoveToInProgress={handleMoveToInProgress}
                         onRemove={handleRemoveTask}
+                        expanded={expandedTaskId === task.id}
+                        onExpand={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}
+                        editing={editingTaskId === task.id}
+                        onEdit={() => setEditingTaskId(task.id)}
+                        current={currentTaskId === task.id}
+                        onSetCurrent={() => setCurrentTaskId(currentTaskId === task.id ? null : task.id)}
                       />
                     </Reorder.Item>
                   ))}
@@ -431,18 +446,25 @@ const Planner = () => {
               <Reorder.Group
                 axis="y"
                 values={completedTasks}
-                onReorder={(items) => handleDragEnd('completed', items)}
+                onReorder={(items: Task[]) => handleDragEnd('completed', items)}
                 className="space-y-3"
+                as={undefined}
               >
                 <AnimatePresence>
                   {completedTasks.map((task) => (
-                    <Reorder.Item key={task.id} value={task}>
+                    <Reorder.Item key={task.id} value={task} as={undefined}>
                       <PlannerTaskCard
                         {...task}
                         completed={task.status === 'completed'}
                         onComplete={handleCompleteTask}
                         onMoveToInProgress={handleMoveToInProgress}
                         onRemove={handleRemoveTask}
+                        expanded={expandedTaskId === task.id}
+                        onExpand={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}
+                        editing={editingTaskId === task.id}
+                        onEdit={() => setEditingTaskId(task.id)}
+                        current={currentTaskId === task.id}
+                        onSetCurrent={() => setCurrentTaskId(currentTaskId === task.id ? null : task.id)}
                       />
                     </Reorder.Item>
                   ))}

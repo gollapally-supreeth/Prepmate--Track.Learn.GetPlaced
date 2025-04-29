@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { useFocusTimer } from './FocusTimerContext';
 import { CircularProgressbarWithChildren, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
-import { Play, Pause, RotateCcw, SkipForward } from 'lucide-react';
+import { Play, Pause, RotateCcw, SkipForward, PlayCircle, PauseCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -112,12 +111,14 @@ export function TimerDisplay({ className, compact = false }: TimerDisplayProps) 
           strokeWidth={5}
           styles={buildStyles({
             pathColor: getTimerColor(),
-            trailColor: 'var(--secondary)',
+            trailColor: 'rgba(229, 231, 235, 0.2)',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
             pathTransition: 'stroke-dashoffset 0.5s ease'
           })}
+          background
         >
           <div className="flex flex-col items-center justify-center">
-            <span className="text-4xl font-bold">{formatTime(remainingTime)}</span>
+            <span className="text-4xl font-bold text-zinc-900 dark:text-zinc-50">{formatTime(remainingTime)}</span>
             <span className="text-sm text-muted-foreground mt-2">
               {currentMode === 'work' ? 'Focus' : 'Break'} Session
             </span>
@@ -125,15 +126,15 @@ export function TimerDisplay({ className, compact = false }: TimerDisplayProps) 
         </CircularProgressbarWithChildren>
       </div>
       
-      <div className="flex items-center gap-2 mt-4">
+      <div className="flex items-center gap-4 mt-6">
         <Button 
           variant="outline"
           size="icon"
           onClick={resetTimer}
           aria-label="Reset Timer"
-          className="rounded-full"
+          className="rounded-full h-10 w-10 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700"
         >
-          <RotateCcw className="h-5 w-5" />
+          <RotateCcw className="h-5 w-5 text-zinc-700 dark:text-zinc-300" />
         </Button>
         
         <Button
@@ -141,12 +142,21 @@ export function TimerDisplay({ className, compact = false }: TimerDisplayProps) 
           size="lg"
           onClick={handleActionClick}
           aria-label={isRunning ? "Pause Timer" : "Start Timer"}
-          className="rounded-full w-16 h-16 bg-primary hover:bg-primary/90"
+          className="rounded-full w-16 h-16 bg-white dark:bg-black border-2 border-zinc-300 dark:border-zinc-700 shadow-sm"
         >
-          {isRunning ? 
-            <Pause className="h-6 w-6" /> : 
-            <Play className="h-6 w-6 ml-1" />
-          }
+          <div className="flex flex-col items-center justify-center">
+            {isRunning ? (
+              <>
+                <Pause className="h-8 w-8 text-black dark:text-white" />
+                <span className="text-[10px] mt-1 text-zinc-500 dark:text-zinc-400">Pause</span>
+              </>
+            ) : (
+              <>
+                <Play className="h-8 w-8 text-black dark:text-white" />
+                <span className="text-[10px] mt-1 text-zinc-500 dark:text-zinc-400">Play</span>
+              </>
+            )}
+          </div>
         </Button>
         
         <Button
@@ -154,9 +164,9 @@ export function TimerDisplay({ className, compact = false }: TimerDisplayProps) 
           size="icon"
           onClick={skipTimer}
           aria-label="Skip Timer"
-          className="rounded-full"
+          className="rounded-full h-10 w-10 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700"
         >
-          <SkipForward className="h-5 w-5" />
+          <SkipForward className="h-5 w-5 text-zinc-700 dark:text-zinc-300" />
         </Button>
       </div>
     </div>

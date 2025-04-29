@@ -1,10 +1,15 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback, useReducer } from 'react';
 
 // Types
 export type TimerMode = 'work' | 'break' | 'longBreak';
 export type FocusMode = 'deep' | 'sprint' | 'music';
 export type TaskPriority = 'high' | 'medium' | 'low';
+
+export interface FocusSubtask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
 
 export interface FocusTask {
   id: string;
@@ -13,6 +18,12 @@ export interface FocusTask {
   priority: TaskPriority;
   completed: boolean;
   timeSpent: number; // in seconds
+  dueDate?: string; // ISO string
+  tags?: string[];
+  notes?: string;
+  subtasks?: FocusSubtask[];
+  pomodoros?: number; // number of completed pomodoros
+  order?: number; // for drag-and-drop
 }
 
 export interface TimerSettings {
@@ -71,7 +82,11 @@ type FocusTimerAction =
   | { type: 'SET_CURRENT_TASK'; payload: string | null }
   | { type: 'BLOCK_WEBSITE'; payload: string }
   | { type: 'UNBLOCK_WEBSITE'; payload: string }
-  | { type: 'UPDATE_GOALS'; payload: Partial<FocusTimerState['goals']> };
+  | { type: 'UPDATE_GOALS'; payload: Partial<FocusTimerState['goals']> }
+  | { type: 'ADD_SUBTASK'; payload: { taskId: string; subtask: FocusSubtask } }
+  | { type: 'TOGGLE_SUBTASK'; payload: { taskId: string; subtaskId: string } }
+  | { type: 'INCREMENT_POMODORO'; payload: { taskId: string } }
+  | { type: 'REORDER_TASKS'; payload: { sourceIndex: number; destinationIndex: number } };
 
 const initialState: FocusTimerState = {
   isRunning: false,
@@ -285,6 +300,12 @@ const focusTimerReducer = (state: FocusTimerState, action: FocusTimerAction): Fo
         priority: action.payload.priority,
         completed: false,
         timeSpent: 0,
+        dueDate: action.payload.dueDate || undefined,
+        tags: action.payload.tags || [],
+        notes: action.payload.notes || '',
+        subtasks: action.payload.subtasks || [],
+        pomodoros: 0,
+        order: state.tasks.length,
       };
       
       return {
@@ -358,6 +379,55 @@ const focusTimerReducer = (state: FocusTimerState, action: FocusTimerAction): Fo
           ...state.goals,
           ...action.payload,
         },
+      };
+    
+    case 'ADD_SUBTASK':
+      const { taskId, subtask } = action.payload;
+      return {
+        ...state,
+        tasks: state.tasks.map(task =>
+          task.id === taskId
+            ? { ...task, subtasks: [...(task.subtasks || []), { ...subtask, id: generateId() }] }
+            : task
+        ),
+      };
+    
+    case 'TOGGLE_SUBTASK':
+      const { taskId: toggleTaskId, subtaskId: toggleSubtaskId } = action.payload;
+      return {
+        ...state,
+        tasks: state.tasks.map(task =>
+          task.id === toggleTaskId
+            ? {
+                ...task,
+                subtasks: (task.subtasks || []).map(st =>
+                  st.id === toggleSubtaskId ? { ...st, completed: !st.completed } : st
+                ),
+              }
+            : task
+        ),
+      };
+    
+    case 'INCREMENT_POMODORO':
+      const { taskId: incrementTaskId } = action.payload;
+      return {
+        ...state,
+        tasks: state.tasks.map(task =>
+          task.id === incrementTaskId
+            ? { ...task, pomodoros: (task.pomodoros || 0) + 1 }
+            : task
+        ),
+      };
+    
+    case 'REORDER_TASKS':
+      const { sourceIndex, destinationIndex } = action.payload;
+      const tasks = Array.from(state.tasks);
+      const [removed] = tasks.splice(sourceIndex, 1);
+      tasks.splice(destinationIndex, 0, removed);
+      // Update order field
+      return {
+        ...state,
+        tasks: tasks.map((task, idx) => ({ ...task, order: idx })),
       };
     
     default:

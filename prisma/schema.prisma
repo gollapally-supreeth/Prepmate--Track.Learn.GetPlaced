@@ -24,7 +24,10 @@ model User {
   updated_at DateTime @updatedAt
   profile    Profile?
   chatSessions ChatSession[]
+  tasks        Task[]
+  focusSessions FocusSession[]
 }
+
 model Profile {
   id            String   @id @default(uuid())
   user          User     @relation(fields: [userId], references: [id])
@@ -90,4 +93,35 @@ model Message {
   content        String
   timestamp      DateTime    @default(now())
   feedback       String?     // 'positive', 'negative', or null
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  title       String
+  description String?
+  inPlanner   Boolean  @default(false)
+  inFocus     Boolean  @default(false)
+  completed   Boolean  @default(false)
+  priority    String?  // e.g. 'high', 'medium', 'low'
+  dueDate     DateTime?
+  origin      String?  // e.g. 'planner', 'focus', etc.
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tags        String[]
+  notes       String?
+}
+
+model FocusSession {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+  duration    Int?     // in seconds
+  tasksCompleted Int?  // number of tasks completed in this session
+  totalFocusTime Int?  // in seconds
+  breaksTaken  Int?    // number of breaks
+  createdAt   DateTime @default(now())
 }

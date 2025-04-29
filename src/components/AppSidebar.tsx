@@ -12,7 +12,8 @@ import {
   Briefcase, 
   LogOut,
   FileCheck,
-  Bot
+  Bot,
+  Timer
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
@@ -64,6 +65,10 @@ export function AppSidebar({ isCollapsed }: { isCollapsed: boolean }) {
             <Link to="/planner" className={`nav-link ${isActive('/planner')} ${isCollapsed ? 'justify-center' : ''}`}>
               <CalendarCheck size={18} className="text-purple-600 dark:text-purple-400 flex-shrink-0" />
               {!isCollapsed && <span className="text-purple-900 dark:text-purple-100 whitespace-nowrap">Daily Planner</span>}
+            </Link>
+            <Link to="/focus-timer" className={`nav-link ${isActive('/focus-timer')} ${isCollapsed ? 'justify-center' : ''}`}>
+              <Timer size={18} className="text-purple-600 dark:text-purple-400 flex-shrink-0" />
+              {!isCollapsed && <span className="text-purple-900 dark:text-purple-100 whitespace-nowrap">Focus Timer</span>}
             </Link>
             <Link to="/resources" className={`nav-link ${isActive('/resources')} ${isCollapsed ? 'justify-center' : ''}`}>
               <BookMarked size={18} className="text-purple-600 dark:text-purple-400 flex-shrink-0" />

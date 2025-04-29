@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFocusTimer, type TimerSettings as TimerSettingsType, FocusMode } from './FocusTimerContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +31,8 @@ export function TimerSettings({ className }: TimerSettingsProps) {
   const [breakMinutes, setBreakMinutes] = React.useState(settings.breakDuration);
   const [longBreakMinutes, setLongBreakMinutes] = React.useState(settings.longBreakDuration);
   const [sessionsCount, setSessionsCount] = React.useState(settings.sessionsBeforeLongBreak);
+  const [newPresetName, setNewPresetName] = useState('');
+  const [showAddPreset, setShowAddPreset] = useState(false);
   
   // Update local state when settings change
   React.useEffect(() => {
@@ -41,7 +42,92 @@ export function TimerSettings({ className }: TimerSettingsProps) {
     setSessionsCount(settings.sessionsBeforeLongBreak);
   }, [settings]);
   
-  // Apply timer duration settings
+  // Focus Modes config
+  const FOCUS_MODES = [
+    {
+      id: 'deep',
+      name: 'Deep Focus',
+      work: 50,
+      break: 10,
+      longBreak: 30,
+      sessions: 2,
+      sound: null,
+      blockWeb: true,
+      motivational: 'deep',
+      summary: 'Long sessions, no sound, blocks distractions, deep work quotes.'
+    },
+    {
+      id: 'sprint',
+      name: 'Sprint',
+      work: 15,
+      break: 3,
+      longBreak: 15,
+      sessions: 4,
+      sound: '/sounds/chime.mp3',
+      blockWeb: false,
+      motivational: 'energetic',
+      summary: 'Short, intense sessions, energetic sound, no blocking.'
+    },
+    {
+      id: 'music',
+      name: 'With Music',
+      work: 25,
+      break: 5,
+      longBreak: 15,
+      sessions: 4,
+      sound: '/sounds/bell.mp3',
+      blockWeb: false,
+      motivational: 'general',
+      summary: 'Balanced sessions, music, general motivation.'
+    }
+  ];
+
+  const [selectedMode, setSelectedMode] = useState(null);
+  const [blockWeb, setBlockWeb] = useState(false);
+  const [motivationalType, setMotivationalType] = useState('general');
+
+  // When a mode is selected, update all local state for preview
+  const handleSelectMode = (mode) => {
+    setSelectedMode(mode.id);
+    setWorkMinutes(mode.work);
+    setBreakMinutes(mode.break);
+    setLongBreakMinutes(mode.longBreak);
+    setSessionsCount(mode.sessions);
+    setSound(mode.sound);
+    setBlockWeb(mode.blockWeb);
+    setMotivationalType(mode.motivational);
+  };
+
+  // On mount, set selectedMode to match current settings
+  useEffect(() => {
+    // Special logic: If 'With Music' mode is selected, allow any sound
+    const match = FOCUS_MODES.find(m => {
+      if (m.id === 'music') {
+        return (
+          m.work === workMinutes &&
+          m.break === breakMinutes &&
+          m.longBreak === longBreakMinutes &&
+          m.sessions === sessionsCount &&
+          blockWeb === m.blockWeb &&
+          motivationalType === m.motivational
+          // sound can be any value
+        );
+      } else {
+        return (
+          m.work === workMinutes &&
+          m.break === breakMinutes &&
+          m.longBreak === longBreakMinutes &&
+          m.sessions === sessionsCount &&
+          sound === m.sound &&
+          blockWeb === m.blockWeb &&
+          motivationalType === m.motivational
+        );
+      }
+    });
+    setSelectedMode(match ? match.id : null);
+  }, [workMinutes, breakMinutes, longBreakMinutes, sessionsCount, sound, blockWeb, motivationalType]);
+
+  // Update applySettings to save all changes
   const applySettings = () => {
     updateSettings({
       workDuration: workMinutes,
@@ -49,25 +135,22 @@ export function TimerSettings({ className }: TimerSettingsProps) {
       longBreakDuration: longBreakMinutes,
       sessionsBeforeLongBreak: sessionsCount
     });
-  };
-  
-  // Handle focus mode change
-  const handleFocusModeChange = (mode: FocusMode) => {
-    changeFocusMode(mode);
-    
-    // Apply preset durations based on mode
-    if (mode === 'sprint') {
-      updateSettings({
-        workDuration: 15,
-        breakDuration: 3,
-        longBreakDuration: 15,
-      });
-    } else if (mode === 'deep') {
-      updateSettings({
-        workDuration: 50,
-        breakDuration: 10,
-        longBreakDuration: 30,
-      });
+    // Save sound, blockWeb, motivationalType if needed (extend context if required)
+    // For now, just show toast
+    const mode = FOCUS_MODES.find(m => m.id === selectedMode);
+    if (mode) {
+      setToast(`${mode.name} mode applied!`);
+    } else {
+      // fallback to preset logic
+      const allPresets = [...FIXED_PRESETS, ...userPresets];
+      const matched = allPresets.find(
+        p =>
+          p.work === workMinutes &&
+          p.break === breakMinutes &&
+          p.longBreak === longBreakMinutes &&
+          p.sessions === sessionsCount
+      );
+      setToast(matched ? `${matched.name} preset applied!` : 'Custom settings applied!');
     }
   };
   
@@ -80,14 +163,126 @@ export function TimerSettings({ className }: TimerSettingsProps) {
     setNewWebsite('');
   };
   
-  // Sound options
-  const soundOptions = [
-    { id: 'none', name: 'None', icon: <VolumeX className="h-4 w-4" /> },
-    { id: 'bell', name: 'Bell', src: '/sounds/bell.mp3' },
-    { id: 'chime', name: 'Chime', src: '/sounds/chime.mp3' },
-    { id: 'digital', name: 'Digital', src: '/sounds/digital.mp3' },
+  // Music options for concentration
+  const musicOptions = [
+    { id: 'lofi', name: 'Lo-fi Beats', src: '/music/lofi.mp3' },
+    { id: 'rain', name: 'Rain Sounds', src: '/music/rain.mp3' },
+    { id: 'piano', name: 'Piano Focus', src: '/music/piano.mp3' },
   ];
   
+  // --- Presets State ---
+  const FIXED_PRESETS = [
+    {
+      id: 'pomodoro',
+      name: 'Pomodoro',
+      fixed: true,
+      work: 25,
+      break: 5,
+      longBreak: 15,
+      sessions: 4
+    },
+    {
+      id: 'deep',
+      name: 'Deep Work',
+      fixed: true,
+      work: 50,
+      break: 10,
+      longBreak: 30,
+      sessions: 2
+    },
+    {
+      id: 'sprint',
+      name: 'Quick Sprint',
+      fixed: true,
+      work: 15,
+      break: 3,
+      longBreak: 10,
+      sessions: 4
+    }
+  ];
+
+  const [userPresets, setUserPresets] = useState(() => {
+    const saved = localStorage.getItem('focusUserPresets');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('focusUserPresets', JSON.stringify(userPresets));
+  }, [userPresets]);
+
+  // --- Toast State ---
+  const [toast, setToast] = useState<string | null>(null);
+  useEffect(() => {
+    if (toast) {
+      const t = setTimeout(() => setToast(null), 2500);
+      return () => clearTimeout(t);
+    }
+  }, [toast]);
+
+  // --- Preset Editing ---
+  const handlePresetChange = (id, field, value, isUser) => {
+    if (isUser) {
+      setUserPresets(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+    }
+  };
+  const handlePresetNameChange = (id, value) => {
+    setUserPresets(prev => prev.map(p => p.id === id ? { ...p, name: value } : p));
+  };
+  const handleDeletePreset = (id) => {
+    setUserPresets(prev => prev.filter(p => p.id !== id));
+  };
+  const handleAddPreset = () => {
+    const newId = 'user-' + Date.now();
+    setUserPresets(prev => [
+      ...prev,
+      {
+        id: newId,
+        name: 'New Preset',
+        fixed: false,
+        work: 25,
+        break: 5,
+        longBreak: 15,
+        sessions: 4
+      }
+    ]);
+  };
+  const handleApplyPreset = (preset) => {
+    setWorkMinutes(preset.work);
+    setBreakMinutes(preset.break);
+    setLongBreakMinutes(preset.longBreak);
+    setSessionsCount(preset.sessions);
+    updateSettings({
+      workDuration: preset.work,
+      breakDuration: preset.break,
+      longBreakDuration: preset.longBreak,
+      sessionsBeforeLongBreak: preset.sessions
+    });
+    setToast(`${preset.name} preset applied!`);
+  };
+  const handleAddPresetWithValues = () => {
+    const newId = 'user-' + Date.now();
+    setUserPresets(prev => [
+      ...prev,
+      {
+        id: newId,
+        name: newPresetName.trim(),
+        fixed: false,
+        work: workMinutes,
+        break: breakMinutes,
+        longBreak: longBreakMinutes,
+        sessions: sessionsCount
+      }
+    ]);
+    setToast(`${newPresetName.trim()} preset saved!`);
+    setNewPresetName('');
+  };
+
+  const MODE_ICONS = {
+    deep: <Brain className="w-6 h-6 text-purple-700" />,
+    sprint: <Zap className="w-6 h-6 text-yellow-500" />,
+    music: <Music className="w-6 h-6 text-blue-500" />,
+  };
+
   return (
     <div className={cn("p-4", className)}>
       <h2 className="text-lg font-semibold mb-4">Timer Settings</h2>
@@ -101,55 +296,46 @@ export function TimerSettings({ className }: TimerSettingsProps) {
         </TabsList>
         
         <TabsContent value="modes" className="space-y-4">
-          <div className="grid grid-cols-3 gap-2">
-            <Button
-              variant={focusMode === 'deep' ? "default" : "outline"}
-              className={cn(
-                "flex-col h-24 space-y-2",
-                focusMode === 'deep' ? "border-primary" : ""
-              )}
-              onClick={() => handleFocusModeChange('deep')}
-            >
-              <Brain className="h-6 w-6" />
-              <span>Deep Focus</span>
-            </Button>
-            
-            <Button
-              variant={focusMode === 'sprint' ? "default" : "outline"}
-              className={cn(
-                "flex-col h-24 space-y-2",
-                focusMode === 'sprint' ? "border-primary" : ""
-              )}
-              onClick={() => handleFocusModeChange('sprint')}
-            >
-              <Zap className="h-6 w-6" />
-              <span>Sprint Mode</span>
-            </Button>
-            
-            <Button
-              variant={focusMode === 'music' ? "default" : "outline"}
-              className={cn(
-                "flex-col h-24 space-y-2",
-                focusMode === 'music' ? "border-primary" : ""
-              )}
-              onClick={() => handleFocusModeChange('music')}
-            >
-              <Music className="h-6 w-6" />
-              <span>With Music</span>
-            </Button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {FOCUS_MODES.map(mode => (
+              <button
+                key={mode.id}
+                aria-label={`Select ${mode.name} mode`}
+                className={cn(
+                  'relative group rounded-2xl border p-4 flex flex-col items-center shadow-sm transition-all duration-200 focus:outline-none',
+                  selectedMode === mode.id
+                    ? 'border-2 border-primary shadow-lg scale-105 bg-primary/10'
+                    : 'border-muted-foreground bg-background hover:shadow-md hover:bg-muted/40',
+                )}
+                onClick={() => handleSelectMode(mode)}
+                type="button"
+                tabIndex={0}
+              >
+                <div className="mb-2 flex items-center justify-center w-full">
+                  <span className="inline-flex items-center justify-center rounded-full bg-white shadow p-1.5">
+                    {MODE_ICONS[mode.id]}
+                  </span>
+                </div>
+                <div className="mb-0.5 text-base font-bold w-full text-center">{mode.name}</div>
+                <div className="mb-2 text-xs text-muted-foreground text-center w-full">{mode.summary}</div>
+                {selectedMode === mode.id && (
+                  <span className="absolute top-1.5 right-1.5 bg-primary text-white text-[10px] px-1.5 py-0.5 rounded-full shadow">Selected</span>
+                )}
+              </button>
+            ))}
           </div>
           
           <div className="mt-4">
-            <h3 className="text-sm font-medium mb-2">Notification Sound</h3>
-            <div className="grid grid-cols-4 gap-2">
-              {soundOptions.map(option => (
+            <h3 className="text-sm font-medium mb-2">Music</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {musicOptions.map(option => (
                 <Button
                   key={option.id}
-                  variant={sound === (option.src || null) ? "default" : "outline"}
+                  variant={sound === option.src ? "default" : "outline"}
                   className="h-20"
-                  onClick={() => setSound(option.src || null)}
+                  onClick={() => setSound(option.src)}
                 >
-                  {option.icon || option.name}
+                  {option.name}
                 </Button>
               ))}
             </div>
@@ -157,6 +343,89 @@ export function TimerSettings({ className }: TimerSettingsProps) {
         </TabsContent>
         
         <TabsContent value="durations" className="space-y-6">
+          {/* Focus Mode Presets */}
+          <div>
+            <h3 className="text-sm font-medium mb-2">Presets</h3>
+            <div className="flex flex-wrap gap-2 mb-4 items-center">
+              {[...FIXED_PRESETS, ...userPresets].map((preset) => {
+                const isUser = !preset.fixed;
+                const isActive =
+                  workMinutes === preset.work &&
+                  breakMinutes === preset.break &&
+                  longBreakMinutes === preset.longBreak &&
+                  sessionsCount === preset.sessions;
+                return (
+                  <div key={preset.id} className="relative flex items-center">
+                    <button
+                      className={`px-3 py-1 rounded-full border text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white border-primary' : 'bg-background border-muted-foreground text-muted-foreground hover:bg-muted'} mr-1`}
+                      onClick={() => {
+                        setWorkMinutes(preset.work);
+                        setBreakMinutes(preset.break);
+                        setLongBreakMinutes(preset.longBreak);
+                        setSessionsCount(preset.sessions);
+                      }}
+                    >
+                      {preset.name}
+                    </button>
+                    {isUser && (
+                      <button
+                        className="ml-[-8px] text-destructive text-xs hover:bg-destructive/10 rounded-full w-5 h-5 flex items-center justify-center"
+                        onClick={() => handleDeletePreset(preset.id)}
+                        title="Delete preset"
+                        tabIndex={-1}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+              {/* Add Preset Button or Input */}
+              {showAddPreset ? (
+                <form
+                  className="flex gap-2 items-center"
+                  onSubmit={e => {
+                    e.preventDefault();
+                    if (!newPresetName.trim()) return;
+                    handleAddPresetWithValues();
+                    setShowAddPreset(false);
+                  }}
+                >
+                  <input
+                    className="px-2 py-1 rounded border border-muted-foreground text-sm focus:outline-none"
+                    placeholder="New preset name"
+                    value={newPresetName}
+                    onChange={e => setNewPresetName(e.target.value)}
+                    style={{ minWidth: 120 }}
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    className="px-3 py-1 rounded-full border border-primary text-primary text-sm font-medium bg-background hover:bg-primary/10"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    className="px-2 py-1 rounded-full border border-muted-foreground text-muted-foreground text-sm font-medium bg-background hover:bg-muted"
+                    onClick={() => { setShowAddPreset(false); setNewPresetName(''); }}
+                  >
+                    Cancel
+                  </button>
+                </form>
+              ) : (
+                <button
+                  type="button"
+                  className="w-8 h-8 flex items-center justify-center rounded-full border border-primary text-primary bg-background hover:bg-primary/10 text-xl font-bold"
+                  title="Add new preset"
+                  onClick={() => setShowAddPreset(true)}
+                >
+                  +
+                </button>
+              )}
+            </div>
+          </div>
+          
           <div className="space-y-3">
             <div>
               <div className="flex items-center justify-between">
@@ -333,6 +602,11 @@ export function TimerSettings({ className }: TimerSettingsProps) {
           </div>
         </TabsContent>
       </Tabs>
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-primary text-white px-6 py-2 rounded shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

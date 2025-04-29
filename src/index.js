@@ -1,3 +1,6 @@
+import express from 'express';
+const app = express();
+
 // ... existing code ...
 // AI Assistant routes
 app.use('/api/ai', authenticateToken, aiRouter);
@@ -31,4 +34,9 @@ app.patch('/api/ai/session/:sessionId', authenticateToken, async (req, res) => {
   }
 });
 
-// ... existing code ... 
+// ... existing code ...
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

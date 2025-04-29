@@ -25,6 +25,7 @@ import useAuthStore from "./lib/auth";
 import { AIAssistantProvider } from "./components/ai-assistant/AIAssistantContext";
 import Profile from './pages/Profile';
 import SignupPage from "./pages/Signup";
+import { TaskStoreProvider } from './contexts/TaskStoreContext';
 
 const queryClient = new QueryClient();
 
@@ -59,66 +60,68 @@ const App = () => {
       <TooltipProvider>
         <ToastProvider>
           <AIAssistantProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AnimatePresence mode="wait">
-                <Routes>
-                  {/* Public Routes */}
-                  <Route
-                    path="/login"
-                    element={
-                      isAuthenticated ? (
-                        <Navigate to="/dashboard" replace />
-                      ) : (
-                        <LoginPage />
-                      )
-                    }
-                  />
-                  
-                  <Route
-                    path="/signup"
-                    element={
-                      isAuthenticated ? (
-                        <Navigate to="/dashboard" replace />
-                      ) : (
-                        <SignupPage />
-                      )
-                    }
-                  />
+            <TaskStoreProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <AnimatePresence mode="wait">
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route
+                      path="/login"
+                      element={
+                        isAuthenticated ? (
+                          <Navigate to="/dashboard" replace />
+                        ) : (
+                          <LoginPage />
+                        )
+                      }
+                    />
+                    
+                    <Route
+                      path="/signup"
+                      element={
+                        isAuthenticated ? (
+                          <Navigate to="/dashboard" replace />
+                        ) : (
+                          <SignupPage />
+                        )
+                      }
+                    />
 
-                  <Route
-                    path="/"
-                    element={
-                      isAuthenticated ? (
-                        <Navigate to="/dashboard" replace />
-                      ) : (
-                        <Navigate to="/login" replace />
-                      )
-                    }
-                  />
+                    <Route
+                      path="/"
+                      element={
+                        isAuthenticated ? (
+                          <Navigate to="/dashboard" replace />
+                        ) : (
+                          <Navigate to="/login" replace />
+                        )
+                      }
+                    />
 
-                  {/* Protected Routes */}
-                  <Route element={<ProtectedLayout />}>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/planner" element={<Planner />} />
-                    <Route path="/resources" element={<ResourcesHub />} />
-                    <Route path="/notes" element={<Notes />} />
-                    <Route path="/progress" element={<Progress />} />
-                    <Route path="/quizzes" element={<Quizzes />} />
-                    <Route path="/interview" element={<InterviewChatbot />} />
-                    <Route path="/ai-assistant" element={<AIAssistant />} />
-                    <Route path="/resume" element={<ResumeBuilder />} />
-                    <Route path="/placements" element={<PlacementTracker />} />
-                    <Route path="/focus-timer" element={<FocusTimer />} />
-                    <Route path="/profile" element={<Profile />} />
-                  </Route>
+                    {/* Protected Routes */}
+                    <Route element={<ProtectedLayout />}>
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/planner" element={<Planner />} />
+                      <Route path="/resources" element={<ResourcesHub />} />
+                      <Route path="/notes" element={<Notes />} />
+                      <Route path="/progress" element={<Progress />} />
+                      <Route path="/quizzes" element={<Quizzes />} />
+                      <Route path="/interview" element={<InterviewChatbot />} />
+                      <Route path="/ai-assistant" element={<AIAssistant />} />
+                      <Route path="/resume" element={<ResumeBuilder />} />
+                      <Route path="/placements" element={<PlacementTracker />} />
+                      <Route path="/focus-timer" element={<FocusTimer />} />
+                      <Route path="/profile" element={<Profile />} />
+                    </Route>
 
-                  {/* 404 Route */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </AnimatePresence>
-            </BrowserRouter>
+                    {/* 404 Route */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </AnimatePresence>
+              </BrowserRouter>
+            </TaskStoreProvider>
           </AIAssistantProvider>
         </ToastProvider>
       </TooltipProvider>
